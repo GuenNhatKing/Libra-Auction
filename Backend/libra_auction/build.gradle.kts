@@ -6,7 +6,7 @@ plugins {
 
 group = "io.github.guennhatking"
 version = "0.0.1-SNAPSHOT"
-description = "Demo project for Spring Boot"
+description = "An Online Auction System"
 
 java {
 	toolchain {
@@ -21,6 +21,7 @@ repositories {
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
+	implementation("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
