@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "io.github.guennhatking"
-version = "0.0.1-SNAPSHOT"
+version = "0.0.1"
 description = "An Online Auction System"
 
 java {
@@ -19,11 +19,15 @@ repositories {
 }
 
 dependencies {
+	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-	implementation("org.springframework.boot:spring-boot-starter-webmvc")
-	implementation("org.postgresql:postgresql")
+	implementation("org.springframework.boot:spring-boot-starter-liquibase")
+	implementation("org.projectlombok:lombok")
+
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+	
+	runtimeOnly("org.postgresql:postgresql")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
