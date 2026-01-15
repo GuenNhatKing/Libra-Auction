@@ -2,33 +2,42 @@ package io.github.guennhatking.libra_auction.model;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-
-@Entity
-@Table(name = "ket_qua_dau_gia")
 public class KetQuaDauGia {
-
-    @Id
-    @Column(name = "phien_dau_gia_id")
     private String phienDauGiaId;
-
-    @OneToOne
-    @MapsId
-    @JoinColumn(name = "phien_dau_gia_id")
-    private PhienDauGia phienDauGia;
-
-    @ManyToOne
-    @JoinColumn(name = "nguoi_thang_dau_gia_id")
-    private NguoiDung nguoiThang;
-
+    private String nguoiThangDauGiaId;
     private LocalDateTime thoiGianKetThuc;
     private Long giaTrungDauGia;
+
+    public String getPhienDauGiaId() {
+        return phienDauGiaId;
+    }
+
+    public void setPhienDauGiaId(String phienDauGiaId) {
+        this.phienDauGiaId = phienDauGiaId;
+    }
+
+    public String getNguoiThangDauGiaId() {
+        return nguoiThangDauGiaId;
+    }
+
+    public void setNguoiThangDauGiaId(String nguoiThangDauGiaId) {
+        this.nguoiThangDauGiaId = nguoiThangDauGiaId;
+    }
+
+    public LocalDateTime getThoiGianKetThuc() {
+        return thoiGianKetThuc;
+    }
+
+    public void setThoiGianKetThuc(LocalDateTime thoiGianKetThuc) {
+        this.thoiGianKetThuc = thoiGianKetThuc;
+    }
+
+    public Long getGiaTrungDauGia() {
+        return giaTrungDauGia;
+    }
+
+    public void setGiaTrungDauGia(Long giaTrungDauGia) {
+        this.giaTrungDauGia = giaTrungDauGia;
+    }
 }
 

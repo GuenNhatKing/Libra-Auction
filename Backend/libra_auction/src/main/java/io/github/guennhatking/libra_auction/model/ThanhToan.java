@@ -2,34 +2,68 @@ package io.github.guennhatking.libra_auction.model;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-
-@Entity
-@Table(name = "thanh_toan")
 public class ThanhToan {
-
-    @Id
-    @Column(length = 50)
     private String id;
-
-    @ManyToOne
-    @JoinColumn(name = "phien_dau_gia_id")
-    private PhienDauGia phienDauGia;
-
-    @ManyToOne
-    @JoinColumn(name = "nguoi_tra_id")
-    private NguoiDung nguoiTra;
-
-    @ManyToOne
-    @JoinColumn(name = "nguoi_nhan_id")
-    private NguoiDung nguoiNhan;
-
+    private String phienDauGiaId;
+    private String nguoiTraId;
+    private String nguoiNhanId;
     private Long soTien;
     private LocalDateTime thoiGianThanhToan;
     private Integer trangThai;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getPhienDauGiaId() {
+        return phienDauGiaId;
+    }
+
+    public void setPhienDauGiaId(String phienDauGiaId) {
+        this.phienDauGiaId = phienDauGiaId;
+    }
+
+    public String getNguoiTraId() {
+        return nguoiTraId;
+    }
+
+    public void setNguoiTraId(String nguoiTraId) {
+        this.nguoiTraId = nguoiTraId;
+    }
+
+    public String getNguoiNhanId() {
+        return nguoiNhanId;
+    }
+
+    public void setNguoiNhanId(String nguoiNhanId) {
+        this.nguoiNhanId = nguoiNhanId;
+    }
+
+    public Long getSoTien() {
+        return soTien;
+    }
+
+    public void setSoTien(Long soTien) {
+        this.soTien = soTien;
+    }
+
+    public LocalDateTime getThoiGianThanhToan() {
+        return thoiGianThanhToan;
+    }
+
+    public void setThoiGianThanhToan(LocalDateTime thoiGianThanhToan) {
+        this.thoiGianThanhToan = thoiGianThanhToan;
+    }
+
+    public Integer getTrangThai() {
+        return trangThai;
+    }
+
+    public void setTrangThai(Integer trangThai) {
+        this.trangThai = trangThai;
+    }
 }

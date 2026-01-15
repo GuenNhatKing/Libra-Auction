@@ -1,33 +1,68 @@
 package io.github.guennhatking.libra_auction.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-
-@Entity
-@Table(name = "tai_san")
 public class TaiSan {
-
-    @Id
-    @Column(length = 50)
     private String id;
-
-    @ManyToOne
-    @JoinColumn(name = "phien_dau_gia_id")
-    private PhienDauGia phienDauGia;
-
+    private String phienDauGiaId;
     private String tenTaiSan;
     private Integer soLuong;
-
-    @Column(columnDefinition = "text")
     private String moTa;
-
     private Boolean daBan;
+    private String danhMucId;
 
-    @ManyToOne
-    @JoinColumn(name = "danh_muc_id")
-    private DanhMuc danhMuc;
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getPhienDauGiaId() {
+        return phienDauGiaId;
+    }
+
+    public void setPhienDauGiaId(String phienDauGiaId) {
+        this.phienDauGiaId = phienDauGiaId;
+    }
+
+    public String getTenTaiSan() {
+        return tenTaiSan;
+    }
+
+    public void setTenTaiSan(String tenTaiSan) {
+        this.tenTaiSan = tenTaiSan;
+    }
+
+    public Integer getSoLuong() {
+        return soLuong;
+    }
+
+    public void setSoLuong(Integer soLuong) {
+        this.soLuong = soLuong;
+    }
+
+    public String getMoTa() {
+        return moTa;
+    }
+
+    public void setMoTa(String moTa) {
+        this.moTa = moTa;
+    }
+
+    public Boolean getDaBan() {
+        return daBan;
+    }
+
+    public void setDaBan(Boolean daBan) {
+        this.daBan = daBan;
+    }
+
+    public String getDanhMucId() {
+        return danhMucId;
+    }
+
+    public void setDanhMucId(String danhMucId) {
+        this.danhMucId = danhMucId;
+    }
 }
+

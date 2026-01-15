@@ -2,26 +2,50 @@ package io.github.guennhatking.libra_auction.model;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-
-@Entity
-@Table(name = "tien_coc")
 public class TienCoc {
-
-    @Id
-    @Column(length = 50)
     private String id;
-
-    @ManyToOne
-    @JoinColumn(name = "nguoi_tham_gia_id")
-    private NguoiDung nguoiThamGia;
-
+    private String nguoiThamGiaId;
     private Long soTien;
     private String trangThai;
     private LocalDateTime thoiGianThanhToan;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getNguoiThamGiaId() {
+        return nguoiThamGiaId;
+    }
+
+    public void setNguoiThamGiaId(String nguoiThamGiaId) {
+        this.nguoiThamGiaId = nguoiThamGiaId;
+    }
+
+    public Long getSoTien() {
+        return soTien;
+    }
+
+    public void setSoTien(Long soTien) {
+        this.soTien = soTien;
+    }
+
+    public String getTrangThai() {
+        return trangThai;
+    }
+
+    public void setTrangThai(String trangThai) {
+        this.trangThai = trangThai;
+    }
+
+    public LocalDateTime getThoiGianThanhToan() {
+        return thoiGianThanhToan;
+    }
+
+    public void setThoiGianThanhToan(LocalDateTime thoiGianThanhToan) {
+        this.thoiGianThanhToan = thoiGianThanhToan;
+    }
 }

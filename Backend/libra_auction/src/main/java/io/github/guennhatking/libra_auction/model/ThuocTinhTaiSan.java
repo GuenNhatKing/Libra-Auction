@@ -1,24 +1,40 @@
 package io.github.guennhatking.libra_auction.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-
-@Entity
-@Table(name = "thuoc_tinh_tai_san")
 public class ThuocTinhTaiSan {
-
-    @Id
-    @Column(length = 50)
     private String id;
-
-    @ManyToOne
-    @JoinColumn(name = "tai_san_id")
-    private TaiSan taiSan;
-
+    private String taiSanId;
     private String thuocTinh;
     private String giaTri;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getTaiSanId() {
+        return taiSanId;
+    }
+
+    public void setTaiSanId(String taiSanId) {
+        this.taiSanId = taiSanId;
+    }
+
+    public String getThuocTinh() {
+        return thuocTinh;
+    }
+
+    public void setThuocTinh(String thuocTinh) {
+        this.thuocTinh = thuocTinh;
+    }
+
+    public String getGiaTri() {
+        return giaTri;
+    }
+
+    public void setGiaTri(String giaTri) {
+        this.giaTri = giaTri;
+    }
 }
