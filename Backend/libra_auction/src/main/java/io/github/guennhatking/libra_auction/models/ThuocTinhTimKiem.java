@@ -8,7 +8,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-
 @Entity
 @Table(name = "thuoc_tinh_tim_kiem")
 @Getter

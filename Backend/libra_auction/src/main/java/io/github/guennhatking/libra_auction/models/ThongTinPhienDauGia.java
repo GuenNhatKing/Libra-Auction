@@ -10,7 +10,6 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-
 @Entity
 @Table(name = "thong_tin_phien_dau_gia")
 @Getter
@@ -25,7 +24,6 @@ public class ThongTinPhienDauGia {
     @MapsId
     @JoinColumn(name = "phien_dau_gia_id")
     private PhienDauGia phienDauGia;
-
     private String loaiDauGia;
     private Long tienCoc;
     private Long mucGia;
