@@ -1,51 +1,37 @@
 package io.github.guennhatking.libra_auction.model;
 
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "ban_ghi_phien_dau_gia")
+@Data 
+@Getter
+@Setter
 public class BanGhiPhienDauGia {
+
+    @Id
+    @Column(length = 50)
     private String id;
-    private String phienDauGiaId;
-    private String nguoiTraGiaId;
-    private Long giaTra;
-    private LocalDateTime thoiGianTra;
 
-    public String getId() {
-        return id;
-    }
+    @ManyToOne
+    @JoinColumn(name = "phien_dau_gia_id", nullable = false)
+    private PhienDauGia phienDauGia;
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    @ManyToOne
+    @JoinColumn(name = "nguoi_dat_gia_id", nullable = false)
+    private NguoiDung nguoiDatGia;
 
-    public String getPhienDauGiaId() {
-        return phienDauGiaId;
-    }
+    @Column(name = "gia_dat", nullable = false)
+    private Long giaDat;
 
-    public void setPhienDauGiaId(String phienDauGiaId) {
-        this.phienDauGiaId = phienDauGiaId;
-    }
+    @Column(name = "thoi_gian_dat")
+    private LocalDateTime thoiGianDat;
 
-    public String getNguoiTraGiaId() {
-        return nguoiTraGiaId;
-    }
-
-    public void setNguoiTraGiaId(String nguoiTraGiaId) {
-        this.nguoiTraGiaId = nguoiTraGiaId;
-    }
-
-    public Long getGiaTra() {
-        return giaTra;
-    }
-
-    public void setGiaTra(Long giaTra) {
-        this.giaTra = giaTra;
-    }
-
-    public LocalDateTime getThoiGianTra() {
-        return thoiGianTra;
-    }
-
-    public void setThoiGianTra(LocalDateTime thoiGianTra) {
-        this.thoiGianTra = thoiGianTra;
-    }
+    @Column(name = "trang_thai_ghi_de")
+    private Boolean trangThaiGhiDe; 
 }
