@@ -1,4 +1,6 @@
-package io.github.guennhatking.libra_auction.model;
+package io.github.guennhatking.libra_auction.models;
+
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,19 +12,21 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "thuoc_tinh_tim_kiem")
+@Table(name = "thu_bao_mat")
 @Getter
 @Setter
-public class ThuocTinhTimKiem {
+public class ThuBaoMat {
 
     @Id
     @Column(length = 50)
     private String id;
 
-    private String thuocTinh;
-    private String giaTri;
-
     @ManyToOne
-    @JoinColumn(name = "tai_san_id")
-    private TaiSan taiSan;
+    @JoinColumn(name = "thu_id")
+    private Thu thu;
+
+    private String token;
+    private Integer yeuCau;
+    private LocalDateTime thoiGianHetHan;
+    private Integer trangThai;
 }

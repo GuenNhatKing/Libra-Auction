@@ -1,4 +1,4 @@
-package io.github.guennhatking.libra_auction.model;
+package io.github.guennhatking.libra_auction.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
