@@ -24,14 +24,22 @@ public class ThongTinPhienDauGia {
     @MapsId
     @JoinColumn(name = "phien_dau_gia_id")
     private PhienDauGia phienDauGia;
+
+    @Column(name = "loai_dau_gia")
     private String loaiDauGia;
+
+    @Column(name = "tien_coc")
     private Long tienCoc;
+
+    @Column(name = "muc_gia")
     private Long mucGia;
+
+    @Column(name = "gia_khoi_diem")
     private Long giaKhoiDiem;
 
     @Column(columnDefinition = "text")
-    private String moTa;
 
+    private String moTa;
     private String tieuDe;
 
     @ManyToOne
