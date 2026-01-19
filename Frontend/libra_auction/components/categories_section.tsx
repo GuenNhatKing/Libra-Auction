@@ -12,7 +12,7 @@ export default function CategoriesSection() {
       </div>
       <div className="flex gap-5 justify-center pt-6 px-12">
         {cards.map((card) => {
-          return <CategoryCard key={card.title} card={card} />;
+          return <CategoryCard key={card.id} card={card} />;
         })}
       </div>
     </div>
