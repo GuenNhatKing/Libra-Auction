@@ -18,6 +18,12 @@ public class BanGhiPhienDauGia {
     @Column(length = 50)
     private String id;
 
+    @Column(name = "muc_gia")
+    private Long mucGia;
+
+    @Column(name = "thoi_gian")
+    private LocalDateTime thoiGian;
+
     @ManyToOne
     @JoinColumn(name = "phien_dau_gia_id", nullable = false)
     private PhienDauGia phienDauGia;
@@ -26,12 +32,5 @@ public class BanGhiPhienDauGia {
     @JoinColumn(name = "nguoi_dat_gia_id", nullable = false)
     private NguoiDung nguoiDatGia;
 
-    @Column(name = "gia_dat", nullable = false)
-    private Long giaDat;
-
-    @Column(name = "thoi_gian_dat")
-    private LocalDateTime thoiGianDat;
-
-    @Column(name = "trang_thai_ghi_de")
-    private Boolean trangThaiGhiDe; 
+    
 }
