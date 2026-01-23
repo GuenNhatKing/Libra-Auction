@@ -17,7 +17,7 @@ export default function Header() {
   ];
   return (
     <div className="px-8 py-4 flex bg-white shadow-md">
-        <Logo />
+        <Logo textColor="color" />
         <Nav items={navItems} />
         <UserAction items={userActionItems} />
     </div>

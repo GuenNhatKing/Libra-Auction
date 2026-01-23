@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/header";
+import Footer from "@/components/footer";
 export const metadata: Metadata = {
   title: "Libra Auction",
   description: "An Online Auction System",
@@ -21,6 +22,9 @@ export default function RootLayout({
           <div id="page" className="pt-(--header-height)">
             {children}
           </div>
+          <footer>
+            <Footer/>
+          </footer>
         </body>
       </html>
     </>
