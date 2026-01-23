@@ -1,12 +1,14 @@
 import HomeBanner from "@/components/home_banner";
 import CategoriesSection from "@/components/categories_section";
 import LiveAuctionsSection from "@/components/live_auctions_section";
+import NewListingsSection from "@/components/new_listings_section";
 export default function page() {
     return (
         <>
             <HomeBanner/>
             <CategoriesSection/>
             <LiveAuctionsSection/>
+            <NewListingsSection/>
         </>
     );
 }
