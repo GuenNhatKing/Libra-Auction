@@ -25,4 +25,25 @@ public class Enums {
         CHO_XAC_THUC
     }
 
+    public enum TrangThaiYeuCau {
+        KHOI_TAO,
+        DANG_XU_LY,
+        HOAN_THANH,
+        DANG_SU_DUNG,
+        BI_TU_CHOI
+    }
+
+    public enum TrangThaiDauGia {
+        CHO_BAT_DAU,
+        DANG_DIEN_RA,
+        KET_THUC
+    }
+
+    public enum LoaiYeuCau {
+        XAC_THUC_EMAIL,
+        QUEN_MAT_KHAU,
+        HO_TRO_KHACH_HANG,
+        OTP
+    }
+
 }
