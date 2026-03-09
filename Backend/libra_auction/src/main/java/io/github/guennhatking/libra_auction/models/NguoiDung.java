@@ -3,6 +3,7 @@ package io.github.guennhatking.libra_auction.models;
 import io.github.guennhatking.libra_auction.enums.Enums;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 
 import java.time.LocalDateTime;
