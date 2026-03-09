@@ -6,7 +6,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 
-// abstract class
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class TaiKhoan {
@@ -38,5 +37,13 @@ public abstract class TaiKhoan {
 
     public String getUsername() {
         return username;
+    }
+
+    public Enums.TrangThaiTaiKhoan getTrangThai() {
+        return trangThai;
+    }
+
+    public void setTrangThai(Enums.TrangThaiTaiKhoan trangThai) {
+        this.trangThai = trangThai;
     }
 }
