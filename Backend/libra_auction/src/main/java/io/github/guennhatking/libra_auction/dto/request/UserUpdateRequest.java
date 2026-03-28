@@ -1,8 +1,9 @@
 package io.github.guennhatking.libra_auction.dto.request;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.Set;
 
+import io.github.guennhatking.libra_auction.models.Role;
 import io.github.guennhatking.libra_auction.validator.DobConstraint;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -19,5 +20,5 @@ public class UserUpdateRequest {
     @DobConstraint(min = 18, message = "INVALID_DOB")
     LocalDate dob;
 
-    List<String> roles;
+    Set<Role> roles;
 }

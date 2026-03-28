@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.Set;
 
 import io.github.guennhatking.libra_auction.enums.Enums;
+import io.github.guennhatking.libra_auction.models.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,5 +26,5 @@ public class UserResponse {
 
     Enums.TrangThaiEmail trangThaiEmail;
     Enums.TrangThaiTaiKhoan trangThaiTaiKhoan;
-    Set roles;
+    Set<Role> roles;
 }

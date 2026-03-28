@@ -2,6 +2,8 @@ package io.github.guennhatking.libra_auction.dto.response;
 
 import java.util.Set;
 
+import io.github.guennhatking.libra_auction.models.Permission;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +18,6 @@ import lombok.experimental.FieldDefaults;
 public class RoleResponse {
     String name;
     String description;
-    Set<PermissionResponse> permissions;
+    Set<Permission> permissions;
 }
 
