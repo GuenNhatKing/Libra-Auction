@@ -12,6 +12,7 @@ import io.github.guennhatking.libra_auction.models.TaiKhoanPassword;
 import io.github.guennhatking.libra_auction.repos.NguoiDungRepository;
 import io.github.guennhatking.libra_auction.repos.TaiKhoanRepository;
 import io.github.guennhatking.libra_auction.repos.TaiKhoanPasswordRepository;
+import io.github.guennhatking.libra_auction.repos.RoleRepository;
 import io.github.guennhatking.libra_auction.dto.request.AuthenticationRequest;
 
 import com.nimbusds.jose.JOSEException;
@@ -26,6 +27,9 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.oauth2.sdk.ParseException;
 
+import java.util.UUID;
+import java.util.Collections;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
@@ -33,12 +37,17 @@ import java.util.StringJoiner;
 import java.util.UUID;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -51,6 +60,9 @@ public class AuthenticationService {
     
     @Autowired
     private TaiKhoanPasswordRepository taiKhoanPasswordRepository;
+    
+    @Autowired
+    private RoleRepository roleRepository;
     
 
     @Value("${jwt.signerKey}")
@@ -259,12 +271,39 @@ public class AuthenticationService {
         NguoiDung user = NguoiDung.builder()
                 .hoVaTen(request.getFullName())
                 .email(request.getEmail())
+                .soDienThoai(request.getSoDienThoai())
+                .CCCD(request.getCCCD())
                 .trangThaiEmail(io.github.guennhatking.libra_auction.enums.Enums.TrangThaiEmail.CHO_XAC_THUC)
                 .trangThaiTaiKhoan(io.github.guennhatking.libra_auction.enums.Enums.TrangThaiTaiKhoan.CHO_XAC_NHAN)
                 .thoiGianTao(java.time.LocalDateTime.now())
                 .build();
         
         user = nguoiDungRepository.save(user);
+
+        // Assign default USER role
+        var userRole = roleRepository.findById("USER");
+        if (userRole.isPresent()) {
+            java.util.List<io.github.guennhatking.libra_auction.models.Role> roles = new java.util.ArrayList<>();
+            roles.add(userRole.get());
+            user.setRoles(roles);
+            user = nguoiDungRepository.save(user);
+            log.info("Assigned USER role to user: {}", user.getId());
+        } else {
+            log.warn("USER role not found in database. Skipping role assignment.");
+        }
+
+        // Handle profile image upload
+        if (request.getAnhDaiDien() != null && !request.getAnhDaiDien().isEmpty()) {
+            try {
+                String imagePath = uploadProfileImage(user.getId(), request.getAnhDaiDien());
+                user.setAnhDaiDien(imagePath);
+                user = nguoiDungRepository.save(user);
+                log.info("Uploaded profile image for user: {}", user.getId());
+            } catch (IOException e) {
+                log.warn("Failed to upload profile image for user: {}", user.getId(), e);
+                // Continue without image, don't fail the signup
+            }
+        }
 
         // Create TaiKhoanPassword using constructor
         TaiKhoanPassword taiKhoan = new TaiKhoanPassword(
@@ -277,11 +316,37 @@ public class AuthenticationService {
         
         taiKhoanPasswordRepository.save(taiKhoan);
 
-        // Return user response
+        // Return user response with all fields
         return UserResponse.builder()
                 .id(user.getId())
                 .hoVaTen(user.getHoVaTen())
+                .soDienThoai(user.getSoDienThoai())
+                .CCCD(user.getCCCD())
                 .email(user.getEmail())
+                .anhDaiDien(user.getAnhDaiDien())
+                .trangThaiEmail(user.getTrangThaiEmail())
+                .trangThaiTaiKhoan(user.getTrangThaiTaiKhoan())
+                .roles(user.getRoles() != null ? user.getRoles().stream().collect(java.util.stream.Collectors.toSet()) : java.util.Collections.emptySet())
                 .build();
+    }
+
+    private String uploadProfileImage(String userId, MultipartFile file) throws IOException {
+        // Create uploads directory if it doesn't exist
+        Path uploadsDir = Paths.get("uploads/profile-images").toAbsolutePath();
+        Files.createDirectories(uploadsDir);
+
+        // Generate unique filename
+        String originalFilename = file.getOriginalFilename();
+        String fileExtension = originalFilename != null && originalFilename.contains(".")
+                ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                : ".jpg";
+        String uniqueFilename = userId + "_" + System.currentTimeMillis() + fileExtension;
+
+        // Save file
+        Path filePath = uploadsDir.resolve(uniqueFilename);
+        Files.write(filePath, file.getBytes());
+
+        // Return relative path for storing in database
+        return "uploads/profile-images/" + uniqueFilename;
     }
 }

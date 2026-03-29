@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @NoArgsConstructor
@@ -20,4 +21,10 @@ public class SignupRequest {
     String email;
 
     String fullName;
+    
+    String soDienThoai;
+    
+    String CCCD;
+    
+    MultipartFile anhDaiDien;
 }

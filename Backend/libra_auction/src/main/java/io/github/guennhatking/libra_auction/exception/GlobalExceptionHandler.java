@@ -27,6 +27,7 @@ public class GlobalExceptionHandler {
         log.error("=== UNCAUGHT EXCEPTION ===", exception);
         log.error("Exception Type: {}", exception.getClass().getName());
         log.error("Exception Message: {}", exception.getMessage());
+        log.error("Stack Trace: ", exception);
         
         return ResponseEntity.badRequest().body(ApiResponse.builder()
                 .message(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage())
