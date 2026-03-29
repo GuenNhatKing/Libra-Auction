@@ -1,11 +1,13 @@
 # Liquibase changelog placeholder
 # Add your database migrations here
 databaseChangeLog:
-  # Example changeSet structure (uncomment and modify as needed):
-  # - changeSet:
-  #     id: 001-example
-  #     author: your-name
-  #     changes:
-  #       - sql:
-  #           sql: |
-  #             -- Your SQL statements here
+  - changeSet:
+      id: 002-insert-default-roles
+      author: system
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO role (name, description) VALUES ('USER', 'Regular user - can participate in auctions');
+              INSERT INTO role (name, description) VALUES ('SELLER', 'Seller - can create and manage auctions');
+              INSERT INTO role (name, description) VALUES ('ADMIN', 'Administrator - full access to system');
+            splitStatements: false

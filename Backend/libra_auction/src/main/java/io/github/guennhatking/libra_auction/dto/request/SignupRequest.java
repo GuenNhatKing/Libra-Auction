@@ -2,14 +2,14 @@ package io.github.guennhatking.libra_auction.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-import lombok.experimental.FieldDefaults;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class SignupRequest {
     @Size(min = 3, message = "USERNAME_INVALID")
     String username;
@@ -21,4 +21,10 @@ public class SignupRequest {
     String email;
 
     String fullName;
+    
+    String soDienThoai;
+    
+    String CCCD;
+    
+    MultipartFile anhDaiDien;
 }
