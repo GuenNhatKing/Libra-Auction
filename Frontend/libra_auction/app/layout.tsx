@@ -14,18 +14,8 @@ export default function RootLayout({
 }>) {
   return (
     <>
-      <html lang="en">
-        <body className="flex flex-col min-h-screen">
-          <header className="fixed w-full z-(--header-z-index)">
-            <Header />
-          </header>
-          <div id="page" className="pt-(--header-height) flex-1">
-            {children}
-          </div>
-          <footer className="mt-auto">
-            <Footer/>
-          </footer>
-        </body>
+      <html lang="en" className="mdl-js">
+        <body>{children}</body>
       </html>
     </>
   );

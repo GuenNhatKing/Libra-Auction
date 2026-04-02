@@ -2,8 +2,18 @@
 import HideIcon from "@/public/hide.png";
 import ShowIcon from "@/public/view.png";
 import Image from "next/image";
-import { useState } from "react";
-export default function PasswordInput({ name, placeholder }: { name: string, placeholder: string}) {
+import { FormEvent, useState } from "react";
+export default function PasswordInput({
+  name,
+  placeholder,
+  value,
+  onChange,
+}: {
+  name: string;
+  placeholder: string;
+  value: string;
+  onChange: (e: FormEvent) => void;
+}) {
   const [ShowPassword, setShowPassword] = useState(false);
   const ShowPasswordHandle = () => {
     setShowPassword(!ShowPassword);
@@ -13,8 +23,10 @@ export default function PasswordInput({ name, placeholder }: { name: string, pla
       <input
         id={`${name}-passwordField`}
         type={ShowPassword ? "text" : "password"}
+        value={value}
+        onChange={onChange}
         placeholder={placeholder}
-        className="col-start-1 row-start-1 bg-white border rounded-sm px-4 py-4 capitalize focus:outline-(--primary-color)"
+        className="col-start-1 row-start-1 bg-white border rounded-sm px-4 py-4 focus:outline-(--primary-color)"
       />
       <div className="col-start-1 row-start-1 ml-auto flex px-4">
         <button
