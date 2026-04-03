@@ -20,11 +20,14 @@ export async function signUp(fullName: string, username: string, email: string, 
         if (!res.ok) {
             onFailed(data.message);
         }
-        else if (res.status === 200) {
+        else if (res.status === 200 || res.status === 201) {
+            console.log("Success failed");
             onSuccess();
+            console.log("Success failed");
         }
     }
     catch (error) {
+        console.log(error);
         onFailed("Internal server error");
     }
 }

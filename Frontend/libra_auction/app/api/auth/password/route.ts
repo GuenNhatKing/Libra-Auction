@@ -4,7 +4,7 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { username, password } = body;
-        const res = await fetch(process.env.BACKEND_SERVER_URL! + '/identity/signin/password', {
+        const res = await fetch(process.env.BACKEND_SERVER_URL! + '/auth/signin', {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'

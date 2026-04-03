@@ -11,7 +11,7 @@ export async function GET(request: NextRequest, { params }: {
     if (provider === 'google') {
         const code = searchParams.get('code')
         try {
-            const res = await fetch(process.env.BACKEND_SERVER_URL! + '/identity/signin/google', {
+            const res = await fetch(process.env.BACKEND_SERVER_URL! + '/auth/google', {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json'
