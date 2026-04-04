@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-yeu-cau-otp-id-column-to-yeu-cau-xac-thuc-email
+      author: system
+      changes:
+        - addColumn:
+            tableName: yeu_cau_xac_thuc_email
+            columns:
+              - column:
+                  name: yeu_cau_otp_id
+                  type: BIGINT

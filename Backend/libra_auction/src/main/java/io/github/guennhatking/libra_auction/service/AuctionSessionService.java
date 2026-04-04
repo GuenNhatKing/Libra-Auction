@@ -38,14 +38,23 @@ public class AuctionSessionService {
     public AuctionSessionResponse createAuctionSession(AuctionSessionCreateRequest request) {
         log.info("Creating new auction session");
 
-        // Get current user ID from authentication context
-        String userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("Current authenticated user ID: {}", userId);
-        
-        NguoiDung nguoiTao = nguoiDungRepository.findById(userId).orElse(null);
-        if (nguoiTao == null) {
-            log.error("User with ID {} not found", userId);
-            throw new AppException(ErrorCode.USER_NOT_EXISTED);
+        // Get current user ID from authentication context - allow null/anonymous
+        NguoiDung nguoiTao = null;
+        try {
+            var auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+                String userId = auth.getName();
+                log.info("Current authenticated user ID: {}", userId);
+                nguoiTao = nguoiDungRepository.findById(userId).orElse(null);
+                if (nguoiTao == null) {
+                    log.error("User with ID {} not found", userId);
+                    throw new AppException(ErrorCode.USER_NOT_EXISTED);
+                }
+            } else {
+                log.warn("No authenticated user - proceeding as anonymous");
+            }
+        } catch (Exception ex) {
+            log.error("Error getting user from security context: {}", ex.getMessage());
         }
 
         // Get product
@@ -55,7 +64,7 @@ public class AuctionSessionService {
         // Create auction session
         PhienDauGia phienDauGia = auctionSessionMapper.toAuctionSession(request);
         phienDauGia.setTaiSan(taiSan);
-        phienDauGia.setNguoiTao(nguoiTao);
+        phienDauGia.setNguoiTao(nguoiTao);  // Can be null for anonymous sessions
         phienDauGia.setThoiGianTao(LocalDateTime.now());
         phienDauGia.setTrangThaiPhien(Enums.TrangThaiPhien.CHUA_BAT_DAU);
         phienDauGia.setTrangThaiKiemDuyet(Enums.TrangThaiKiemDuyet.CHUA_DUYET);

@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-yeu-cau-otp-id-column
+      author: system
+      changes:
+        - addColumn:
+            tableName: yeu_cau_dat_lai_mat_khau
+            columns:
+              - column:
+                  name: yeu_cau_otp_id
+                  type: BIGINT
