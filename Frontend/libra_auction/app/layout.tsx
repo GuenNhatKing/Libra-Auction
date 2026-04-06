@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Header from "@/components/header";
-import Footer from "@/components/footer";
 export const metadata: Metadata = {
   title: "Libra Auction",
   description: "An Online Auction System",
@@ -13,10 +11,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <>
-      <html lang="en" className="mdl-js">
-        <body>{children}</body>
-      </html>
-    </>
+    <html lang="en" className="mdl-js">
+      <body>{children}</body>
+    </html>
   );
 }
