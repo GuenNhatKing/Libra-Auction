@@ -9,7 +9,6 @@ import io.github.guennhatking.libra_auction.viewmodels.request.SignupFormRequest
 import io.github.guennhatking.libra_auction.viewmodels.request.SignupRequest;
 import io.github.guennhatking.libra_auction.viewmodels.response.JwtResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.TokenResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,13 +17,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import java.util.Map;
 
 @RestController
-@RequestMapping({"/auth", "/identity"})
+@RequestMapping("/auth")
 public class AuthController {
     private final AuthenticationService authenticationService;
 
@@ -39,16 +36,12 @@ public class AuthController {
     }
 
     @PostMapping(value = "/signup", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_FORM_URLENCODED_VALUE})
-    public ResponseEntity<JwtResponse> signup(@RequestParam Map<String, String> formFields,
-                                              HttpServletRequest servletRequest) throws Exception {
+    public ResponseEntity<JwtResponse> signup(@RequestParam Map<String, String> formFields) throws Exception {
         SignupFormRequest request = new SignupFormRequest();
         request.setUsername(resolveField(formFields, "username"));
         request.setPassword(resolveField(formFields, "password"));
         request.setEmail(resolveField(formFields, "email"));
         request.setFullName(resolveField(formFields, "fullName"));
-        request.setSoDienThoai(resolveField(formFields, "soDienThoai"));
-        request.setCCCD(resolveField(formFields, "CCCD"));
-        request.setAnhDaiDien(resolveFile(servletRequest, "anhDaiDien"));
 
         JwtResponse response = authenticationService.signup(request);
         return ResponseEntity.ok(response);
@@ -60,11 +53,6 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/signin/password")
-    public ResponseEntity<JwtResponse> signinWithPassword(@Valid @RequestBody SigninRequest request) throws Exception {
-        return signin(request);
-    }
-
     @PostMapping(value = "/signin", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     public ResponseEntity<JwtResponse> signin(@RequestParam Map<String, String> formFields) throws Exception {
         SigninFormRequest request = new SigninFormRequest();
@@ -73,11 +61,6 @@ public class AuthController {
 
         JwtResponse response = authenticationService.signin(new SigninRequest(request.getUsername(), request.getPassword()));
         return ResponseEntity.ok(response);
-    }
-
-    @PostMapping(value = "/signin/password", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_FORM_URLENCODED_VALUE})
-    public ResponseEntity<JwtResponse> signinWithPassword(@RequestParam Map<String, String> formFields) throws Exception {
-        return signin(formFields);
     }
 
     @PostMapping("/google")
@@ -98,18 +81,6 @@ public class AuthController {
             value = formFields.get('"' + fieldName + '"');
         }
         return normalizeValue(value);
-    }
-
-    private MultipartFile resolveFile(HttpServletRequest request, String fieldName) {
-        if (!(request instanceof MultipartHttpServletRequest multipartRequest)) {
-            return null;
-        }
-
-        MultipartFile file = multipartRequest.getFile(fieldName);
-        if (file == null) {
-            file = multipartRequest.getFile('"' + fieldName + '"');
-        }
-        return file;
     }
 
     private String normalizeValue(String value) {
