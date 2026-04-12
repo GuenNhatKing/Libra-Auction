@@ -21,8 +21,7 @@ public class CategoryService {
             .map(category -> new CategoryResponse(
                 category.getId(),
                 category.getHinhAnh(),
-                category.getTenDanhMuc(),
-                "/auctions/" + category.getId()
+                category.getTenDanhMuc()
             ))
             .toList();
     }

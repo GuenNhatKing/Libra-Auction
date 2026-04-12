@@ -21,12 +21,11 @@ public class ImageUploadService {
     public ImageUploadResponse uploadImage(MultipartFile file, String folder) throws Exception {
         validateImage(file);
 
-        Map<String, Object> uploadOptions = new LinkedHashMap<>(ObjectUtils.asMap(
-                "resource_type", "image",
-                "use_filename", true,
-                "unique_filename", false,
-                "overwrite", true
-        ));
+        Map<String, Object> uploadOptions = new LinkedHashMap<>();
+        uploadOptions.put("resource_type", "image");
+        uploadOptions.put("use_filename", true);
+        uploadOptions.put("unique_filename", false);
+        uploadOptions.put("overwrite", true);
 
         if (folder != null && !folder.isBlank()) {
             uploadOptions.put("folder", normalizeFolder(folder));
@@ -36,10 +35,9 @@ public class ImageUploadService {
         String publicId = String.valueOf(uploadResult.get("public_id"));
 
         Map<?, ?> assetDetails = cloudinary.api().resource(publicId, ObjectUtils.asMap(
-                "quality_analysis", true
-        ));
+                "quality_analysis", true));
 
-        Transformation transformation = new Transformation()
+        Transformation<?> transformation = new Transformation<>()
                 .crop("pad")
                 .width(300)
                 .height(400)
@@ -64,8 +62,7 @@ public class ImageUploadService {
                 longValue(uploadResult.get("bytes")),
                 transformedUrl,
                 transformedImageTag,
-                toStringObjectMap(assetDetails)
-        );
+                toStringObjectMap(assetDetails));
     }
 
     private void validateImage(MultipartFile file) {
