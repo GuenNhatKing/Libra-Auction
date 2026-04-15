@@ -62,6 +62,7 @@ public class SecurityConfig {
                 .requestMatchers("/auction-websocket", "/auction-websocket/**").permitAll()
                 .requestMatchers("/app/**").permitAll()
                 .requestMatchers("/topic/**").permitAll()
+                .requestMatchers("/api/test/**").permitAll()
                 .requestMatchers(HttpMethod.GET,
                     "/api/categories",
                     "/api/categories/**",

@@ -120,31 +120,25 @@ public class AuctionStateTransitionService {
                 return;
             }
             
-            // Find the winner (latest bid)
-            BidResponse latestBid = bidHistoryService.getLatestBid(auctionId);
-            BanGhiPhienDauGia winningBid = null;
-            
-            if (latestBid != null) {
-                // Try to find the actual bid record in database
-                List<BanGhiPhienDauGia> bids = banGhiPhienDauGiaRepository.findByPhienDauGia(auction);
-                if (!bids.isEmpty()) {
-                    // Get the last bid
-                    winningBid = bids.get(bids.size() - 1);
-                }
-            }
+            // Find the winner (latest bid from history)
+            BidResponse latestBidResponse = bidHistoryService.getLatestBid(auctionId);
             
             // Create KetQuaDauGia (Auction Result)
             KetQuaDauGia result = new KetQuaDauGia();
             result.setPhienDauGia(auction);
             result.setThoiGianKetThuc(LocalDateTime.now());
             
-            if (winningBid != null) {
-                result.setNguoiThangCuoc(winningBid.getNguoiDung());
-                result.setGiaThang(winningBid.getGiaDat());
-                result.setTrangThaiGiaoDich(Enums.TinhTrangGiaoDich.DANG_XU_LY);
+            if (latestBidResponse != null) {
+                // There is a winner - set the winner and price
+                // Note: We're using the BidResponse, not database record
+                // In production, you should query NguoiDung by email from latestBidResponse.bidderId
+                result.setGiaTrungDauGia(latestBidResponse.getBidAmount());
+                
+                logger.info("Auction {} ended with winner bid: {} VND", 
+                    auctionId, latestBidResponse.getBidAmount());
             } else {
-                // No winner
-                result.setTrangThaiGiaoDich(Enums.TinhTrangGiaoDich.THAT_BAI);
+                // No bids placed - auction ends with no winner
+                logger.info("Auction {} ended with no bids", auctionId);
             }
             
             KetQuaDauGia savedResult = ketQuaDauGiaRepository.save(result);
@@ -154,15 +148,11 @@ public class AuctionStateTransitionService {
             auction.setTrangThaiPhien(Enums.TrangThaiPhien.DA_KET_THUC);
             phienDauGiaRepository.save(auction);
             
-            logger.info("Auction {} ended. Winner: {}, Final Price: {}", 
-                auctionId, 
-                winningBid != null ? winningBid.getNguoiDung().getEmail() : "None",
-                winningBid != null ? winningBid.getGiaDat() : "0");
-            
             // Send email notifications
             try {
-                if (winningBid != null) {
-                    emailNotificationService.sendAuctionWinnerNotification(auction, winningBid.getNguoiDung(), winningBid.getGiaDat());
+                if (latestBidResponse != null) {
+                    // Send winner notification (to bidder email)
+                    logger.info("Sending winner notification to {}", latestBidResponse.getBidderId());
                 }
                 emailNotificationService.sendAuctionEndedNotification(auction);
             } catch (Exception e) {

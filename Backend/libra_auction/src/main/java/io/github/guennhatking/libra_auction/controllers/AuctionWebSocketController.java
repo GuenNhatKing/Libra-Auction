@@ -368,7 +368,7 @@ public class AuctionWebSocketController {
                 Long currentEndTimeMillis = auctionStateRedisService.getAuctionEndTime(auctionId);
                 if (currentEndTimeMillis != null) {
                     // Calculate new end time (5 minutes later)
-                    LocalDateTime currentEndTime = new java.time.Instant(java.time.Instant.ofEpochMilli(currentEndTimeMillis)).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
+                    LocalDateTime currentEndTime = java.time.Instant.ofEpochMilli(currentEndTimeMillis).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
                     LocalDateTime newEndTime = currentEndTime.plusMinutes(EXTENSION_MINUTES);
                     
                     // Update Redis with new end time

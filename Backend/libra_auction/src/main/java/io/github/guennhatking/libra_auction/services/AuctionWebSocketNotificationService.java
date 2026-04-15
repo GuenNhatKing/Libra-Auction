@@ -55,7 +55,7 @@ public class AuctionWebSocketNotificationService {
             notification.put("message", "Phiên đấu giá đã được gia hạn thêm 5 phút");
             
             messagingTemplate.convertAndSend(
-                "/topic/auction/" + auctionId + "/status",
+                (Object) ("/topic/auction/" + auctionId + "/status"),
                 notification
             );
             logger.info("Auction extension notification sent for auction {}, new end time: {}", auctionId, newEndTime);
@@ -78,7 +78,7 @@ public class AuctionWebSocketNotificationService {
             notification.put("timestamp", LocalDateTime.now());
             
             messagingTemplate.convertAndSend(
-                "/topic/auction/" + auctionId + "/status",
+                (Object) ("/topic/auction/" + auctionId + "/status"),
                 notification
             );
             logger.debug("Status change notification sent for auction {}: {}", auctionId, status);
@@ -101,7 +101,7 @@ public class AuctionWebSocketNotificationService {
             notification.put("message", "Phiên đấu giá sắp kết thúc! Bạn còn " + minutesRemaining + " phút.");
             
             messagingTemplate.convertAndSend(
-                "/topic/auction/" + auctionId + "/warning",
+                (Object) ("/topic/auction/" + auctionId + "/warning"),
                 notification
             );
             logger.debug("Final minutes warning sent for auction {}", auctionId);
@@ -122,7 +122,7 @@ public class AuctionWebSocketNotificationService {
             notification.put("message", "Phiên đấu giá sắp kết thúc!");
             
             messagingTemplate.convertAndSend(
-                "/topic/auction/" + auctionId + "/status",
+                (Object) ("/topic/auction/" + auctionId + "/status"),
                 notification
             );
             logger.debug("Auction ending notification sent for auction {}", auctionId);
