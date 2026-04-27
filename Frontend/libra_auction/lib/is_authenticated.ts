@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
-import { promises as fs } from 'fs';
 import * as jose from "jose";
-import path from "path";
 import { JWSSignatureVerificationFailed, JWTExpired } from "jose/errors";
+import { getCert } from "./get_cert";
+import { refreshToken } from "./refresh_token";
 
 export async function isAuthenticated() {
     const cookieStore = await cookies();
@@ -17,24 +17,9 @@ export async function isAuthenticated() {
         catch (error) {
             if (error instanceof JWTExpired) {
                 console.log("Token hết hạn");
-                const refreshToken = cookieStore.get("refreshToken");
-                if (refreshToken && refreshToken.value) {
-                    try {
-                        await jose.jwtVerify(refreshToken.value, publicKey);
-                        await fetch('api/refresh', {
-                            method: "POST",
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                'refreshToken': refreshToken.value
-                            })
-                        });
-                    } catch (insideError) {
-                        console.log("Can't refresh token")
-                    }
-                }
+                return await refreshToken();
             }
+
 
             if (error instanceof JWSSignatureVerificationFailed) {
                 console.log("Invaild token");
@@ -44,15 +29,4 @@ export async function isAuthenticated() {
         return true;
     }
     return false;
-}
-
-async function getCert() {
-    const certPath = path.join(process.cwd(), 'certs', 'public.pem');
-    try {
-        const data = await fs.readFile(certPath, 'utf8');
-        return data;
-    } catch (err) {
-        console.error(err);
-        return null;
-    }
 }

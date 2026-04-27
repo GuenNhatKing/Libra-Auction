@@ -1,7 +1,7 @@
 plugins {
-    java
-    id("org.springframework.boot") version "4.0.5"
+    id("org.springframework.boot") version "4.0.6"
     id("io.spring.dependency-management") version "1.1.7"
+    id("java")
 }
 
 group = "io.github.guennhatking"
@@ -18,31 +18,46 @@ repositories {
     mavenCentral()
 }
 
-val mapstruct_version="1.6.3"
+val mapstructVersion = "1.6.3"
+val cloudinaryVersion = "2.0.0"
 
 dependencies {
+    // CORE WEB
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-websocket")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+
+    // DATABASE
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    runtimeOnly("org.postgresql:postgresql")
+
+    // SECURITY + AUTH
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-liquibase")
+
+    // REALTIME
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
+
+    // CACHE
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
+    // EMAIL
     implementation("org.springframework.boot:spring-boot-starter-mail")
-    implementation("redis.clients:jedis")
-    implementation("com.cloudinary:cloudinary-http5:2.0.0")
-    implementation("com.cloudinary:cloudinary-taglib:2.0.0")
-    implementation("org.mapstruct:mapstruct:${mapstruct_version}")
-    annotationProcessor("org.mapstruct:mapstruct-processor:${mapstruct_version}")
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-    runtimeOnly("org.postgresql:postgresql")
+    // LIQUIDBASE
+    implementation("org.springframework.boot:spring-boot-starter-liquibase")
 
+    // CLOUDINARY
+    implementation("com.cloudinary:cloudinary-http5:${cloudinaryVersion}")
+
+    // MAPPING
+    implementation("org.mapstruct:mapstruct:${mapstructVersion}")
+    annotationProcessor("org.mapstruct:mapstruct-processor:${mapstructVersion}")
+
+    // TEST
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
 tasks.withType<Test> {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }

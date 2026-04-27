@@ -3,6 +3,7 @@ import LiveAuctionCard from "./live_auction_card";
 import ShowMoreBtn from "./show_more_btn";
 export default async function LiveAuctionsSection() {
   const cards = await FetchLiveAuctions();
+  console.log("LiveAuctionsSection cards:", cards);
   return (
     <div className="py-16 bg-(--background-color)">
       <div className="flex flex-col items-center gap-4">

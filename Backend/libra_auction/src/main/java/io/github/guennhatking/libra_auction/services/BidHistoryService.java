@@ -14,7 +14,7 @@ public class BidHistoryService {
     private static final Map<String, List<BidResponse>> auctionBids = new ConcurrentHashMap<>();
 
     public void recordBid(BidResponse bid) {
-        auctionBids.computeIfAbsent(bid.getAuctionId(), k -> new ArrayList<>())
+        auctionBids.computeIfAbsent(bid.auctionId(), k -> new ArrayList<>())
             .add(bid);
     }
 

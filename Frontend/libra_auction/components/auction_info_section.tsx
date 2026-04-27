@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Image from "next/image";
 import { AuctionInfoType } from "@/types/auction_info_type";
 import { CurrencyFormat } from '@/utils/currency_format';
@@ -59,7 +59,7 @@ export default function UpcomingAuctionSection({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 py-10 px-16">
+    <div className="min-h-screen bg-gray-50/50 pt-10 px-16">
       <div className="mx-auto">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 p-8 lg:p-12">

@@ -1,13 +1,14 @@
 package io.github.guennhatking.libra_auction.services;
 
-import io.github.guennhatking.libra_auction.models.NguoiDung;
-import io.github.guennhatking.libra_auction.models.PhienDauGia;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+
+import io.github.guennhatking.libra_auction.models.auction.PhienDauGia;
+import io.github.guennhatking.libra_auction.models.person.NguoiDung;
 
 import java.time.format.DateTimeFormatter;
 

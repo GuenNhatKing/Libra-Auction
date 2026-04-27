@@ -2,6 +2,7 @@ import { FetchAuctionInfo } from "@/services/fetch_auction_info";
 import BreadCrumb from "@/components/breadcrumb";
 import { notFound } from "next/navigation";
 import AuctionInfoSection from "@/components/auction_info_section";
+import AuctionInfoDetailsSection from "@/components/auction_info_details_section";
 export default async function page(props: {
   params: Promise<{ category_id: string; auction_id: string }>;
 }) {
@@ -26,6 +27,7 @@ export default async function page(props: {
     <>
       <BreadCrumb breadcrumbItems={breadcrumb_items} />
       <AuctionInfoSection autionInfos={auction_info} />
+      <AuctionInfoDetailsSection autionInfos={auction_info} />
     </>
   );
 }

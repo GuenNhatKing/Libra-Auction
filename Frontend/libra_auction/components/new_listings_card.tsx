@@ -1,4 +1,4 @@
-import type { NewListingsCardType } from "@/types/new_listings_card_type"; 
+import type { NewListingsCardType } from "@/types/new_listings_card_type";
 import { CurrencyFormat } from "@/utils/currency_format";
 import Image from "next/image";
 export default function NewListingsCard({
@@ -7,9 +7,8 @@ export default function NewListingsCard({
   card: NewListingsCardType;
 }) {
   return (
-    <div className="flex flex-col size-full rounded-2xl overflow-hidden shadow-2xl">
-      <div className="relative h-(--home-live-auction-section-image-height) shadow-[0_6px_15px_rgba(0,0,0,0.08)]">
-        <div className="absolute size-full">
+    <div className="flex flex-col h-full rounded-2xl overflow-hidden shadow-2xl">
+<div className="relative w-full aspect-4/3 shadow-[0_6px_15px_rgba(0,0,0,0.08)]">        <div className="absolute size-full">
           <div className="relative size-full">
             <Image
               src={card.image_src}
@@ -45,7 +44,7 @@ export default function NewListingsCard({
           </p>
         </div>
         <div className="flex pt-1">
-          <p className="text-lg">{card.biders} Biders</p>
+          <p className="text-lg">{card.bidders} Bidders</p>
           <div className="flex-1"></div>
           <a className="mt-auto bg-(--primary-color) text-white px-6 py-2 font-bold hover:bg-(--primary-color)/90 active:bg-(--primary-color)/80" href={card.href}>
             Register Now

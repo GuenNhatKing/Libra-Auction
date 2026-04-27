@@ -1,11 +1,12 @@
 package io.github.guennhatking.libra_auction.viewmodels.request;
 
-import io.github.guennhatking.libra_auction.enums.Enums;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 import java.time.LocalDateTime;
+
+import io.github.guennhatking.libra_auction.enums.auction.LoaiDauGia;
 
 public record AuctionSessionCreateRequest(
     @NotBlank(message = "taiSanId is required")
@@ -27,6 +28,6 @@ public record AuctionSessionCreateRequest(
     Long buocGiaNhoNhat,
 
     @NotNull(message = "loaiDauGia is required")
-    Enums.LoaiDauGia loaiDauGia
+    LoaiDauGia loaiDauGia
 ) {
 }

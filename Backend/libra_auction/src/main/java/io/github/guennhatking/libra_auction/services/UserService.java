@@ -1,14 +1,17 @@
 package io.github.guennhatking.libra_auction.services;
 
-import io.github.guennhatking.libra_auction.enums.Enums;
-import io.github.guennhatking.libra_auction.models.NguoiDung;
-import io.github.guennhatking.libra_auction.models.Role;
-import io.github.guennhatking.libra_auction.models.TaiKhoanOAuth;
-import io.github.guennhatking.libra_auction.models.TaiKhoanPassword;
-import io.github.guennhatking.libra_auction.repositories.NguoiDungRepository;
-import io.github.guennhatking.libra_auction.repositories.RoleRepository;
-import io.github.guennhatking.libra_auction.repositories.TaiKhoanOAuthRepository;
-import io.github.guennhatking.libra_auction.repositories.TaiKhoanPasswordRepository;
+import io.github.guennhatking.libra_auction.enums.account.TrangThaiEmail;
+import io.github.guennhatking.libra_auction.enums.account.TrangThaiTaiKhoan;
+import io.github.guennhatking.libra_auction.models.account.Role;
+import io.github.guennhatking.libra_auction.models.account.TaiKhoanOAuth;
+import io.github.guennhatking.libra_auction.models.account.TaiKhoanPassword;
+import io.github.guennhatking.libra_auction.models.person.NguoiDung;
+import io.github.guennhatking.libra_auction.repositories.account.RoleRepository;
+import io.github.guennhatking.libra_auction.repositories.account.TaiKhoanOAuthRepository;
+import io.github.guennhatking.libra_auction.repositories.account.TaiKhoanPasswordRepository;
+import io.github.guennhatking.libra_auction.repositories.person.NguoiDungRepository;
+import io.github.guennhatking.libra_auction.viewmodels.response.ImageUploadResponse;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,17 +27,20 @@ public class UserService {
     private final TaiKhoanOAuthRepository taiKhoanOAuthRepository;
     private final RoleRepository roleRepository;
     private final PasswordService passwordService;
+    private final ImageUploadService imageUploadService;    
 
     public UserService(NguoiDungRepository nguoiDungRepository,
-                      TaiKhoanPasswordRepository taiKhoanPasswordRepository,
-                      TaiKhoanOAuthRepository taiKhoanOAuthRepository,
-                      RoleRepository roleRepository,
-                      PasswordService passwordService) {
+            TaiKhoanPasswordRepository taiKhoanPasswordRepository,
+            TaiKhoanOAuthRepository taiKhoanOAuthRepository,
+            RoleRepository roleRepository,
+            PasswordService passwordService,
+            ImageUploadService imageUploadService) {
         this.nguoiDungRepository = nguoiDungRepository;
         this.taiKhoanPasswordRepository = taiKhoanPasswordRepository;
         this.taiKhoanOAuthRepository = taiKhoanOAuthRepository;
         this.roleRepository = roleRepository;
         this.passwordService = passwordService;
+        this.imageUploadService = imageUploadService;
     }
 
     @Transactional
@@ -44,7 +50,7 @@ public class UserService {
 
     @Transactional
     public NguoiDung createPasswordUser(String email, String username, String password, String hoVaTen,
-                                        String soDienThoai, String cccd, String anhDaiDien) {
+            String soDienThoai, String cccd, String anhDaiDien) {
         if (taiKhoanPasswordRepository.findByUsername(username).isPresent()) {
             throw new IllegalArgumentException("The username already exists");
         }
@@ -53,20 +59,19 @@ public class UserService {
         user.setSoDienThoai(soDienThoai);
         user.setCccd(cccd);
         user.setAnhDaiDien(anhDaiDien);
-        user.setTrangThaiEmail(Enums.TrangThaiEmail.CHUA_XAC_THUC);
-        user.setTrangThaiTaiKhoan(Enums.TrangThaiTaiKhoan.CHO_XAC_NHAN);
+        user.setTrangThaiEmail(TrangThaiEmail.CHUA_XAC_THUC);
+        user.setTrangThaiTaiKhoan(TrangThaiTaiKhoan.CHO_XAC_NHAN);
 
         NguoiDung savedUser = nguoiDungRepository.save(user);
 
         String encodedPassword = passwordService.encodePassword(password);
         TaiKhoanPassword taiKhoan = new TaiKhoanPassword(
-            UUID.randomUUID().toString(),
-            username,
-            encodedPassword,
-            new byte[0]
-        );
+                UUID.randomUUID().toString(),
+                username,
+                encodedPassword,
+                new byte[0]);
         taiKhoan.setNguoiDung(savedUser);
-        taiKhoan.setTrangThai(Enums.TrangThaiTaiKhoan.CHO_XAC_NHAN);
+        taiKhoan.setTrangThai(TrangThaiTaiKhoan.CHO_XAC_NHAN);
         taiKhoanPasswordRepository.save(taiKhoan);
 
         assignDefaultRole(savedUser);
@@ -81,20 +86,24 @@ public class UserService {
         }
 
         NguoiDung user = new NguoiDung(displayName, email);
-        // user.setAnhDaiDien(pictureUrl);
-        user.setTrangThaiEmail(Enums.TrangThaiEmail.DA_XAC_THUC);
-        user.setTrangThaiTaiKhoan(Enums.TrangThaiTaiKhoan.HOAT_DONG);
+        try {
+            ImageUploadResponse newUrl = imageUploadService.uploadImageFromUrl(pictureUrl, "avatars");
+            user.setAnhDaiDien(newUrl.secureUrl());
+        } catch (Exception e) {
+            System.out.println("Failed to upload avatar for user " + email + ": " + e.getMessage());
+        }
+        user.setTrangThaiEmail(TrangThaiEmail.DA_XAC_THUC);
+        user.setTrangThaiTaiKhoan(TrangThaiTaiKhoan.HOAT_DONG);
 
         NguoiDung savedUser = nguoiDungRepository.save(user);
 
         TaiKhoanOAuth oauthAccount = new TaiKhoanOAuth(
-            UUID.randomUUID().toString(),
-            email,
-            "google",
-            googleId
-        );
+                UUID.randomUUID().toString(),
+                email,
+                "google",
+                googleId);
         oauthAccount.setNguoiDung(savedUser);
-        oauthAccount.setTrangThai(Enums.TrangThaiTaiKhoan.HOAT_DONG);
+        oauthAccount.setTrangThai(TrangThaiTaiKhoan.HOAT_DONG);
         taiKhoanOAuthRepository.save(oauthAccount);
 
         assignDefaultRole(savedUser);

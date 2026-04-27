@@ -3,7 +3,7 @@ export type NewListingsCardType = {
     image_src: string,
     title: string,
     starting_bid: number,
-    biders: number,
+    bidders: number,
     starting_date: Date, 
     category_id: string,
     href: string

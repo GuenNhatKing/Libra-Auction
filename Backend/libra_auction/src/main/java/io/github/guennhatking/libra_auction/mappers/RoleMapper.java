@@ -2,7 +2,7 @@ package io.github.guennhatking.libra_auction.mappers;
 
 import org.mapstruct.Mapper;
 
-import io.github.guennhatking.libra_auction.models.Role;
+import io.github.guennhatking.libra_auction.models.account.Role;
 import io.github.guennhatking.libra_auction.viewmodels.request.RoleRequest;
 import io.github.guennhatking.libra_auction.viewmodels.response.RoleResponse;
 

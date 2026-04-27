@@ -1,0 +1,18 @@
+package io.github.guennhatking.libra_auction.repositories.auction;
+
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import io.github.guennhatking.libra_auction.enums.auction.LoaiDauGia;
+import io.github.guennhatking.libra_auction.enums.auction.TrangThaiPhien;
+import io.github.guennhatking.libra_auction.models.auction.PhienDauGia;
+import io.github.guennhatking.libra_auction.models.product.TaiSan;
+
+public interface PhienDauGiaRepository extends JpaRepository<PhienDauGia, String> {
+    List<PhienDauGia> findByTrangThaiPhien(TrangThaiPhien trangThaiPhien);
+
+    List<PhienDauGia> findByLoaiDauGia(LoaiDauGia loaiDauGia);
+
+    List<PhienDauGia> findByTaiSan(TaiSan taiSan);
+}

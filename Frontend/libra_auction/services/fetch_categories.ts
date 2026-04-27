@@ -1,3 +1,4 @@
+'use server';
 import { CategoryCardType } from "@/types/category_card_type";
 export async function FetchCategories(): Promise<CategoryCardType[]> {
   try {

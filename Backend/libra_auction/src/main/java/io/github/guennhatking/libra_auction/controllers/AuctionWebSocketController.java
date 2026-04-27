@@ -1,8 +1,8 @@
 package io.github.guennhatking.libra_auction.controllers;
 
-import io.github.guennhatking.libra_auction.enums.Enums;
-import io.github.guennhatking.libra_auction.models.PhienDauGia;
-import io.github.guennhatking.libra_auction.repositories.PhienDauGiaRepository;
+import io.github.guennhatking.libra_auction.enums.auction.TrangThaiPhien;
+import io.github.guennhatking.libra_auction.models.auction.PhienDauGia;
+import io.github.guennhatking.libra_auction.repositories.auction.PhienDauGiaRepository;
 import io.github.guennhatking.libra_auction.services.AuctionStateRedisService;
 import io.github.guennhatking.libra_auction.services.AuctionWebSocketNotificationService;
 import io.github.guennhatking.libra_auction.viewmodels.request.BidMessage;
@@ -27,26 +27,26 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Controller
 public class AuctionWebSocketController {
-    
+
     private final SimpMessagingTemplate messagingTemplate;
     private final PhienDauGiaRepository phienDauGiaRepository;
     private final AuctionStateRedisService auctionStateRedisService;
     private final AuctionWebSocketNotificationService auctionWebSocketNotificationService;
-    
+
     // In-memory storage for bid history per auction
     private static final Map<String, List<BidResponse>> auctionBids = new ConcurrentHashMap<>();
-    
+
     // Current winner tracking for sealed bid auctions (revealed only at end)
     private static final Map<String, BidResponse> sealedBidWinners = new ConcurrentHashMap<>();
-    
+
     // Configuration
     private static final int FINAL_MINUTES_WINDOW = 5;
     private static final int EXTENSION_MINUTES = 5;
 
     public AuctionWebSocketController(SimpMessagingTemplate messagingTemplate,
-                                      PhienDauGiaRepository phienDauGiaRepository,
-                                      AuctionStateRedisService auctionStateRedisService,
-                                      AuctionWebSocketNotificationService auctionWebSocketNotificationService) {
+            PhienDauGiaRepository phienDauGiaRepository,
+            AuctionStateRedisService auctionStateRedisService,
+            AuctionWebSocketNotificationService auctionWebSocketNotificationService) {
         this.messagingTemplate = messagingTemplate;
         this.phienDauGiaRepository = phienDauGiaRepository;
         this.auctionStateRedisService = auctionStateRedisService;
@@ -60,13 +60,13 @@ public class AuctionWebSocketController {
     public void handleBid(BidMessage bidMessage) {
         try {
             // Validate auction exists
-            PhienDauGia auction = phienDauGiaRepository.findById(bidMessage.getAuctionId())
-                .orElseThrow(() -> new IllegalArgumentException("Auction not found"));
+            PhienDauGia auction = phienDauGiaRepository.findById(bidMessage.auctionId())
+                    .orElseThrow(() -> new IllegalArgumentException("Auction not found"));
 
             // Validate auction is active
-            if (!auction.getTrangThaiPhien().equals(Enums.TrangThaiPhien.DANG_DIEN_RA)) {
-                sendErrorNotification(bidMessage.getAuctionId(), 
-                    "Auction is not active. Current status: " + auction.getTrangThaiPhien());
+            if (!auction.getTrangThaiPhien().equals(TrangThaiPhien.DANG_DIEN_RA)) {
+                sendErrorNotification(bidMessage.auctionId(),
+                        "Auction is not active. Current status: " + auction.getTrangThaiPhien());
                 return;
             }
 
@@ -85,19 +85,19 @@ public class AuctionWebSocketController {
                     handleReverseAuction(bidMessage, auction);
                     break;
                 default:
-                    sendErrorNotification(bidMessage.getAuctionId(), 
-                        "Unknown auction type: " + auction.getLoaiDauGia());
+                    sendErrorNotification(bidMessage.auctionId(),
+                            "Unknown auction type: " + auction.getLoaiDauGia());
             }
-            
+
             // After processing bid, check if auction should be extended
             // If a bid is placed within 5 minutes of end time, extend by 5 minutes
-            checkAndExtendAuctionIfNeeded(bidMessage.getAuctionId());
+            checkAndExtendAuctionIfNeeded(bidMessage.auctionId());
 
         } catch (IllegalArgumentException e) {
-            sendErrorNotification(bidMessage.getAuctionId(), e.getMessage());
+            sendErrorNotification(bidMessage.auctionId(), e.getMessage());
         } catch (Exception e) {
-            sendErrorNotification(bidMessage.getAuctionId(), 
-                "Internal error: " + e.getMessage());
+            sendErrorNotification(bidMessage.auctionId(),
+                    "Internal error: " + e.getMessage());
         }
     }
 
@@ -110,28 +110,28 @@ public class AuctionWebSocketController {
      * - All bids are visible to participants
      */
     private void handleAscendingAuction(BidMessage bidMessage, PhienDauGia auction) {
-        long minimumBid = auction.getGiaHienTai() > 0 
-            ? auction.getGiaHienTai() + auction.getBuocGiaNhoNhat()
-            : auction.getGiaKhoiDiem();
+        long minimumBid = auction.getGiaHienTai() > 0
+                ? auction.getGiaHienTai() + auction.getBuocGiaNhoNhat()
+                : auction.getGiaKhoiDiem();
 
         // Validate bid amount
-        if (bidMessage.getBidAmount() < minimumBid) {
-            sendErrorNotification(bidMessage.getAuctionId(), 
-                String.format("Bid must be at least %.0f (current price: %.0f + minimum step: %.0f)",
-                    minimumBid, auction.getGiaHienTai(), auction.getBuocGiaNhoNhat()));
+        if (bidMessage.bidAmount() < minimumBid) {
+            sendErrorNotification(bidMessage.auctionId(),
+                    String.format("Bid must be at least %.0f (current price: %.0f + minimum step: %.0f)",
+                            minimumBid, auction.getGiaHienTai(), auction.getBuocGiaNhoNhat()));
             return;
         }
 
         // Create and store bid response
         BidResponse bidResponse = createBidResponse(bidMessage, "SUCCESS");
-        recordBid(bidMessage.getAuctionId(), bidResponse);
+        recordBid(bidMessage.auctionId(), bidResponse);
 
         // Update current price
-        auction.setGiaHienTai(bidMessage.getBidAmount());
+        auction.setGiaHienTai(bidMessage.bidAmount());
         phienDauGiaRepository.save(auction);
 
         // Broadcast to all participants (bids are visible)
-        broadcastBid(bidMessage.getAuctionId(), bidResponse);
+        broadcastBid(bidMessage.auctionId(), bidResponse);
     }
 
     /**
@@ -149,27 +149,26 @@ public class AuctionWebSocketController {
         }
 
         // Bid amount should equal or be close to current price
-        if (bidMessage.getBidAmount() < auction.getGiaHienTai()) {
-            sendErrorNotification(bidMessage.getAuctionId(), 
-                String.format("Bid (%.0f) must be at least current price (%.0f)",
-                    bidMessage.getBidAmount(), auction.getGiaHienTai()));
+        if (bidMessage.bidAmount() < auction.getGiaHienTai()) {
+            sendErrorNotification(bidMessage.auctionId(),
+                    String.format("Bid (%.0f) must be at least current price (%.0f)",
+                            bidMessage.bidAmount(), auction.getGiaHienTai()));
             return;
         }
 
         // Create bid response
         BidResponse bidResponse = createBidResponse(bidMessage, "WINNER");
-        recordBid(bidMessage.getAuctionId(), bidResponse);
+        recordBid(bidMessage.auctionId(), bidResponse);
 
         // Update auction - mark as sold to first bidder
-        auction.setGiaHienTai(bidMessage.getBidAmount());
-        auction.setTrangThaiPhien(Enums.TrangThaiPhien.DA_KET_THUC);
+        auction.setGiaHienTai(bidMessage.bidAmount());
+        auction.setTrangThaiPhien(TrangThaiPhien.DA_KET_THUC);
         phienDauGiaRepository.save(auction);
 
         // Broadcast winner announcement
         messagingTemplate.convertAndSend(
-            "/topic/auction/" + bidMessage.getAuctionId(),
-            createWinnerMessage(bidResponse, "Auction won! Item sold at: " + bidMessage.getBidAmount())
-        );
+                "/topic/auction/" + bidMessage.auctionId(),
+                createWinnerMessage(bidResponse, "Auction won! Item sold at: " + bidMessage.bidAmount()));
     }
 
     /**
@@ -182,31 +181,29 @@ public class AuctionWebSocketController {
      */
     private void handleSealedBidAuction(BidMessage bidMessage, PhienDauGia auction) {
         // Validate minimum bid
-        if (bidMessage.getBidAmount() < auction.getGiaKhoiDiem()) {
-            sendErrorNotification(bidMessage.getAuctionId(), 
-                "Bid amount must be at least: " + auction.getGiaKhoiDiem());
+        if (bidMessage.bidAmount() < auction.getGiaKhoiDiem()) {
+            sendErrorNotification(bidMessage.auctionId(),
+                    "Bid amount must be at least: " + auction.getGiaKhoiDiem());
             return;
         }
 
         // Create bid response but DON'T show details to others
         BidResponse bidResponse = createBidResponse(bidMessage, "SEALED");
-        recordBid(bidMessage.getAuctionId(), bidResponse);
+        recordBid(bidMessage.auctionId(), bidResponse);
 
         // Update winner tracking (highest bid so far)
-        updateSealedBidWinner(bidMessage.getAuctionId(), bidResponse);
+        updateSealedBidWinner(bidMessage.auctionId(), bidResponse);
 
         // Send confirmation ONLY to the bidder (not public)
         messagingTemplate.convertAndSendToUser(
-            bidMessage.getBidderId(),
-            "/queue/bid-confirmation/" + bidMessage.getAuctionId(),
-            createConfirmation(bidMessage, "Your sealed bid has been received and recorded")
-        );
+                bidMessage.bidderId(),
+                "/queue/bid-confirmation/" + bidMessage.auctionId(),
+                createConfirmation(bidMessage, "Your sealed bid has been received and recorded"));
 
         // Send generic message to all (no bid amounts revealed)
         messagingTemplate.convertAndSend(
-            "/topic/auction/" + bidMessage.getAuctionId(),
-            createGenericNotification("A new sealed bid has been registered")
-        );
+                "/topic/auction/" + bidMessage.auctionId(),
+                createGenericNotification("A new sealed bid has been registered"));
     }
 
     /**
@@ -218,32 +215,31 @@ public class AuctionWebSocketController {
      * - First to accept the current price wins
      */
     private void handleReverseAuction(BidMessage bidMessage, PhienDauGia auction) {
-        long currentPrice = auction.getGiaHienTai() > 0 
-            ? auction.getGiaHienTai()
-            : auction.getGiaKhoiDiem();
+        long currentPrice = auction.getGiaHienTai() > 0
+                ? auction.getGiaHienTai()
+                : auction.getGiaKhoiDiem();
 
         // Bid must accept or exceed current asking price
-        if (bidMessage.getBidAmount() < currentPrice) {
-            sendErrorNotification(bidMessage.getAuctionId(), 
-                String.format("Bid (%.0f) must be at least asking price (%.0f)",
-                    bidMessage.getBidAmount(), currentPrice));
+        if (bidMessage.bidAmount() < currentPrice) {
+            sendErrorNotification(bidMessage.auctionId(),
+                    String.format("Bid (%.0f) must be at least asking price (%.0f)",
+                            bidMessage.bidAmount(), currentPrice));
             return;
         }
 
         // Create bid response
         BidResponse bidResponse = createBidResponse(bidMessage, "WINNER");
-        recordBid(bidMessage.getAuctionId(), bidResponse);
+        recordBid(bidMessage.auctionId(), bidResponse);
 
         // Update auction - mark as sold
-        auction.setGiaHienTai(bidMessage.getBidAmount());
-        auction.setTrangThaiPhien(Enums.TrangThaiPhien.DA_KET_THUC);
+        auction.setGiaHienTai(bidMessage.bidAmount());
+        auction.setTrangThaiPhien(TrangThaiPhien.DA_KET_THUC);
         phienDauGiaRepository.save(auction);
 
         // Broadcast winner
         messagingTemplate.convertAndSend(
-            "/topic/auction/" + bidMessage.getAuctionId(),
-            createWinnerMessage(bidResponse, "Auction won at: " + bidMessage.getBidAmount())
-        );
+                "/topic/auction/" + bidMessage.auctionId(),
+                createWinnerMessage(bidResponse, "Auction won at: " + bidMessage.bidAmount()));
     }
 
     /**
@@ -251,13 +247,12 @@ public class AuctionWebSocketController {
      */
     private BidResponse createBidResponse(BidMessage message, String status) {
         return new BidResponse(
-            message.getAuctionId(),
-            message.getBidAmount(),
-            message.getBidderId(),
-            message.getBidderName(),
-            LocalDateTime.now(),
-            status
-        );
+                message.auctionId(),
+                message.bidAmount(),
+                message.bidderId(),
+                message.bidderName(),
+                LocalDateTime.now(),
+                status);
     }
 
     /**
@@ -265,7 +260,7 @@ public class AuctionWebSocketController {
      */
     private void recordBid(String auctionId, BidResponse bidResponse) {
         auctionBids.computeIfAbsent(auctionId, k -> new ArrayList<>())
-            .add(bidResponse);
+                .add(bidResponse);
     }
 
     /**
@@ -280,7 +275,7 @@ public class AuctionWebSocketController {
      */
     private void updateSealedBidWinner(String auctionId, BidResponse bidResponse) {
         BidResponse currentWinner = sealedBidWinners.get(auctionId);
-        if (currentWinner == null || bidResponse.getBidAmount() > currentWinner.getBidAmount()) {
+        if (currentWinner == null || bidResponse.bidAmount() > currentWinner.bidAmount()) {
             sealedBidWinners.put(auctionId, bidResponse);
         }
     }
@@ -289,47 +284,52 @@ public class AuctionWebSocketController {
      * Helper: Create winner message
      */
     private BidResponse createWinnerMessage(BidResponse bidResponse, String message) {
-        BidResponse winnerMsg = new BidResponse();
-        winnerMsg.setAuctionId(bidResponse.getAuctionId());
-        winnerMsg.setBidderId(bidResponse.getBidderId());
-        winnerMsg.setBidderName(bidResponse.getBidderName());
-        winnerMsg.setBidAmount(bidResponse.getBidAmount());
-        winnerMsg.setBidTime(LocalDateTime.now());
-        winnerMsg.setStatus("WINNER");
-        return winnerMsg;
+        return new BidResponse(
+                bidResponse.auctionId(),
+                bidResponse.bidAmount(),
+                bidResponse.bidderId(),
+                bidResponse.bidderName(),
+                LocalDateTime.now(),
+                "WINNER");
     }
 
     /**
      * Helper: Create confirmation message for sealed bids
      */
     private BidResponse createConfirmation(BidMessage message, String confirmationText) {
-        BidResponse confirmation = new BidResponse();
-        confirmation.setAuctionId(message.getAuctionId());
-        confirmation.setBidderId(message.getBidderId());
-        confirmation.setBidAmount(message.getBidAmount());
-        confirmation.setBidTime(LocalDateTime.now());
-        confirmation.setStatus("CONFIRMED");
-        return confirmation;
+        return new BidResponse(
+                message.auctionId(),
+                message.bidAmount(),
+                message.bidderId(),
+                null, // bidderName không có trong BidMessage, để null hoặc giá trị mặc định
+                LocalDateTime.now(),
+                "CONFIRMED");
     }
 
     /**
      * Helper: Create generic notification (no sensitive details)
      */
     private BidResponse createGenericNotification(String message) {
-        BidResponse notification = new BidResponse();
-        notification.setStatus("NOTIFICATION");
-        notification.setBidTime(LocalDateTime.now());
-        return notification;
+        return new BidResponse(
+                null,
+                null,
+                null,
+                null,
+                LocalDateTime.now(),
+                "NOTIFICATION");
     }
 
     /**
      * Helper: Send error notification
      */
     private void sendErrorNotification(String auctionId, String errorMessage) {
-        BidResponse errorResponse = new BidResponse();
-        errorResponse.setAuctionId(auctionId);
-        errorResponse.setStatus("ERROR");
-        errorResponse.setBidTime(LocalDateTime.now());
+        BidResponse errorResponse = new BidResponse(
+                auctionId,
+                null,
+                null,
+                null,
+                LocalDateTime.now(),
+                "ERROR");
         messagingTemplate.convertAndSend("/topic/auction/" + auctionId, errorResponse);
     }
 
@@ -354,10 +354,12 @@ public class AuctionWebSocketController {
         auctionBids.remove(auctionId);
         sealedBidWinners.remove(auctionId);
     }
-    
+
     /**
      * Check if auction is within the final minutes and extend if needed
-     * If a bid is placed within FINAL_MINUTES_WINDOW (5 minutes), extend by EXTENSION_MINUTES (5 minutes)
+     * If a bid is placed within FINAL_MINUTES_WINDOW (5 minutes), extend by
+     * EXTENSION_MINUTES (5 minutes)
+     * 
      * @param auctionId The auction ID
      */
     private void checkAndExtendAuctionIfNeeded(String auctionId) {
@@ -368,12 +370,13 @@ public class AuctionWebSocketController {
                 Long currentEndTimeMillis = auctionStateRedisService.getAuctionEndTime(auctionId);
                 if (currentEndTimeMillis != null) {
                     // Calculate new end time (5 minutes later)
-                    LocalDateTime currentEndTime = java.time.Instant.ofEpochMilli(currentEndTimeMillis).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
+                    LocalDateTime currentEndTime = java.time.Instant.ofEpochMilli(currentEndTimeMillis)
+                            .atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
                     LocalDateTime newEndTime = currentEndTime.plusMinutes(EXTENSION_MINUTES);
-                    
+
                     // Update Redis with new end time
                     auctionStateRedisService.extendAuctionEnd(auctionId, newEndTime);
-                    
+
                     // Notify all participants about the extension
                     auctionWebSocketNotificationService.sendAuctionExtensionNotification(auctionId, newEndTime);
                 }
@@ -384,4 +387,3 @@ public class AuctionWebSocketController {
         }
     }
 }
-

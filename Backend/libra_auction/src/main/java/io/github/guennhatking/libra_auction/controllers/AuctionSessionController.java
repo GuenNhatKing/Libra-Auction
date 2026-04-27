@@ -1,5 +1,6 @@
 package io.github.guennhatking.libra_auction.controllers;
 
+import io.github.guennhatking.libra_auction.enums.auction.TrangThaiPhien;
 import io.github.guennhatking.libra_auction.services.AuctionSessionSearchService;
 import io.github.guennhatking.libra_auction.services.AuctionSessionService;
 import io.github.guennhatking.libra_auction.viewmodels.request.AuctionSessionCreateRequest;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @RestController
@@ -31,7 +33,7 @@ public class AuctionSessionController {
     private final AuctionSessionSearchService searchService;
 
     public AuctionSessionController(AuctionSessionService auctionSessionService,
-                                    AuctionSessionSearchService searchService) {
+            AuctionSessionSearchService searchService) {
         this.auctionSessionService = auctionSessionService;
         this.searchService = searchService;
     }
@@ -48,22 +50,21 @@ public class AuctionSessionController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public AuctionSessionResponse createAuctionSession(@Valid @RequestBody AuctionSessionCreateRequest request) {
+    public AuctionSessionResponse createAuctionSession(
+            @RequestBody(required = false) AuctionSessionCreateRequest request) {
         return auctionSessionService.createAuctionSession(request);
     }
 
     @PutMapping("/{id}")
-    public AuctionSessionResponse updateAuctionSession(@PathVariable String id, @Valid @RequestBody AuctionSessionUpdateRequest request) {
+    public AuctionSessionResponse updateAuctionSession(@PathVariable String id,
+            @Valid @RequestBody AuctionSessionUpdateRequest request) {
         return auctionSessionService.updateAuctionSession(id, request);
     }
 
-    // ============================================
-    // SEARCH ENDPOINTS - Các endpoint tìm kiếm
-    // ============================================
-
     /**
      * Search all auction sessions with flexible criteria
-     * GET /api/auction-sessions/search?name=abc&categoryId=123&priceFrom=100&priceTo=1000&page=0&pageSize=20
+     * GET
+     * /api/auction-sessions/search?name=abc&categoryId=123&priceFrom=100&priceTo=1000&page=0&pageSize=20
      * 
      * Tìm kiếm tất cả phiên đấu giá với tiêu chí linh hoạt
      */
@@ -81,11 +82,11 @@ public class AuctionSessionController {
             @RequestParam(defaultValue = "20") Integer pageSize,
             @RequestParam(defaultValue = "thoiGianBatDau") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortOrder) {
-        
+
         AuctionSessionSearchRequest criteria = buildSearchCriteria(
-                name, categoryId, priceFrom, priceTo, startingPrice, 
+                name, categoryId, priceFrom, priceTo, startingPrice,
                 timeStart, timeEnd, status, page, pageSize, sortBy, sortOrder);
-        
+
         return searchService.searchAuctionSessions(criteria);
     }
 
@@ -103,11 +104,22 @@ public class AuctionSessionController {
             @RequestParam(defaultValue = "20") Integer pageSize,
             @RequestParam(defaultValue = "thoiGianBatDau") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortOrder) {
-        
+
         AuctionSessionSearchRequest criteria = buildSearchCriteria(
-                name, categoryId, null, null, null,
-                null, null, null, page, pageSize, sortBy, sortOrder);
-        
+                name, // 1. name
+                categoryId, // 2. categoryId
+                null, // 3. priceFrom
+                null, // 4. priceTo
+                null, // 5. startingPrice
+                null, // 6. timeStart (String)
+                null, // 7. timeEnd (String)
+                TrangThaiPhien.DANG_DIEN_RA.toString(), // 8. status
+                page, // 9. page
+                pageSize, // 10. pageSize
+                sortBy, // 11. sortBy
+                sortOrder // 12. sortOrder
+        );
+
         return searchService.getLiveAuctionSessions(criteria);
     }
 
@@ -125,11 +137,19 @@ public class AuctionSessionController {
             @RequestParam(defaultValue = "20") Integer pageSize,
             @RequestParam(defaultValue = "thoiGianBatDau") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortOrder) {
-        
+
+        // Gán trực tiếp CHUA_BAT_DAU vào tham số status
         AuctionSessionSearchRequest criteria = buildSearchCriteria(
-                name, categoryId, null, null, null,
-                null, null, null, page, pageSize, sortBy, sortOrder);
-        
+                name,
+                categoryId,
+                null,
+                null,
+                null, // price range
+                null,
+                null, // time range
+                TrangThaiPhien.CHUA_BAT_DAU.toString(),
+                page, pageSize, sortBy, sortOrder);
+
         return searchService.getUpcomingAuctionSessions(criteria);
     }
 
@@ -149,17 +169,28 @@ public class AuctionSessionController {
             @RequestParam(defaultValue = "20") Integer pageSize,
             @RequestParam(defaultValue = "thoiGianBatDau") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortOrder) {
-        
-        AuctionSessionSearchRequest criteria = buildSearchCriteria(
-                name, null, null, null, null,
-                null, null, null, page, pageSize, sortBy, sortOrder);
-        
-        return searchService.getAuctionSessionsByCategory(categoryId, type, criteria);
-    }
 
-    // ============================================
-    // HELPER METHOD
-    // ============================================
+        // Xác định status dựa trên path variable 'type'
+        String status = null;
+        if ("live".equalsIgnoreCase(type)) {
+            status = TrangThaiPhien.DANG_DIEN_RA.toString();
+        } else if ("upcoming".equalsIgnoreCase(type)) {
+            status = TrangThaiPhien.CHUA_BAT_DAU.toString();
+        }
+
+        AuctionSessionSearchRequest criteria = buildSearchCriteria(
+                name,
+                categoryId, 
+                null, 
+                null, 
+                null,
+                null, 
+                null,
+                status, // Truyền status vừa xác định
+                page, pageSize, sortBy, sortOrder);
+
+        return searchService.getAuctionSessionsByCategory(criteria);
+    }
 
     /**
      * Build search criteria from request parameters
@@ -168,39 +199,37 @@ public class AuctionSessionController {
             String name, String categoryId, Long priceFrom, Long priceTo, Long startingPrice,
             String timeStart, String timeEnd, String status,
             Integer page, Integer pageSize, String sortBy, String sortOrder) {
-        
-        AuctionSessionSearchRequest criteria = new AuctionSessionSearchRequest();
-        criteria.setName(name);
-        criteria.setCategoryId(categoryId);
-        criteria.setPriceFrom(priceFrom);
-        criteria.setPriceTo(priceTo);
-        criteria.setStartingPrice(startingPrice);
-        criteria.setStatus(status);
-        criteria.setPage(page);
-        criteria.setPageSize(pageSize);
-        criteria.setSortBy(sortBy);
-        criteria.setSortOrder(sortOrder);
 
-        // Parse time strings if provided
-        if (timeStart != null && !timeStart.isBlank()) {
-            try {
-                criteria.setTimeStart(LocalDateTime.parse(timeStart, 
-                    DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-            } catch (Exception e) {
-                // Invalid format, skip
-            }
+        // Logic parse thời gian
+        LocalDateTime parsedStart = parseDateTime(timeStart);
+        LocalDateTime parsedEnd = parseDateTime(timeEnd);
+
+        // Gọi constructor của Record (PHẢI ĐỦ 13 THAM SỐ theo định nghĩa Record)
+        return new AuctionSessionSearchRequest(
+                name,
+                categoryId,
+                priceFrom,
+                priceTo,
+                startingPrice,
+                parsedStart,
+                parsedEnd,
+                null,
+                status,
+                page,
+                pageSize,
+                sortBy,
+                sortOrder);
+    }
+
+    private LocalDateTime parseDateTime(String dateTimeStr) {
+        if (dateTimeStr == null || dateTimeStr.isBlank()) {
+            return null;
         }
-
-        if (timeEnd != null && !timeEnd.isBlank()) {
-            try {
-                criteria.setTimeEnd(LocalDateTime.parse(timeEnd,
-                    DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-            } catch (Exception e) {
-                // Invalid format, skip
-            }
+        try {
+            return LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        } catch (DateTimeParseException e) {
+            return null;
         }
-
-        return criteria;
     }
 
     @DeleteMapping("/{id}")

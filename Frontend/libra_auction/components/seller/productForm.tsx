@@ -1,0 +1,242 @@
+"use client";
+import { useState, useRef, useEffect } from "react";
+import { AttributeType } from "@/types/attribute_type";
+import Image from "next/image";
+import { CategoryCardType } from "@/types/category_card_type";
+import { FetchCategories } from "@/services/fetch_categories";
+
+export default function ProductForm() {
+  const [attributes, setAttributes] = useState<AttributeType[]>([]);
+  const [images, setImages] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [categories, setCategories] = useState<CategoryCardType[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const categories = await FetchCategories();
+      setCategories(categories);
+      console.log("Fetched categories:", categories);
+    };
+    fetchCategories();
+  }, []);
+
+  const addAttribute = (isSystem: boolean) => {
+    setAttributes([...attributes, { key: "", value: "", isSystem }]);
+  };
+
+  const removeAttribute = (index: number) => {
+    setAttributes(attributes.filter((_, i) => i !== index));
+  };
+
+  const updateAttribute = (index: number, field: keyof AttributeType, val: string) => {
+    const newAttrs = [...attributes];
+    newAttrs[index] = { ...newAttrs[index], [field]: val };
+    setAttributes(newAttrs);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setImages((prev) => [...prev, ...newFiles]);
+
+      const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
+      setPreviews((prev) => [...prev, ...newPreviews]);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages(images.filter((_, i) => i !== index));
+    URL.revokeObjectURL(previews[index]);
+    setPreviews(previews.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit: React.ComponentProps<"form">["onSubmit"] = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const payload = {
+      tenTaiSan: formData.get("tenTaiSan"),
+      soLuong: Number(formData.get("soLuong")),
+      danhMucId: formData.get("danhMucId"),
+      moTa: formData.get("moTa"),
+      attributes: attributes,
+    };
+    console.log(payload);
+    const submitData = new FormData();
+    submitData.append(
+      "data",
+      new Blob(
+        [JSON.stringify({
+          tenTaiSan: payload.tenTaiSan as string,
+          soLuong: payload.soLuong,
+          danhMucId: payload.danhMucId as string,
+          moTa: payload.moTa as string,
+          attributes: payload.attributes
+        })],
+        { type: "application/json" }
+      )
+    );
+    images.forEach((img) => {
+      submitData.append("images", img);
+    });
+    const res = await fetch("http://localhost:8080/api/products", {
+      method: "POST",
+      body: submitData,
+      credentials: "include"
+    });
+    if (res.ok) {
+      alert("Sản phẩm đã được tạo thành công!");
+      window.location.href = "/seller-dashboard/products";
+    } else {
+      alert("Đã có lỗi xảy ra khi tạo sản phẩm.");
+    }
+  };
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white p-8 rounded-2xl border border-[#AFD3E2] space-y-8 shadow-sm"
+    >
+      <h2 className="text-2xl font-bold text-[#146C94]">Thêm Tài Sản Mới</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-bold text-[#146C94]">Tên tài sản</label>
+          <input
+            required
+            className="border border-[#AFD3E2] p-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#19A7CE] transition-all"
+            name="tenTaiSan"
+            placeholder="VD: iPhone 15 Pro Max"
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-bold text-[#146C94]">Số lượng</label>
+          <input
+            required
+            type="number"
+            min="1"
+            className="border border-[#AFD3E2] p-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#19A7CE] transition-all"
+            name="soLuong"
+          />
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-bold text-[#146C94]">Danh mục</label>
+
+        <select
+          name="danhMucId"
+          required
+          className="border border-[#AFD3E2] p-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#19A7CE]"
+        >
+          <option value="">-- Chọn danh mục --</option>
+
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.title}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label className="text-sm font-bold text-[#146C94]">Mô tả</label>
+        <textarea
+          className="border border-[#AFD3E2] p-2.5 rounded-xl h-28 focus:outline-none focus:ring-2 focus:ring-[#19A7CE] transition-all resize-none"
+          name="moTa"
+          placeholder="Nhập mô tả chi tiết về tài sản..."
+        />
+      </div>
+
+      <div className="space-y-3">
+        <label className="text-sm font-bold text-[#146C94]">Hình ảnh tài sản</label>
+        <div className="flex flex-wrap gap-3">
+          {previews.map((src, index) => (
+            <div key={index} className="relative w-24 h-24 group">
+              <Image src={src} width={96} height={96} className="w-full h-full object-cover rounded-xl border border-[#AFD3E2]" alt="preview" />
+              <button
+                type="button"
+                onClick={() => removeImage(index)}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="w-24 h-24 border-2 border-dashed border-[#AFD3E2] rounded-xl flex flex-col items-center justify-center text-[#19A7CE] hover:bg-[#F6F1F1] transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+            <span className="text-[10px] font-bold mt-1">THÊM ẢNH</span>
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageChange}
+            multiple
+            accept="image/*"
+            className="hidden"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4 pt-4 border-t border-[#F6F1F1]">
+        <div className="flex justify-between items-center">
+          <h3 className="font-bold text-[#146C94]">Thuộc tính sản phẩm</h3>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => addAttribute(true)}
+              className="text-[10px] font-bold uppercase bg-[#19A7CE] text-white px-3 py-1.5 rounded-lg hover:bg-[#146C94] transition-all shadow-sm"
+            >
+              + Hệ thống
+            </button>
+            <button
+              type="button"
+              onClick={() => addAttribute(false)}
+              className="text-[10px] font-bold uppercase bg-[#AFD3E2] text-[#146C94] px-3 py-1.5 rounded-lg hover:bg-[#97c4d6] transition-all shadow-sm"
+            >
+              + Tự nhập
+            </button>
+          </div>
+        </div>
+
+        {attributes.length === 0 && (
+          <p className="text-xs text-gray-400 italic">Chưa có thuộc tính nào được thêm.</p>
+        )}
+
+        <div className="grid grid-cols-1 gap-3">
+          {attributes.map((attr, index) => (
+            <div key={index} className="flex gap-3 items-center animate-in fade-in slide-in-from-left-2 duration-300">
+              <input
+                placeholder={attr.isSystem ? "Tên thuộc tính (Searchable)" : "Tên thuộc tính (Custom)"}
+                className={`flex-1 border p-2.5 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[#19A7CE] transition-all ${attr.isSystem ? 'border-[#19A7CE] bg-blue-50/30 font-medium' : 'border-gray-200'
+                  }`}
+                value={attr.key}
+                onChange={(e) => updateAttribute(index, 'key', e.target.value)}
+              />
+              <input
+                placeholder="Giá trị"
+                className="flex-1 border border-gray-200 p-2.5 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[#19A7CE] transition-all"
+                value={attr.value}
+                onChange={(e) => updateAttribute(index, 'value', e.target.value)}
+              />
+              <button
+                type="button"
+                onClick={() => removeAttribute(index)}
+                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <button className="w-full bg-[#146C94] text-white py-4 rounded-xl font-bold hover:bg-[#19A7CE] transition-all active:scale-[0.98] shadow-lg shadow-blue-100">
+        Tạo sản phẩm
+      </button>
+    </form>
+  );
+}

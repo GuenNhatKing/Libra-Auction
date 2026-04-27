@@ -1,7 +1,8 @@
 package io.github.guennhatking.libra_auction.security;
 
-import io.github.guennhatking.libra_auction.enums.TokenType;
 import org.springframework.stereotype.Component;
+
+import io.github.guennhatking.libra_auction.enums.auth.TokenType;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;

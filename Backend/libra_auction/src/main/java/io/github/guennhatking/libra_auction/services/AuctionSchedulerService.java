@@ -9,14 +9,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Set;
 
-/**
- * Service to schedule and manage automatic auction state transitions
- * Uses Redis ZSET to track events and @Scheduled to periodically check
- * 
- * Scheduler runs every 10 seconds to check for:
- * 1. Auctions that should start
- * 2. Auctions that should end
- */
 @Service
 @EnableScheduling
 public class AuctionSchedulerService {
@@ -33,10 +25,6 @@ public class AuctionSchedulerService {
         this.auctionStateTransitionService = auctionStateTransitionService;
     }
     
-    /**
-     * Check for auctions that should start
-     * Runs every 10 seconds
-     */
     @Scheduled(fixedDelay = 10000, initialDelay = 5000)
     public void checkAuctionStarting() {
         try {
@@ -60,10 +48,6 @@ public class AuctionSchedulerService {
         }
     }
     
-    /**
-     * Check for auctions that should end
-     * Runs every 10 seconds
-     */
     @Scheduled(fixedDelay = 10000, initialDelay = 5000)
     public void checkAuctionEnding() {
         try {

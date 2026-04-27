@@ -1,7 +1,8 @@
 package io.github.guennhatking.libra_auction.viewmodels.response;
 
 import java.util.Set;
-import io.github.guennhatking.libra_auction.models.Permission;
+
+import io.github.guennhatking.libra_auction.models.account.Permission;
 
 public record RoleResponse(
     String name,

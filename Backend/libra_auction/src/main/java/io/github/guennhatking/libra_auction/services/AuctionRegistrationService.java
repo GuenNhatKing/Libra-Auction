@@ -7,115 +7,110 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import io.github.guennhatking.libra_auction.models.NguoiDung;
-import io.github.guennhatking.libra_auction.models.PhienDauGia;
-import io.github.guennhatking.libra_auction.models.ThongTinThamGiaDauGia;
-import io.github.guennhatking.libra_auction.repositories.NguoiDungRepository;
-import io.github.guennhatking.libra_auction.repositories.PhienDauGiaRepository;
-import io.github.guennhatking.libra_auction.repositories.ThongTinThamGiaDauGiaRepository;
+import io.github.guennhatking.libra_auction.mappers.AuctionRegistrationMapper;
+import io.github.guennhatking.libra_auction.models.auction.PhienDauGia;
+import io.github.guennhatking.libra_auction.models.auction.ThongTinThamGiaDauGia;
+import io.github.guennhatking.libra_auction.models.person.NguoiDung;
+import io.github.guennhatking.libra_auction.repositories.auction.PhienDauGiaRepository;
+import io.github.guennhatking.libra_auction.repositories.auction.ThongTinThamGiaDauGiaRepository;
+import io.github.guennhatking.libra_auction.repositories.person.NguoiDungRepository;
 import io.github.guennhatking.libra_auction.viewmodels.request.AuctionRegistrationCreateRequest;
 import io.github.guennhatking.libra_auction.viewmodels.response.AuctionRegistrationResponse;
 
 @Service
 public class AuctionRegistrationService {
-    private final ThongTinThamGiaDauGiaRepository thongTinThamGiaDauGiaRepository;
-    private final NguoiDungRepository nguoiDungRepository;
-    private final PhienDauGiaRepository phienDauGiaRepository;
+        private final ThongTinThamGiaDauGiaRepository thongTinThamGiaDauGiaRepository;
+        private final NguoiDungRepository nguoiDungRepository;
+        private final PhienDauGiaRepository phienDauGiaRepository;
+        private final AuctionRegistrationMapper auctionRegistrationMapper;
 
-    public AuctionRegistrationService(ThongTinThamGiaDauGiaRepository thongTinThamGiaDauGiaRepository,
-                                       NguoiDungRepository nguoiDungRepository,
-                                       PhienDauGiaRepository phienDauGiaRepository) {
-        this.thongTinThamGiaDauGiaRepository = thongTinThamGiaDauGiaRepository;
-        this.nguoiDungRepository = nguoiDungRepository;
-        this.phienDauGiaRepository = phienDauGiaRepository;
-    }
-
-    @Transactional(readOnly = true)
-    public List<AuctionRegistrationResponse> getAllRegistrations() {
-        return thongTinThamGiaDauGiaRepository.findAll().stream()
-            .map(this::toAuctionRegistrationResponse)
-            .toList();
-    }
-
-    @Transactional(readOnly = true)
-    public AuctionRegistrationResponse getRegistrationById(String id) {
-        ThongTinThamGiaDauGia registration = thongTinThamGiaDauGiaRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Registration not found"));
-        return toAuctionRegistrationResponse(registration);
-    }
-
-    @Transactional
-    public AuctionRegistrationResponse registerForAuction(AuctionRegistrationCreateRequest request) {
-        // Check if user exists
-        NguoiDung user = nguoiDungRepository.findById(request.userId())
-            .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        // Check if auction session exists
-        PhienDauGia auctionSession = phienDauGiaRepository.findById(request.auctionSessionId())
-            .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
-
-        // Check if user is already registered for this auction
-        boolean alreadyRegistered = Optional.ofNullable(auctionSession.getDanhSachThamGia())
-            .orElse(Collections.emptyList())
-            .stream()
-            .anyMatch(reg -> reg.getNguoiThamGia().getId().equals(request.userId()));
-        
-        if (alreadyRegistered) {
-            throw new IllegalArgumentException("User is already registered for this auction");
+        public AuctionRegistrationService(ThongTinThamGiaDauGiaRepository thongTinThamGiaDauGiaRepository,
+                        NguoiDungRepository nguoiDungRepository,
+                        PhienDauGiaRepository phienDauGiaRepository,
+                        AuctionRegistrationMapper auctionRegistrationMapper) {
+                this.thongTinThamGiaDauGiaRepository = thongTinThamGiaDauGiaRepository;
+                this.nguoiDungRepository = nguoiDungRepository;
+                this.phienDauGiaRepository = phienDauGiaRepository;
+                this.auctionRegistrationMapper = auctionRegistrationMapper;
         }
 
-        // Create new registration
-        ThongTinThamGiaDauGia registration = new ThongTinThamGiaDauGia(user, auctionSession);
-        ThongTinThamGiaDauGia savedRegistration = thongTinThamGiaDauGiaRepository.save(registration);
+        @Transactional(readOnly = true)
+        public List<AuctionRegistrationResponse> getAllRegistrations() {
+                List<ThongTinThamGiaDauGia> entities = thongTinThamGiaDauGiaRepository.findAll();
+                List<AuctionRegistrationResponse> responses = auctionRegistrationMapper.toResponseList(entities);
+                return responses;
+        }
 
-        return toAuctionRegistrationResponse(savedRegistration);
-    }
+        @Transactional(readOnly = true)
+        public AuctionRegistrationResponse getRegistrationById(String id) {
+                // 1. Tìm entity từ Database
+                ThongTinThamGiaDauGia registration = thongTinThamGiaDauGiaRepository.findById(id)
+                                .orElseThrow(() -> new IllegalArgumentException("Registration not found"));
 
-    @Transactional
-    public void deleteRegistration(String id) {
-        ThongTinThamGiaDauGia registration = thongTinThamGiaDauGiaRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Registration not found"));
-        thongTinThamGiaDauGiaRepository.delete(registration);
-    }
+                // 2. Sử dụng mapper để chuyển đổi và trả về
+                return auctionRegistrationMapper.toResponse(registration);
+        }
 
-    @Transactional(readOnly = true)
-    public List<AuctionRegistrationResponse> getRegistrationsByUserId(String userId) {
-        // Verify user exists
-        nguoiDungRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        @Transactional
+        public AuctionRegistrationResponse registerForAuction(AuctionRegistrationCreateRequest request) {
+                // 1. Kiểm tra User
+                NguoiDung user = nguoiDungRepository.findById(request.userId())
+                                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        return thongTinThamGiaDauGiaRepository.findAll().stream()
-            .filter(reg -> reg.getNguoiThamGia().getId().equals(userId))
-            .map(this::toAuctionRegistrationResponse)
-            .toList();
-    }
+                // 2. Kiểm tra Phiên đấu giá
+                PhienDauGia auctionSession = phienDauGiaRepository.findById(request.auctionSessionId())
+                                .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
 
-    @Transactional(readOnly = true)
-    public List<AuctionRegistrationResponse> getRegistrationsByAuctionSessionId(String auctionSessionId) {
-        // Verify auction exists
-        phienDauGiaRepository.findById(auctionSessionId)
-            .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
+                // 3. Kiểm tra đăng ký trùng lặp (Logic cũ giữ nguyên)
+                boolean alreadyRegistered = Optional.ofNullable(auctionSession.getDanhSachThamGia())
+                                .orElse(Collections.emptyList())
+                                .stream()
+                                .anyMatch(reg -> reg.getNguoiThamGia().getId().equals(request.userId()));
 
-        return thongTinThamGiaDauGiaRepository.findAll().stream()
-            .filter(reg -> reg.getPhienDauGia().getId().equals(auctionSessionId))
-            .map(this::toAuctionRegistrationResponse)
-            .toList();
-    }
+                if (alreadyRegistered) {
+                        throw new IllegalArgumentException("User is already registered for this auction");
+                }
 
-    private AuctionRegistrationResponse toAuctionRegistrationResponse(ThongTinThamGiaDauGia registration) {
-        NguoiDung user = registration.getNguoiThamGia();
-        PhienDauGia auctionSession = registration.getPhienDauGia();
-        
-        String auctionTitle = auctionSession.getThongTinPhienDauGia() != null ?
-            auctionSession.getThongTinPhienDauGia().getTieuDe() : "Unknown";
+                // 4. Tạo và lưu đăng ký
+                ThongTinThamGiaDauGia registration = new ThongTinThamGiaDauGia(user, auctionSession);
+                ThongTinThamGiaDauGia savedRegistration = thongTinThamGiaDauGiaRepository.save(registration);
 
-        return new AuctionRegistrationResponse(
-            registration.getId(),
-            user.getId(),
-            user.getHoVaTen(),
-            auctionSession.getId(),
-            auctionTitle,
-            registration.getThoiGianDangKy()
-        );
-    }
+                return auctionRegistrationMapper.toResponse(savedRegistration);
+        }
+
+        @Transactional
+        public void deleteRegistration(String id) {
+                ThongTinThamGiaDauGia registration = thongTinThamGiaDauGiaRepository.findById(id)
+                                .orElseThrow(() -> new IllegalArgumentException("Registration not found"));
+                thongTinThamGiaDauGiaRepository.delete(registration);
+        }
+
+        @Transactional(readOnly = true)
+        public List<AuctionRegistrationResponse> getRegistrationsByUserId(String userId) {
+                // 1. Kiểm tra User tồn tại
+                if (!nguoiDungRepository.existsById(userId)) {
+                        throw new IllegalArgumentException("User not found");
+                }
+
+                // 2. Lấy dữ liệu đã lọc từ DB (Thay vì lấy tất cả rồi filter)
+                List<ThongTinThamGiaDauGia> entities = thongTinThamGiaDauGiaRepository.findByNguoiThamGiaId(userId);
+
+                // 3. Sử dụng mapper để chuyển đổi toàn bộ danh sách
+                return auctionRegistrationMapper.toResponseList(entities);
+        }
+
+        @Transactional(readOnly = true)
+        public List<AuctionRegistrationResponse> getRegistrationsByAuctionSessionId(String auctionSessionId) {
+                // 1. Kiểm tra phiên đấu giá có tồn tại không
+                if (!phienDauGiaRepository.existsById(auctionSessionId)) {
+                        throw new IllegalArgumentException("Auction session not found");
+                }
+
+                // 2. Lấy dữ liệu từ DB thông qua phương thức mới ở Repository
+                List<ThongTinThamGiaDauGia> entities = thongTinThamGiaDauGiaRepository
+                                .findByPhienDauGiaId(auctionSessionId);
+
+                // 3. Sử dụng Mapper để chuyển đổi sang danh sách Response
+                return auctionRegistrationMapper.toResponseList(entities);
+        }
 }

@@ -1,7 +1,6 @@
 package io.github.guennhatking.libra_auction.controllers;
 
 import io.github.guennhatking.libra_auction.services.ImageUploadService;
-import io.github.guennhatking.libra_auction.viewmodels.common.ApiResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.ImageUploadResponse;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,11 +20,11 @@ public class ImageUploadController {
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<ImageUploadResponse>> uploadImage(
+    public ResponseEntity<ImageUploadResponse> uploadImage(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "folder", required = false) String folder
     ) throws Exception {
         ImageUploadResponse response = imageUploadService.uploadImage(file, folder);
-        return ResponseEntity.ok(new ApiResponse<>("Image uploaded successfully", response));
+        return ResponseEntity.ok(response);
     }
 }

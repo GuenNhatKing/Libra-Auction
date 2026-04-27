@@ -1,87 +1,158 @@
 package io.github.guennhatking.libra_auction.services;
 
-import io.github.guennhatking.libra_auction.models.DanhMuc;
-import io.github.guennhatking.libra_auction.models.HinhAnhTaiSan;
-import io.github.guennhatking.libra_auction.models.TaiSan;
-import io.github.guennhatking.libra_auction.models.PhienDauGia;
-import io.github.guennhatking.libra_auction.repositories.DanhMucRepository;
-import io.github.guennhatking.libra_auction.repositories.HinhAnhTaiSanRepository;
-import io.github.guennhatking.libra_auction.repositories.TaiSanRepository;
-import io.github.guennhatking.libra_auction.repositories.PhienDauGiaRepository;
+import io.github.guennhatking.libra_auction.mappers.ProductResponseMapper;
+import io.github.guennhatking.libra_auction.models.product.DanhMuc;
+import io.github.guennhatking.libra_auction.models.product.HinhAnhTaiSan;
+import io.github.guennhatking.libra_auction.models.product.TaiSan;
+import io.github.guennhatking.libra_auction.models.product.ThuocTinhTaiSan;
+import io.github.guennhatking.libra_auction.repositories.auction.PhienDauGiaRepository;
+import io.github.guennhatking.libra_auction.repositories.product.DanhMucRepository;
+import io.github.guennhatking.libra_auction.repositories.product.HinhAnhTaiSanRepository;
+import io.github.guennhatking.libra_auction.repositories.product.TaiSanRepository;
+import io.github.guennhatking.libra_auction.repositories.product.ThuocTinhTaiSanRepository;
+import io.github.guennhatking.libra_auction.viewmodels.request.AttributeRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.ProductCreateRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.ProductUpdateRequest;
+import io.github.guennhatking.libra_auction.viewmodels.response.ImageUploadResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.ProductResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
     private final DanhMucRepository danhMucRepository;
     private final TaiSanRepository taiSanRepository;
     private final HinhAnhTaiSanRepository hinhAnhTaiSanRepository;
-    private final PhienDauGiaRepository phienDauGiaRepository;
+    private final ImageUploadService imageUploadService;
+    private final ThuocTinhTaiSanRepository thuocTinhTaiSanRepository;
+    private final ProductResponseMapper productResponseMapper;
 
     public ProductService(DanhMucRepository danhMucRepository,
-                          TaiSanRepository taiSanRepository,
-                          HinhAnhTaiSanRepository hinhAnhTaiSanRepository,
-                          PhienDauGiaRepository phienDauGiaRepository) {
+            TaiSanRepository taiSanRepository,
+            HinhAnhTaiSanRepository hinhAnhTaiSanRepository,
+            PhienDauGiaRepository phienDauGiaRepository,
+            ImageUploadService imageUploadService,
+            ThuocTinhTaiSanRepository thuocTinhTaiSanRepository,
+            ProductResponseMapper productResponseMapper) {
         this.danhMucRepository = danhMucRepository;
         this.taiSanRepository = taiSanRepository;
         this.hinhAnhTaiSanRepository = hinhAnhTaiSanRepository;
-        this.phienDauGiaRepository = phienDauGiaRepository;
+        this.imageUploadService = imageUploadService;
+        this.thuocTinhTaiSanRepository = thuocTinhTaiSanRepository;
+        this.productResponseMapper = productResponseMapper;
     }
 
     @Transactional(readOnly = true)
     public List<ProductResponse> getProducts() {
-        return taiSanRepository.findAll().stream()
-            .map(this::toProductResponse)
-            .toList();
+        List<TaiSan> taiSanList = taiSanRepository.findAll().stream().toList();
+        return productResponseMapper.toProductResponseList(taiSanList);
     }
 
     @Transactional(readOnly = true)
     public ProductResponse getProductById(String id) {
         TaiSan product = taiSanRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Product not found"));
-        return toProductResponse(product);
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+        return productResponseMapper.toProductResponse(product);
     }
 
     @Transactional
-    public ProductResponse createProduct(ProductCreateRequest request) {
+    public ProductResponse createProduct(ProductCreateRequest request, List<MultipartFile> images) {
+        System.out.println("=== SERVICE START ===");
+
+        System.out.println("Finding category with id: " + request.danhMucId());
+
         DanhMuc category = danhMucRepository.findById(request.danhMucId())
-            .orElseThrow(() -> new IllegalArgumentException("Category not found"));
+                .orElseThrow(() -> {
+                    System.out.println("Category NOT FOUND");
+                    return new IllegalArgumentException("Category not found");
+                });
+
+        System.out.println("Category FOUND: " + category.getId());
 
         TaiSan product = new TaiSan(
-            request.tenTaiSan(),
-            request.soLuong(),
-            request.moTa(),
-            category
-        );
+                request.tenTaiSan(),
+                request.soLuong(),
+                request.moTa(),
+                category);
 
         TaiSan savedProduct = taiSanRepository.save(product);
+        System.out.println("Saved product ID: " + savedProduct.getId());
 
-        // Thêm hình ảnh từ Cloudinary
-        if (request.imageUrls() != null && !request.imageUrls().isEmpty()) {
-            int order = 0;
-            for (String imageUrl : request.imageUrls()) {
-                HinhAnhTaiSan image = new HinhAnhTaiSan(savedProduct, order++, imageUrl);
-                hinhAnhTaiSanRepository.save(image);
+        if (request.attributes() != null && !request.attributes().isEmpty()) {
+
+            for (AttributeRequest attr : request.attributes()) {
+
+                System.out.println("Attribute: " + attr.key() + " = " + attr.value());
+
+                // chỉ lưu attribute thường
+                if (!attr.isSystem()) {
+
+                    ThuocTinhTaiSan entity = new ThuocTinhTaiSan();
+
+                    entity.setTaiSan(savedProduct);
+                    entity.setTenThuocTinh(attr.key());
+                    entity.setGiaTri(attr.value());
+
+                    thuocTinhTaiSanRepository.save(entity);
+                } else {
+                    System.out.println("SYSTEM ATTRIBUTE SKIPPED: " + attr.key());
+                }
             }
         }
 
-        return toProductResponse(savedProduct);
+        for (MultipartFile file : images) {
+            System.out.println("=== IMAGE DEBUG ===");
+            System.out.println("Name: " + file.getName()); // key trong form-data
+            System.out.println("Original filename: " + file.getOriginalFilename());
+            System.out.println("Content type: " + file.getContentType());
+            System.out.println("Size: " + file.getSize());
+        }
+        List<String> imageUrls = new ArrayList<>();
+
+        for (MultipartFile file : images) {
+            System.out.println("Uploading: " + file.getOriginalFilename());
+
+            ImageUploadResponse res = null;
+            try {
+                res = imageUploadService.uploadImage(file, "products");
+            } catch (Exception e) {
+                System.out.println("Image upload failed for: " + file.getOriginalFilename());
+                e.printStackTrace();
+            }
+
+            if (res != null) {
+                System.out.println("Uploaded URL: " + res.secureUrl());
+                imageUrls.add(res.secureUrl());
+            }
+        }
+        int order = 0;
+        for (String url : imageUrls) {
+            HinhAnhTaiSan image = new HinhAnhTaiSan(savedProduct, order++, url);
+            hinhAnhTaiSanRepository.save(image);
+        }
+
+        System.out.println("=== SERVICE DONE ===");
+
+        return productResponseMapper.toProductResponse(savedProduct);
     }
 
     @Transactional
-    public ProductResponse updateProduct(String id, ProductUpdateRequest request) {
+    public ProductResponse updateProduct(String id, ProductUpdateRequest request, List<MultipartFile> images) {
+        System.out.println("=== UPDATE SERVICE START ===");
+
+        // --- 1. Tìm product ---
         TaiSan product = taiSanRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
+        // --- 2. Tìm category ---
         DanhMuc category = danhMucRepository.findById(request.danhMucId())
-            .orElseThrow(() -> new IllegalArgumentException("Category not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Category not found"));
 
+        // --- 3. Update thông tin cơ bản ---
         product.setTenTaiSan(request.tenTaiSan());
         product.setSoLuong(request.soLuong());
         product.setMoTa(request.moTa());
@@ -89,79 +160,81 @@ public class ProductService {
 
         TaiSan updatedProduct = taiSanRepository.save(product);
 
-        // Cập nhật hình ảnh từ Cloudinary
-        if (request.imageUrls() != null && !request.imageUrls().isEmpty()) {
-            // Xóa hình ảnh cũ
-            hinhAnhTaiSanRepository.findByTaiSanIdOrderByThuTuHienThiAsc(id)
-                .forEach(hinhAnhTaiSanRepository::delete);
+        // =========================================================
+        // --- 4. XỬ LÝ ATTRIBUTES ---
+        // =========================================================
+        System.out.println("=== UPDATE ATTRIBUTES ===");
 
-            // Thêm hình ảnh mới
-            int order = 0;
-            for (String imageUrl : request.imageUrls()) {
-                HinhAnhTaiSan image = new HinhAnhTaiSan(updatedProduct, order++, imageUrl);
-                hinhAnhTaiSanRepository.save(image);
+        // Xóa toàn bộ attribute cũ
+        thuocTinhTaiSanRepository.deleteByTaiSanId(id);
+
+        // Thêm lại
+        if (request.attributes() != null && !request.attributes().isEmpty()) {
+            for (AttributeRequest attr : request.attributes()) {
+
+                if (!attr.isSystem()) {
+                    ThuocTinhTaiSan entity = new ThuocTinhTaiSan();
+                    entity.setTaiSan(updatedProduct);
+                    entity.setTenThuocTinh(attr.key());
+                    entity.setGiaTri(attr.value());
+
+                    thuocTinhTaiSanRepository.save(entity);
+                }
             }
         }
 
-        return toProductResponse(updatedProduct);
+        // =========================================================
+        // --- 5. XỬ LÝ IMAGES ---
+        // =========================================================
+        System.out.println("=== UPDATE IMAGES ===");
+
+        List<String> finalImageUrls = new ArrayList<>();
+
+        // --- 5.1 giữ lại ảnh cũ ---
+        if (request.existingImages() != null) {
+            System.out.println("Keeping existing images: " + request.existingImages().size());
+            finalImageUrls.addAll(request.existingImages());
+        }
+
+        // --- 5.2 upload ảnh mới ---
+        if (images != null && !images.isEmpty()) {
+            for (MultipartFile file : images) {
+                try {
+                    System.out.println("Uploading new image: " + file.getOriginalFilename());
+
+                    ImageUploadResponse res = imageUploadService.uploadImage(file, "products");
+
+                    if (res != null) {
+                        finalImageUrls.add(res.secureUrl());
+                    }
+
+                } catch (Exception e) {
+                    System.out.println("Upload failed: " + file.getOriginalFilename());
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        // --- 5.3 Xóa toàn bộ ảnh cũ DB ---
+        hinhAnhTaiSanRepository.findByTaiSanIdOrderByThuTuHienThiAsc(id)
+                .forEach(hinhAnhTaiSanRepository::delete);
+
+        // --- 5.4 Lưu lại toàn bộ ảnh mới ---
+        int order = 0;
+        for (String url : finalImageUrls) {
+            HinhAnhTaiSan image = new HinhAnhTaiSan(updatedProduct, order++, url);
+            hinhAnhTaiSanRepository.save(image);
+        }
+
+        System.out.println("=== UPDATE DONE ===");
+
+        return productResponseMapper.toProductResponse(updatedProduct);
     }
 
     @Transactional
     public void deleteProduct(String id) {
         TaiSan product = taiSanRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
         taiSanRepository.delete(product);
-    }
-
-    private ProductResponse toProductResponse(TaiSan product) {
-        ProductResponse response = new ProductResponse();
-        
-        // Product info
-        response.setProduct_id(product.getId());
-        response.setProduct_name(product.getTenTaiSan());
-        response.setQuantity(product.getSoLuong());
-        response.setDescription(product.getMoTa());
-        
-        // Category info
-        if (product.getDanhMuc() != null) {
-            response.setCategory_id(product.getDanhMuc().getId());
-            response.setCategory_name(product.getDanhMuc().getTenDanhMuc());
-        }
-        
-        // Auction info - get first/active auction session for this product
-        List<PhienDauGia> auctionSessions = phienDauGiaRepository.findByTaiSan(product);
-        if (auctionSessions != null && !auctionSessions.isEmpty()) {
-            PhienDauGia auctionSession = auctionSessions.get(0); // Get first auction session
-            response.setAuction_id(auctionSession.getId());
-            response.setAuction_name(product.getTenTaiSan());
-            response.setAuction_status(auctionSession.getTrangThaiPhien() != null ? auctionSession.getTrangThaiPhien().toString() : "UPCOMING");
-            response.setAuction_type(auctionSession.getLoaiDauGia() != null ? auctionSession.getLoaiDauGia().toString() : "DAU_GIA_LEN");
-            response.setStart_time(auctionSession.getThoiGianBatDau());
-            response.setDuration(auctionSession.getThoiLuong());
-            response.setStarting_price(auctionSession.getGiaKhoiDiem());
-            response.setMin_bid_increment(auctionSession.getBuocGiaNhoNhat());
-            response.setCurrent_price(auctionSession.getGiaKhoiDiem()); // Default to starting price
-        }
-        
-        // Images
-        if (product.getHinhAnhTaiSanList() != null && !product.getHinhAnhTaiSanList().isEmpty()) {
-            List<String> imageUrls = product.getHinhAnhTaiSanList().stream()
-                .map(HinhAnhTaiSan::getHinhAnh)
-                .collect(Collectors.toList());
-            response.setImages(imageUrls);
-        }
-        
-        // Attributes
-        if (product.getThuocTinhTaiSanList() != null && !product.getThuocTinhTaiSanList().isEmpty()) {
-            List<ProductResponse.AttributeDTO> attributes = product.getThuocTinhTaiSanList().stream()
-                .map(attr -> new ProductResponse.AttributeDTO(attr.getTenThuocTinh(), attr.getGiaTri()))
-                .collect(Collectors.toList());
-            response.setAttributes(attributes);
-        }
-        
-        response.setTotal_bids(0);
-        response.setTotal_participants(0);
-        
-        return response;
     }
 }

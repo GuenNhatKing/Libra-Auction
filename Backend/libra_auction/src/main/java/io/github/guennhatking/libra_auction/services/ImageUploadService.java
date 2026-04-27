@@ -23,7 +23,7 @@ public class ImageUploadService {
 
         Map<String, Object> uploadOptions = new LinkedHashMap<>();
         uploadOptions.put("resource_type", "image");
-        uploadOptions.put("use_filename", true);
+        uploadOptions.put("use_filename", false);
         uploadOptions.put("unique_filename", false);
         uploadOptions.put("overwrite", true);
 
@@ -54,6 +54,57 @@ public class ImageUploadService {
         return new ImageUploadResponse(
                 publicId,
                 file.getOriginalFilename(),
+                stringValue(uploadResult.get("format")),
+                stringValue(uploadResult.get("resource_type")),
+                stringValue(uploadResult.get("secure_url")),
+                integerValue(uploadResult.get("width")),
+                integerValue(uploadResult.get("height")),
+                longValue(uploadResult.get("bytes")),
+                transformedUrl,
+                transformedImageTag,
+                toStringObjectMap(assetDetails));
+    }
+
+    public ImageUploadResponse uploadImageFromUrl(String imageUrl, String folder) throws Exception {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            throw new IllegalArgumentException("Image URL is required");
+        }
+
+        Map<String, Object> uploadOptions = new LinkedHashMap<>();
+        uploadOptions.put("resource_type", "image");
+        uploadOptions.put("use_filename", false);
+        uploadOptions.put("unique_filename", false);
+        uploadOptions.put("overwrite", true);
+
+        if (folder != null && !folder.isBlank()) {
+            uploadOptions.put("folder", normalizeFolder(folder));
+        }
+
+        // Upload trực tiếp từ URL
+        Map<?, ?> uploadResult = cloudinary.uploader().upload(imageUrl, uploadOptions);
+
+        String publicId = String.valueOf(uploadResult.get("public_id"));
+
+        Map<?, ?> assetDetails = cloudinary.api().resource(publicId, ObjectUtils.asMap(
+                "quality_analysis", true));
+
+        Transformation<?> transformation = new Transformation<>()
+                .crop("pad")
+                .width(300)
+                .height(400)
+                .background("auto:predominant");
+
+        String transformedUrl = cloudinary.url()
+                .transformation(transformation)
+                .generate(publicId);
+
+        String transformedImageTag = cloudinary.url()
+                .transformation(transformation)
+                .imageTag(publicId);
+
+        return new ImageUploadResponse(
+                publicId,
+                imageUrl, // vì không có file gốc nên dùng URL làm tên tham chiếu
                 stringValue(uploadResult.get("format")),
                 stringValue(uploadResult.get("resource_type")),
                 stringValue(uploadResult.get("secure_url")),

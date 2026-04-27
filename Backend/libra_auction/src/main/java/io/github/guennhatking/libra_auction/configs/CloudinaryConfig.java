@@ -8,14 +8,8 @@ import com.cloudinary.Cloudinary;
 
 @Configuration
 public class CloudinaryConfig {
-    private final String cloudinaryUrl;
-
-    public CloudinaryConfig(@Value("${CLOUDINARY_URL:}") String cloudinaryUrl) {
-        this.cloudinaryUrl = cloudinaryUrl;
-    }
-
     @Bean
-    public Cloudinary cloudinary() {
+    public Cloudinary cloudinary(@Value("${app.cloudinary.url}") String cloudinaryUrl) {
         if (cloudinaryUrl == null || cloudinaryUrl.isBlank()) {
             throw new IllegalStateException("Missing CLOUDINARY_URL configuration");
         }

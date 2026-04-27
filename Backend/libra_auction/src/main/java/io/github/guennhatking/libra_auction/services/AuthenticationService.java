@@ -1,8 +1,8 @@
 package io.github.guennhatking.libra_auction.services;
 
-import io.github.guennhatking.libra_auction.models.NguoiDung;
-import io.github.guennhatking.libra_auction.models.TaiKhoanPassword;
 import io.github.guennhatking.libra_auction.viewmodels.request.SignupFormRequest;
+import io.github.guennhatking.libra_auction.models.account.TaiKhoanPassword;
+import io.github.guennhatking.libra_auction.models.person.NguoiDung;
 import io.github.guennhatking.libra_auction.viewmodels.request.GoogleLoginRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.GoogleUserInfo;
 import io.github.guennhatking.libra_auction.viewmodels.request.RefreshTokenRequest;
@@ -43,24 +43,24 @@ public class AuthenticationService {
 
     public JwtResponse signup(SignupFormRequest request) throws Exception {
         NguoiDung newUser = userService.createPasswordUser(
-            request.getEmail(),
-            request.getUsername(),
-            request.getPassword(),
-            request.getFullName()
+            request.email(),
+            request.username(),
+            request.password(),
+            request.fullName()
         );
 
         return tokenService.generateTokens(newUser.getId());
     }
 
     public JwtResponse signin(SigninRequest request) throws Exception {
-        Optional<TaiKhoanPassword> account = userService.findPasswordAccountByUsername(request.getUsername());
+        Optional<TaiKhoanPassword> account = userService.findPasswordAccountByUsername(request.username());
 
         if (account.isEmpty()) {
             throw new IllegalArgumentException("Invalid username or password");
         }
 
         TaiKhoanPassword taiKhoan = account.get();
-        if (!passwordService.verifyPassword(request.getPassword(), taiKhoan.getPasswordHash())) {
+        if (!passwordService.verifyPassword(request.password(), taiKhoan.getPasswordHash())) {
             throw new IllegalArgumentException("Invalid username or password");
         }
 
@@ -72,16 +72,16 @@ public class AuthenticationService {
         GoogleUserInfo userInfo = googleOAuthService.exchangeCodeForUserInfo(request.code());
 
         NguoiDung user = userService.createOAuthUser(
-            userInfo.getEmail(),
-            userInfo.getSub(),
-            userInfo.getName(),
-            userInfo.getPicture()
+            userInfo.email(),
+            userInfo.sub(),
+            userInfo.name(),
+            userInfo.picture()
         );
 
         return tokenService.generateTokens(user.getId());
     }
 
     public String refreshToken(RefreshTokenRequest request) throws Exception {
-        return tokenService.refreshAccessToken(request.getRefreshToken());
+        return tokenService.refreshAccessToken(request.refreshToken());
     }
 }

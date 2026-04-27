@@ -9,13 +9,13 @@ export default async function NewListingsSection() {
         <h2 className="font-bold text-4xl">New Listings</h2>
         <p>Explore Newly Listed Auction Items</p>
       </div>
-      <div className="flex gap-9 justify-center pt-6 px-18">
-        {cards.map((card) => {
-          return <NewListingsCard key={card.id} card={card}/>;
-        })}
+      <div className="grid grid-cols-3 gap-9 pt-6 px-18 items-stretch">
+        {cards.slice(0, 3).map((card) => (
+          <NewListingsCard key={card.id} card={card} />
+        ))}
       </div>
       <div className="flex justify-center pt-18">
-        <ShowMoreBtn/>
+        <ShowMoreBtn />
       </div>
     </div>
   );

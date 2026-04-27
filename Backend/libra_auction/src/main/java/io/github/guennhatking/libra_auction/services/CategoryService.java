@@ -1,6 +1,6 @@
 package io.github.guennhatking.libra_auction.services;
 
-import io.github.guennhatking.libra_auction.repositories.DanhMucRepository;
+import io.github.guennhatking.libra_auction.repositories.product.DanhMucRepository;
 import io.github.guennhatking.libra_auction.viewmodels.response.CategoryResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

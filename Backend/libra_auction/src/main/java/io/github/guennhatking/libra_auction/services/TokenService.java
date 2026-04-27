@@ -1,6 +1,6 @@
 package io.github.guennhatking.libra_auction.services;
 
-import io.github.guennhatking.libra_auction.enums.TokenType;
+import io.github.guennhatking.libra_auction.enums.auth.TokenType;
 import io.github.guennhatking.libra_auction.security.JwtRSA;
 import io.github.guennhatking.libra_auction.security.JwtUtils;
 import io.github.guennhatking.libra_auction.viewmodels.response.JwtResponse;
