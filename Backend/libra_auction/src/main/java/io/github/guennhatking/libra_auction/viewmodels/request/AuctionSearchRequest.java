@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-public record AuctionSessionSearchRequest(
+public record AuctionSearchRequest(
         // Product search
         String name,
         String categoryId,

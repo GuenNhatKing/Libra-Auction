@@ -1,10 +1,10 @@
 package io.github.guennhatking.libra_auction.services;
 
-import io.github.guennhatking.libra_auction.mappers.AuctionSessionMapper;
+import io.github.guennhatking.libra_auction.mappers.AuctionMapper;
 import io.github.guennhatking.libra_auction.models.auction.PhienDauGia;
 import io.github.guennhatking.libra_auction.repositories.auction.PhienDauGiaRepository;
-import io.github.guennhatking.libra_auction.viewmodels.request.AuctionSessionSearchRequest;
-import io.github.guennhatking.libra_auction.viewmodels.response.AuctionSessionResponse;
+import io.github.guennhatking.libra_auction.viewmodels.request.AuctionSearchRequest;
+import io.github.guennhatking.libra_auction.viewmodels.response.AuctionResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.PageResponse;
 import org.springframework.stereotype.Service;
 
@@ -14,17 +14,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class AuctionSessionSearchService {
+public class AuctionSearchService {
     private final PhienDauGiaRepository phienDauGiaRepository;
-    private final AuctionSessionMapper auctionSessionMapper;
+    private final AuctionMapper auctionMapper;
 
-    public AuctionSessionSearchService(PhienDauGiaRepository phienDauGiaRepository,
-            AuctionSessionMapper auctionSessionMapper) {
+    public AuctionSearchService(PhienDauGiaRepository phienDauGiaRepository,
+            AuctionMapper auctionMapper) {
         this.phienDauGiaRepository = phienDauGiaRepository;
-        this.auctionSessionMapper = auctionSessionMapper;
+        this.auctionMapper = auctionMapper;
     }
 
-    public PageResponse<AuctionSessionResponse> searchAuctionSessions(AuctionSessionSearchRequest criteria) {
+    public PageResponse<AuctionResponse> searchAuctions(AuctionSearchRequest criteria) {
         // Get all sessions
         List<PhienDauGia> allSessions = phienDauGiaRepository.findAll();
 
@@ -38,19 +38,19 @@ public class AuctionSessionSearchService {
         return applyPagination(filtered, criteria);
     }
 
-    public PageResponse<AuctionSessionResponse> getLiveAuctionSessions(AuctionSessionSearchRequest criteria) {
-        return searchAuctionSessions(criteria);
+    public PageResponse<AuctionResponse> getLiveAuctions(AuctionSearchRequest criteria) {
+        return searchAuctions(criteria);
     }
 
-    public PageResponse<AuctionSessionResponse> getUpcomingAuctionSessions(AuctionSessionSearchRequest criteria) {
-        return searchAuctionSessions(criteria);
+    public PageResponse<AuctionResponse> getUpcomingAuctions(AuctionSearchRequest criteria) {
+        return searchAuctions(criteria);
     }
 
-    public PageResponse<AuctionSessionResponse> getAuctionSessionsByCategory(AuctionSessionSearchRequest criteria) {
-        return searchAuctionSessions(criteria);
+    public PageResponse<AuctionResponse> getAuctionsByCategory(AuctionSearchRequest criteria) {
+        return searchAuctions(criteria);
     }
 
-    private List<PhienDauGia> applyFilters(List<PhienDauGia> sessions, AuctionSessionSearchRequest criteria) {
+    private List<PhienDauGia> applyFilters(List<PhienDauGia> sessions, AuctionSearchRequest criteria) {
         return sessions.stream()
                 .filter(session -> filterByName(session, criteria.name()))
                 .filter(session -> filterByCategory(session, criteria.categoryId()))
@@ -154,7 +154,7 @@ public class AuctionSessionSearchService {
         });
     }
 
-    private List<PhienDauGia> applySort(List<PhienDauGia> sessions, AuctionSessionSearchRequest criteria) {
+    private List<PhienDauGia> applySort(List<PhienDauGia> sessions, AuctionSearchRequest criteria) {
         String sortBy = criteria.sortBy() != null ? criteria.sortBy() : "thoiGianBatDau";
         boolean isAsc = "ASC".equalsIgnoreCase(criteria.sortOrder());
 
@@ -174,8 +174,8 @@ public class AuctionSessionSearchService {
                 .collect(Collectors.toList());
     }
 
-    private PageResponse<AuctionSessionResponse> applyPagination(List<PhienDauGia> sessions,
-            AuctionSessionSearchRequest criteria) {
+    private PageResponse<AuctionResponse> applyPagination(List<PhienDauGia> sessions,
+            AuctionSearchRequest criteria) {
         int page = criteria.page() != null ? criteria.page() : 0;
         int pageSize = criteria.pageSize() != null ? criteria.pageSize() : 20;
 
@@ -186,7 +186,7 @@ public class AuctionSessionSearchService {
         int endIndex = Math.min(startIndex + pageSize, totalElements);
 
         List<PhienDauGia> pageContent = sessions.subList(startIndex, endIndex);
-        List<AuctionSessionResponse> responseContent = auctionSessionMapper.toAuctionSessionResponseList(pageContent);
+        List<AuctionResponse> responseContent = auctionMapper.toAuctionResponseList(pageContent);
 
         return new PageResponse<>(
                 responseContent,

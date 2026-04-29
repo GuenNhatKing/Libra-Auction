@@ -11,10 +11,10 @@ import org.mapstruct.Named;
 import io.github.guennhatking.libra_auction.models.auction.PhienDauGia;
 import io.github.guennhatking.libra_auction.models.product.TaiSan;
 import io.github.guennhatking.libra_auction.viewmodels.response.AttributeResponse;
-import io.github.guennhatking.libra_auction.viewmodels.response.AuctionSessionResponse;
+import io.github.guennhatking.libra_auction.viewmodels.response.AuctionResponse;
 
 @Mapper(componentModel = "spring", uses = { ProductImageMapper.class })
-public interface AuctionSessionMapper {
+public interface AuctionMapper {
 
     @Mapping(source = "taiSan.danhMuc.id", target = "category_id", defaultValue = "uncategorized")
     @Mapping(source = "taiSan.danhMuc.tenDanhMuc", target = "category_name")
@@ -38,9 +38,9 @@ public interface AuctionSessionMapper {
     @Mapping(source = ".", target = "attributes", qualifiedByName = "resolveAttributes")
     @Mapping(source = ".", target = "total_bids", qualifiedByName = "resolveTotalBids")
     @Mapping(source = ".", target = "total_participants", qualifiedByName = "resolveTotalParticipants")
-    AuctionSessionResponse toAuctionSessionResponse(PhienDauGia session);
+    AuctionResponse toAuctionResponse(PhienDauGia session);
 
-    List<AuctionSessionResponse> toAuctionSessionResponseList(List<PhienDauGia> sessions);
+    List<AuctionResponse> toAuctionResponseList(List<PhienDauGia> sessions);
 
     @Named("resolveAttributes")
     default List<AttributeResponse> resolveAttributes(PhienDauGia session) {

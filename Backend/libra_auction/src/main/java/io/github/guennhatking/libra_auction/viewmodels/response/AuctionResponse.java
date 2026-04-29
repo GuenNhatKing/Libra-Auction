@@ -3,7 +3,7 @@ package io.github.guennhatking.libra_auction.viewmodels.response;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record AuctionSessionResponse(
+public record AuctionResponse(
         String category_id,
         String category_name,
         String auction_id,

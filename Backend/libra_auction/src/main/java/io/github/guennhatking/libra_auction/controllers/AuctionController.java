@@ -1,12 +1,12 @@
 package io.github.guennhatking.libra_auction.controllers;
 
 import io.github.guennhatking.libra_auction.enums.auction.TrangThaiPhien;
-import io.github.guennhatking.libra_auction.services.AuctionSessionSearchService;
-import io.github.guennhatking.libra_auction.services.AuctionSessionService;
-import io.github.guennhatking.libra_auction.viewmodels.request.AuctionSessionCreateRequest;
-import io.github.guennhatking.libra_auction.viewmodels.request.AuctionSessionSearchRequest;
-import io.github.guennhatking.libra_auction.viewmodels.request.AuctionSessionUpdateRequest;
-import io.github.guennhatking.libra_auction.viewmodels.response.AuctionSessionResponse;
+import io.github.guennhatking.libra_auction.services.AuctionSearchService;
+import io.github.guennhatking.libra_auction.services.AuctionService;
+import io.github.guennhatking.libra_auction.viewmodels.request.AuctionCreateRequest;
+import io.github.guennhatking.libra_auction.viewmodels.request.AuctionSearchRequest;
+import io.github.guennhatking.libra_auction.viewmodels.request.AuctionUpdateRequest;
+import io.github.guennhatking.libra_auction.viewmodels.response.AuctionResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.PageResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -27,38 +27,38 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/auction-sessions")
-public class AuctionSessionController {
-    private final AuctionSessionService auctionSessionService;
-    private final AuctionSessionSearchService searchService;
+@RequestMapping("/api/auctions")
+public class AuctionController {
+    private final AuctionService auctionService;
+    private final AuctionSearchService searchService;
 
-    public AuctionSessionController(AuctionSessionService auctionSessionService,
-            AuctionSessionSearchService searchService) {
-        this.auctionSessionService = auctionSessionService;
+    public AuctionController(AuctionService auctionService,
+            AuctionSearchService searchService) {
+        this.auctionService = auctionService;
         this.searchService = searchService;
     }
 
     @GetMapping
-    public List<AuctionSessionResponse> getAuctionSessions() {
-        return auctionSessionService.getAuctionSessions();
+    public List<AuctionResponse> getAuctions() {
+        return auctionService.getAuctions();
     }
 
     @GetMapping("/{id}")
-    public AuctionSessionResponse getAuctionSessionById(@PathVariable String id) {
-        return auctionSessionService.getAuctionSessionById(id);
+    public AuctionResponse getAuctionById(@PathVariable String id) {
+        return auctionService.getAuctionById(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public AuctionSessionResponse createAuctionSession(
-            @RequestBody(required = false) AuctionSessionCreateRequest request) {
-        return auctionSessionService.createAuctionSession(request);
+    public AuctionResponse createAuction(
+            @RequestBody(required = false) AuctionCreateRequest request) {
+        return auctionService.createAuction(request);
     }
 
     @PutMapping("/{id}")
-    public AuctionSessionResponse updateAuctionSession(@PathVariable String id,
-            @Valid @RequestBody AuctionSessionUpdateRequest request) {
-        return auctionSessionService.updateAuctionSession(id, request);
+    public AuctionResponse updateAuction(@PathVariable String id,
+            @Valid @RequestBody AuctionUpdateRequest request) {
+        return auctionService.updateAuction(id, request);
     }
 
     /**
@@ -69,7 +69,7 @@ public class AuctionSessionController {
      * Tìm kiếm tất cả phiên đấu giá với tiêu chí linh hoạt
      */
     @GetMapping("/search")
-    public PageResponse<AuctionSessionResponse> searchAuctionSessions(
+    public PageResponse<AuctionResponse> searchAuctions(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String categoryId,
             @RequestParam(required = false) Long priceFrom,
@@ -83,11 +83,11 @@ public class AuctionSessionController {
             @RequestParam(defaultValue = "thoiGianBatDau") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortOrder) {
 
-        AuctionSessionSearchRequest criteria = buildSearchCriteria(
+        AuctionSearchRequest criteria = buildSearchCriteria(
                 name, categoryId, priceFrom, priceTo, startingPrice,
                 timeStart, timeEnd, status, page, pageSize, sortBy, sortOrder);
 
-        return searchService.searchAuctionSessions(criteria);
+        return searchService.searchAuctions(criteria);
     }
 
     /**
@@ -97,7 +97,7 @@ public class AuctionSessionController {
      * Lấy phiên đấu giá đang diễn ra
      */
     @GetMapping("/live")
-    public PageResponse<AuctionSessionResponse> getLiveAuctionSessions(
+    public PageResponse<AuctionResponse> getLiveAuctions(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String categoryId,
             @RequestParam(defaultValue = "0") Integer page,
@@ -105,7 +105,7 @@ public class AuctionSessionController {
             @RequestParam(defaultValue = "thoiGianBatDau") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortOrder) {
 
-        AuctionSessionSearchRequest criteria = buildSearchCriteria(
+        AuctionSearchRequest criteria = buildSearchCriteria(
                 name, // 1. name
                 categoryId, // 2. categoryId
                 null, // 3. priceFrom
@@ -120,7 +120,7 @@ public class AuctionSessionController {
                 sortOrder // 12. sortOrder
         );
 
-        return searchService.getLiveAuctionSessions(criteria);
+        return searchService.getLiveAuctions(criteria);
     }
 
     /**
@@ -130,7 +130,7 @@ public class AuctionSessionController {
      * Lấy phiên đấu giá sắp tới
      */
     @GetMapping("/upcoming")
-    public PageResponse<AuctionSessionResponse> getUpcomingAuctionSessions(
+    public PageResponse<AuctionResponse> getUpcomingAuctions(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) String categoryId,
             @RequestParam(defaultValue = "0") Integer page,
@@ -139,7 +139,7 @@ public class AuctionSessionController {
             @RequestParam(defaultValue = "DESC") String sortOrder) {
 
         // Gán trực tiếp CHUA_BAT_DAU vào tham số status
-        AuctionSessionSearchRequest criteria = buildSearchCriteria(
+        AuctionSearchRequest criteria = buildSearchCriteria(
                 name,
                 categoryId,
                 null,
@@ -150,7 +150,7 @@ public class AuctionSessionController {
                 TrangThaiPhien.CHUA_BAT_DAU.toString(),
                 page, pageSize, sortBy, sortOrder);
 
-        return searchService.getUpcomingAuctionSessions(criteria);
+        return searchService.getUpcomingAuctions(criteria);
     }
 
     /**
@@ -161,7 +161,7 @@ public class AuctionSessionController {
      * Lấy phiên đấu giá theo danh mục (đang diễn ra hoặc sắp tới)
      */
     @GetMapping("/category/{categoryId}/{type}")
-    public PageResponse<AuctionSessionResponse> getAuctionSessionsByCategory(
+    public PageResponse<AuctionResponse> getAuctionsByCategory(
             @PathVariable String categoryId,
             @PathVariable String type,
             @RequestParam(required = false) String name,
@@ -178,7 +178,7 @@ public class AuctionSessionController {
             status = TrangThaiPhien.CHUA_BAT_DAU.toString();
         }
 
-        AuctionSessionSearchRequest criteria = buildSearchCriteria(
+        AuctionSearchRequest criteria = buildSearchCriteria(
                 name,
                 categoryId, 
                 null, 
@@ -189,13 +189,13 @@ public class AuctionSessionController {
                 status, // Truyền status vừa xác định
                 page, pageSize, sortBy, sortOrder);
 
-        return searchService.getAuctionSessionsByCategory(criteria);
+        return searchService.getAuctionsByCategory(criteria);
     }
 
     /**
      * Build search criteria from request parameters
      */
-    private AuctionSessionSearchRequest buildSearchCriteria(
+    private AuctionSearchRequest buildSearchCriteria(
             String name, String categoryId, Long priceFrom, Long priceTo, Long startingPrice,
             String timeStart, String timeEnd, String status,
             Integer page, Integer pageSize, String sortBy, String sortOrder) {
@@ -205,7 +205,7 @@ public class AuctionSessionController {
         LocalDateTime parsedEnd = parseDateTime(timeEnd);
 
         // Gọi constructor của Record (PHẢI ĐỦ 13 THAM SỐ theo định nghĩa Record)
-        return new AuctionSessionSearchRequest(
+        return new AuctionSearchRequest(
                 name,
                 categoryId,
                 priceFrom,
@@ -234,7 +234,7 @@ public class AuctionSessionController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteAuctionSession(@PathVariable String id) {
-        auctionSessionService.deleteAuctionSession(id);
+    public void deleteAuction(@PathVariable String id) {
+        auctionService.deleteAuction(id);
     }
 }

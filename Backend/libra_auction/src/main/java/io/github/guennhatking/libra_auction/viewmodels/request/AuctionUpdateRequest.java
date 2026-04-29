@@ -1,6 +1,5 @@
 package io.github.guennhatking.libra_auction.viewmodels.request;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
@@ -8,10 +7,7 @@ import java.time.LocalDateTime;
 
 import io.github.guennhatking.libra_auction.enums.auction.LoaiDauGia;
 
-public record AuctionSessionCreateRequest(
-    @NotBlank(message = "taiSanId is required")
-    String taiSanId,
-
+public record AuctionUpdateRequest(
     @NotNull(message = "thoiGianBatDau is required")
     LocalDateTime thoiGianBatDau,
 
