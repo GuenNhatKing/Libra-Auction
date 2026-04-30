@@ -3,6 +3,8 @@ package io.github.guennhatking.libra_auction.controllers;
 import java.util.Optional;
 
 import org.mapstruct.factory.Mappers;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,15 +29,15 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ServerAPIResponse<UserResponse> getUserInfo(@PathVariable String id) {
+    public ResponseEntity<ServerAPIResponse<UserResponse>> getUserInfo(@PathVariable String id) {
         System.out.println("GET /api/users");
         Optional<NguoiDung> user = userService.findById(id);
 
         if (user.isPresent()) {
             UserResponse userResponse = userMapper.toResponse(user.get());
-            return ServerAPIResponse.success(userResponse);
+            return ResponseEntity.status(HttpStatus.OK).body(ServerAPIResponse.success(userResponse));
         } else {
-            return ServerAPIResponse.error("User ID not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ServerAPIResponse.error("User not found"));
         }
     }
 }
