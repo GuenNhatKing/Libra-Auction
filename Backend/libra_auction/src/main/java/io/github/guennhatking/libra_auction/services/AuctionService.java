@@ -55,13 +55,13 @@ public class AuctionService {
         public AuctionResponse getAuctionById(String id) {
                 PhienDauGia session = phienDauGiaRepository.findById(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
-                // For public endpoint, hide only rejected auctions
-                if (session.getTrangThaiKiemDuyet() == TrangThaiKiemDuyet.BI_TU_CHOI) {
+                // For public endpoint, only return approved auctions
+                if (session.getTrangThaiKiemDuyet() != TrangThaiKiemDuyet.DA_DUYET) {
                         throw new IllegalArgumentException("Auction session not found");
                 }
-                // Also check if the product is not rejected
+                // Also check if the product is approved
                 if (session.getTaiSan() == null || 
-                    session.getTaiSan().getTrangThaiKiemDuyet() == TrangThaiKiemDuyet.BI_TU_CHOI) {
+                    session.getTaiSan().getTrangThaiKiemDuyet() != TrangThaiKiemDuyet.DA_DUYET) {
                         throw new IllegalArgumentException("Auction session not found");
                 }
                 return auctionMapper.toAuctionResponse(session);
@@ -73,13 +73,13 @@ public class AuctionService {
                                 .findByIdAndTaiSan_DanhMuc_Id(id, categoryId)
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "Auction not found in this category"));
-                // For public endpoint, hide only rejected auctions
-                if (session.getTrangThaiKiemDuyet() == TrangThaiKiemDuyet.BI_TU_CHOI) {
+                // For public endpoint, only return approved auctions
+                if (session.getTrangThaiKiemDuyet() != TrangThaiKiemDuyet.DA_DUYET) {
                         throw new IllegalArgumentException("Auction not found in this category");
                 }
-                // Also check if the product is not rejected
+                // Also check if the product is approved
                 if (session.getTaiSan() == null || 
-                    session.getTaiSan().getTrangThaiKiemDuyet() == TrangThaiKiemDuyet.BI_TU_CHOI) {
+                    session.getTaiSan().getTrangThaiKiemDuyet() != TrangThaiKiemDuyet.DA_DUYET) {
                         throw new IllegalArgumentException("Auction not found in this category");
                 }
                 return auctionMapper.toAuctionResponse(session);

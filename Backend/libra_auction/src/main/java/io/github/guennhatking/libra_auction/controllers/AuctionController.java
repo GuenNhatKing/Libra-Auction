@@ -76,7 +76,7 @@ public class AuctionController {
                 timeStart, timeEnd, status, null,
                 page, pageSize, sortBy, sortOrder);
 
-        PageResponse<AuctionResponse> result = searchService.searchAuctions(criteria);
+        PageResponse<AuctionResponse> result = searchService.searchPublicAuctions(criteria);
 
         return ResponseEntity.ok(ServerAPIResponse.success(result));
     }
@@ -100,7 +100,7 @@ public class AuctionController {
                 timeStart, timeEnd, status, null,
                 page, pageSize, sortBy, sortOrder);
 
-        PageResponse<AuctionResponse> result = searchService.searchAuctions(criteria);
+        PageResponse<AuctionResponse> result = searchService.searchPublicAuctions(criteria);
 
         return ResponseEntity.ok(ServerAPIResponse.success(result));
     }

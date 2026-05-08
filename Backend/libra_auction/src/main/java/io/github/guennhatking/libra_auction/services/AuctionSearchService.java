@@ -51,6 +51,56 @@ public class AuctionSearchService {
         return searchAuctions(criteria);
     }
 
+    /**
+     * Search only approved auctions for public viewing
+     */
+    public PageResponse<AuctionResponse> searchPublicAuctions(AuctionSearchRequest baseCriteria) {
+        // Force approval status to DA_DUYET for public
+        AuctionSearchRequest criteria = new AuctionSearchRequest(
+                baseCriteria.name(),
+                baseCriteria.categoryId(),
+                baseCriteria.priceFrom(),
+                baseCriteria.priceTo(),
+                baseCriteria.startingPrice(),
+                baseCriteria.timeStart(),
+                baseCriteria.timeEnd(),
+                baseCriteria.attributes(),
+                baseCriteria.status(),
+                TrangThaiKiemDuyet.DA_DUYET.toString(),
+                baseCriteria.page(),
+                baseCriteria.pageSize(),
+                baseCriteria.sortBy(),
+                baseCriteria.sortOrder(),
+                null);
+        
+        return searchAuctions(criteria);
+    }
+
+    /**
+     * Search pending auctions (CHUA_DUYET) for admin
+     */
+    public PageResponse<AuctionResponse> searchPendingAuctions(AuctionSearchRequest baseCriteria) {
+        // Force approval status to CHUA_DUYET for admin pending view
+        AuctionSearchRequest criteria = new AuctionSearchRequest(
+                baseCriteria.name(),
+                baseCriteria.categoryId(),
+                baseCriteria.priceFrom(),
+                baseCriteria.priceTo(),
+                baseCriteria.startingPrice(),
+                baseCriteria.timeStart(),
+                baseCriteria.timeEnd(),
+                baseCriteria.attributes(),
+                baseCriteria.status(),
+                TrangThaiKiemDuyet.CHUA_DUYET.toString(),
+                baseCriteria.page(),
+                baseCriteria.pageSize(),
+                baseCriteria.sortBy(),
+                baseCriteria.sortOrder(),
+                null);
+        
+        return searchAuctions(criteria);
+    }
+
     private List<PhienDauGia> applyFilters(List<PhienDauGia> sessions, AuctionSearchRequest criteria) {
         return sessions.stream()
                 .filter(session -> filterByName(session, criteria.name()))
@@ -185,12 +235,9 @@ public class AuctionSearchService {
             return true;
         }
         
-        // For public/unauthenticated users, hide only rejected auctions (BI_TU_CHOI)
-        // Show both CHUA_DUYET and DA_DUYET
-        if (session.getTrangThaiKiemDuyet() == null) {
-            return false;
-        }
-        return !session.getTrangThaiKiemDuyet().equals(TrangThaiKiemDuyet.BI_TU_CHOI);
+        // For public/unauthenticated users, only show approved auctions
+        return session.getTrangThaiKiemDuyet() != null && 
+               session.getTrangThaiKiemDuyet().equals(TrangThaiKiemDuyet.DA_DUYET);
     }
 
     private boolean filterByProductApprovalStatus(PhienDauGia session, String trangThaiKiemDuyet, String chuSoHuuId) {
@@ -204,15 +251,12 @@ public class AuctionSearchService {
             return session.getTaiSan() != null;
         }
         
-        // For public viewing, hide only rejected products (BI_TU_CHOI)
+        // For public viewing, product must also be approved
         if (session.getTaiSan() == null) {
             return false;
         }
-        if (session.getTaiSan().getTrangThaiKiemDuyet() == null) {
-            return false;
-        }
-        // Show products that are not rejected
-        return !session.getTaiSan().getTrangThaiKiemDuyet().equals(TrangThaiKiemDuyet.BI_TU_CHOI);
+        return session.getTaiSan().getTrangThaiKiemDuyet() != null &&
+               session.getTaiSan().getTrangThaiKiemDuyet().equals(TrangThaiKiemDuyet.DA_DUYET);
     }
 
     private List<PhienDauGia> applySort(List<PhienDauGia> sessions, AuctionSearchRequest criteria) {
