@@ -5,8 +5,8 @@ public record JwtResponse(
         String refreshToken,
         String type,
         long accessTokenExpiration,
-        String nguoiDungId) {
-    public JwtResponse(String token, String refreshToken, long accessTokenExpiration, String nguoiDungId) {
-        this(token, refreshToken, "Bearer", accessTokenExpiration, nguoiDungId);
+        long refreshTokenExpiration) {
+    public JwtResponse(String token, String refreshToken, long accessTokenExpiration, long refreshTokenExpiration) {
+        this(token, refreshToken, "Bearer", accessTokenExpiration, refreshTokenExpiration);
     }
 }

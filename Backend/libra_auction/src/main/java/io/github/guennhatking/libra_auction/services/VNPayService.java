@@ -3,241 +3,232 @@ package io.github.guennhatking.libra_auction.services;
 import io.github.guennhatking.libra_auction.enums.transaction.LoaiGiaoDich;
 import io.github.guennhatking.libra_auction.enums.transaction.TinhTrangGiaoDich;
 import io.github.guennhatking.libra_auction.enums.transaction.TrangThaiVNPay;
+import io.github.guennhatking.libra_auction.models.auction.PhienDauGia;
+import io.github.guennhatking.libra_auction.models.auction.ThongTinPhienDauGia;
+import io.github.guennhatking.libra_auction.models.auction.ThongTinThamGiaDauGia;
 import io.github.guennhatking.libra_auction.models.person.NguoiDung;
-import io.github.guennhatking.libra_auction.models.transaction.GiaoDichThanhToan;
-import io.github.guennhatking.libra_auction.models.transaction.GiaoDich;
+import io.github.guennhatking.libra_auction.models.transaction.GiaoDichDatCoc;
 import io.github.guennhatking.libra_auction.properties.VNPayProperties;
+import io.github.guennhatking.libra_auction.repositories.auction.PhienDauGiaRepository;
+import io.github.guennhatking.libra_auction.repositories.auction.ThongTinThamGiaDauGiaRepository;
 import io.github.guennhatking.libra_auction.repositories.person.NguoiDungRepository;
+import io.github.guennhatking.libra_auction.repositories.transaction.GiaoDichDatCocRepository;
 import io.github.guennhatking.libra_auction.repositories.transaction.GiaoDichRepository;
 import io.github.guennhatking.libra_auction.repositories.transaction.GiaoDichThanhToanRepository;
 import io.github.guennhatking.libra_auction.utils.VNPayUtil;
-import io.github.guennhatking.libra_auction.viewmodels.request.VNPayPaymentRequest;
+import io.github.guennhatking.libra_auction.viewmodels.request.VNPayDepositRequest;
+import io.github.guennhatking.libra_auction.viewmodels.request.VerifyPaymentRequest;
 import io.github.guennhatking.libra_auction.viewmodels.response.VNPayPaymentResponse;
-import io.github.guennhatking.libra_auction.viewmodels.response.VNPayTransactionResponse;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Service xử lý thanh toán VNPay
  */
 @Service
 public class VNPayService {
-
     private final VNPayProperties vnPayProperties;
     private final GiaoDichRepository giaoDichRepository;
     private final GiaoDichThanhToanRepository giaoDichThanhToanRepository;
+    private final GiaoDichDatCocRepository giaoDichDatCocRepository;
+    private final ThongTinThamGiaDauGiaRepository thongTinThamGiaDauGiaRepository;
     private final NguoiDungRepository nguoiDungRepository;
+    private final PhienDauGiaRepository phienDauGiaRepository;
 
     // Cache để lưu trạng thái thanh toán (trong thực tế nên dùng Redis)
     private final Map<String, TrangThaiVNPay> paymentStatusCache = new HashMap<>();
 
     public VNPayService(VNPayProperties vnPayProperties,
-                        GiaoDichRepository giaoDichRepository,
-                        GiaoDichThanhToanRepository giaoDichThanhToanRepository,
-                        NguoiDungRepository nguoiDungRepository) {
+            GiaoDichRepository giaoDichRepository,
+            GiaoDichThanhToanRepository giaoDichThanhToanRepository,
+            NguoiDungRepository nguoiDungRepository,
+            GiaoDichDatCocRepository giaoDichDatCocRepository,
+            ThongTinThamGiaDauGiaRepository thongTinThamGiaDauGiaRepository,
+            PhienDauGiaRepository phienDauGiaRepository) {
         this.vnPayProperties = vnPayProperties;
         this.giaoDichRepository = giaoDichRepository;
         this.giaoDichThanhToanRepository = giaoDichThanhToanRepository;
         this.nguoiDungRepository = nguoiDungRepository;
+        this.giaoDichDatCocRepository = giaoDichDatCocRepository;
+        this.thongTinThamGiaDauGiaRepository = thongTinThamGiaDauGiaRepository;
+        this.phienDauGiaRepository = phienDauGiaRepository;
     }
 
-    /**
-     * Tạo thanh toán VNPay
-     */
     @Transactional
-    public VNPayPaymentResponse createPayment(VNPayPaymentRequest request, String userId) {
-        // Lấy thông tin user
-        Optional<NguoiDung> userOptional = nguoiDungRepository.findById(userId);
-        if (userOptional.isEmpty()) {
-            throw new RuntimeException("Người dùng không tồn tại");
-        }
-        
-        NguoiDung user = userOptional.get();
-        
-        // Tạo giao dịch trong database
-        GiaoDichThanhToan transaction = new GiaoDichThanhToan(
-            request.soTien(),
-            user,
-            user  // Người nhận là chính người dùng (hệ thống)
-        );
-        transaction.setTinhTrangGiaoDich(TinhTrangGiaoDich.DANG_XU_LY);
-        
-        GiaoDichThanhToan savedTransaction = giaoDichThanhToanRepository.save(transaction);
-        
-        // Tạo TxnRef cho VNPay
-        String txnRef = VNPayUtil.generateTxnRef(savedTransaction.getId());
-        savedTransaction.setMaGiaoDichCuaDoiTac(txnRef);
-        giaoDichThanhToanRepository.save(savedTransaction);
-        
-        // Lưu trạng thái thanh toán
-        paymentStatusCache.put(savedTransaction.getId(), TrangThaiVNPay.DANG_THANH_TOAN);
-        
-        // Tạo params cho VNPay
-        Map<String, String> params = buildVNPayParams(
-            txnRef,
-            request.soTien(),
-            request.orderInfo(),
-            user.getId()
-        );
-        
-        // Tính toán secure hash
-        String secureHash;
-        try {
-            secureHash = VNPayUtil.buildSecureHash(params, vnPayProperties.getHashSecret());
-        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            throw new RuntimeException("Lỗi khi tính toán secure hash: " + e.getMessage());
-        }
-        
-        params.put("vnp_SecureHash", secureHash);
-        params.put("vnp_SecureHashType", "SHA512");
-        
-        // Xây dựng URL thanh toán
-        String paymentUrl = buildPaymentUrl(params);
-        
-        return new VNPayPaymentResponse(
-            paymentUrl,
-            savedTransaction.getId(),
-            txnRef,
-            request.soTien(),
-            request.orderInfo()
-        );
-    }
+    public VNPayPaymentResponse createDeposit(VNPayDepositRequest request, String userId,
+            HttpServletRequest servletRequest) {
 
-    /**
-     * Xử lý callback từ VNPay
-     */
-    @Transactional
-    public void handleCallback(Map<String, String> params) throws NoSuchAlgorithmException, InvalidKeyException {
-        // Xác minh chữ ký
-        if (!VNPayUtil.verifyCallback(params, vnPayProperties.getHashSecret())) {
-            throw new RuntimeException("Chữ ký VNPay không hợp lệ");
-        }
-        
-        String txnRef = params.get("vnp_TxnRef");
-        String responseCode = params.get("vnp_ResponseCode");
-        String transactionNo = params.get("vnp_TransactionNo");
-        
-        // Tìm giao dịch theo TxnRef
-        // Trong thực tế, cần có một repository method để tìm theo maGiaoDichCuaDoiTac
-        Optional<GiaoDich> transactionOptional = giaoDichRepository.findAll().stream()
-            .filter(t -> txnRef.equals(t.getMaGiaoDichCuaDoiTac()))
-            .findFirst();
-        
-        if (transactionOptional.isEmpty()) {
-            throw new RuntimeException("Giao dịch không tồn tại: " + txnRef);
-        }
-        
-        GiaoDich transaction = transactionOptional.get();
-        
-        // Cập nhật trạng thái giao dịch
-        if ("00".equals(responseCode)) {
-            // Thanh toán thành công
-            transaction.setTinhTrangGiaoDich(TinhTrangGiaoDich.THANH_CONG);
-            paymentStatusCache.put(transaction.getId(), TrangThaiVNPay.THANH_TOAN_THANH_CONG);
-        } else {
-            // Thanh toán thất bại
-            transaction.setTinhTrangGiaoDich(TinhTrangGiaoDich.THAT_BAI);
-            paymentStatusCache.put(transaction.getId(), TrangThaiVNPay.THANH_TOAN_THAT_BAI);
-        }
-        
-        giaoDichRepository.save(transaction);
-    }
+        NguoiDung user = nguoiDungRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-    /**
-     * Lấy thông tin giao dịch thanh toán
-     */
-    @Transactional(readOnly = true)
-    public VNPayTransactionResponse getTransaction(String transactionId) {
-        Optional<GiaoDich> transactionOptional = giaoDichRepository.findById(transactionId);
-        if (transactionOptional.isEmpty()) {
-            throw new RuntimeException("Giao dịch không tồn tại");
-        }
-        
-        GiaoDich transaction = transactionOptional.get();
-        TrangThaiVNPay status = paymentStatusCache.getOrDefault(transactionId, TrangThaiVNPay.DANG_THANH_TOAN);
-        
-        return new VNPayTransactionResponse(
-            transaction.getId(),
-            transaction.getMaGiaoDichCuaDoiTac(),
-            transaction.getSoTien(),
-            "", // Mô tả không lưu trong GiaoDich hiện tại
-            "",
-            status,
-            transaction.getNgayTao().toString(),
-            OffsetDateTime.now(ZoneOffset.ofHours(7)).toString()
-        );
-    }
+        ThongTinThamGiaDauGia thongTinThamGiaDauGia = thongTinThamGiaDauGiaRepository
+                .findByNguoiThamGiaIdAndPhienDauGiaId(userId, request.phienDauGiaId())
+                .orElseThrow(() -> new RuntimeException("Thông tin tham gia không tồn tại"));
 
-    /**
-     * Hủy thanh toán
-     */
-    @Transactional
-    public void cancelPayment(String transactionId) {
-        Optional<GiaoDich> transactionOptional = giaoDichRepository.findById(transactionId);
-        if (transactionOptional.isEmpty()) {
-            throw new RuntimeException("Giao dịch không tồn tại");
-        }
-        
-        GiaoDich transaction = transactionOptional.get();
-        transaction.setTinhTrangGiaoDich(TinhTrangGiaoDich.THAT_BAI);
-        paymentStatusCache.put(transactionId, TrangThaiVNPay.DA_HUY);
-        
-        giaoDichRepository.save(transaction);
-    }
+        PhienDauGia phienDauGia = phienDauGiaRepository.findById(request.phienDauGiaId())
+                .orElseThrow(() -> new RuntimeException("Phiên đấu giá không tồn tại"));
 
-    /**
-     * Xây dựng các tham số cho VNPay
-     */
-    private Map<String, String> buildVNPayParams(String txnRef, long amount, String orderInfo, String userId) {
-        Map<String, String> params = new HashMap<>();
-        
-        params.put("vnp_Version", "2.1.0");
-        params.put("vnp_Command", "pay");
-        params.put("vnp_TmnCode", vnPayProperties.getTmnCode());
-        params.put("vnp_Amount", VNPayUtil.formatAmount(amount));
-        params.put("vnp_CurrCode", "VND");
-        params.put("vnp_TxnRef", txnRef);
-        params.put("vnp_OrderInfo", orderInfo != null ? orderInfo : "Thanh toan don hang");
-        params.put("vnp_Locale", "vn");
-        params.put("vnp_CreateDate", VNPayUtil.getCreateDate());
-        params.put("vnp_IpAddr", "127.0.0.1");
-        params.put("vnp_ReturnUrl", vnPayProperties.getReturnUrl());
-        
-        return params;
-    }
+        ThongTinPhienDauGia thongTinPhienDauGia = phienDauGia.getThongTinPhienDauGia();
+        GiaoDichDatCoc deposit = new GiaoDichDatCoc(thongTinPhienDauGia.getTienCoc(),
+                user, thongTinThamGiaDauGia);
 
-    /**
-     * Xây dựng URL thanh toán
-     */
-    private String buildPaymentUrl(Map<String, String> params) {
-        StringBuilder url = new StringBuilder(vnPayProperties.getApiUrl());
-        url.append("?");
-        
-        params.forEach((key, value) -> {
-            try {
-                url.append(key).append("=")
-                   .append(java.net.URLEncoder.encode(value, "UTF-8"))
-                   .append("&");
-            } catch (java.io.UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
+        deposit.setLoaiGiaoDich(LoaiGiaoDich.DAT_COC);
+        deposit.setNgayTao(OffsetDateTime.now(ZoneOffset.ofHours(7)));
+        deposit.setTinhTrangGiaoDich(TinhTrangGiaoDich.DANG_XU_LY);
+
+        // Lưu để có ID (mã đơn hàng)
+        deposit = giaoDichDatCocRepository.save(deposit);
+
+        String vnp_Version = "2.1.0";
+        String vnp_Command = "pay";
+        String vnp_OrderInfo = "Dat coc dau gia: " + request.phienDauGiaId();
+        String vnp_TxnRef = deposit.getId();
+        String vnp_IpAddr = getClientIp(servletRequest);
+        String vnp_TmnCode = vnPayProperties.getTmnCode();
+
+        long amount = thongTinPhienDauGia.getTienCoc() * 100; // VNPay tính theo đơn vị xu (nhân 100)
+
+        Map<String, String> vnp_Params = new HashMap<>();
+        vnp_Params.put("vnp_Version", vnp_Version);
+        vnp_Params.put("vnp_Command", vnp_Command);
+        vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
+        vnp_Params.put("vnp_Amount", String.valueOf(amount));
+        vnp_Params.put("vnp_CurrCode", "VND");
+        vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
+        vnp_Params.put("vnp_OrderInfo", vnp_OrderInfo);
+        vnp_Params.put("vnp_OrderType", "other");
+        vnp_Params.put("vnp_Locale", "vn");
+        vnp_Params.put("vnp_ReturnUrl", vnPayProperties.getReturnUrl());
+        vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
+        vnp_Params.put("vnp_CreateDate", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+
+        List<String> fieldNames = new ArrayList<>(vnp_Params.keySet());
+        Collections.sort(fieldNames);
+        StringBuilder hashData = new StringBuilder();
+        StringBuilder query = new StringBuilder();
+
+        for (String fieldName : fieldNames) {
+            String fieldValue = vnp_Params.get(fieldName);
+            if (fieldValue != null && fieldValue.length() > 0) {
+                // Build hash data
+                hashData.append(fieldName).append('=').append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
+                // Build query
+                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII))
+                        .append('=').append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
+                if (!fieldName.equals(fieldNames.get(fieldNames.size() - 1))) {
+                    query.append('&');
+                    hashData.append('&');
+                }
             }
-        });
-        
-        // Xóa ký tự & cuối cùng
-        if (url.length() > 0) {
-            url.deleteCharAt(url.length() - 1);
         }
-        
-        return url.toString();
+
+        // 5. Tạo chữ ký số (Secure Hash)
+        String queryUrl = query.toString();
+        String vnp_SecureHash = VNPayUtil.hmacSHA512(vnPayProperties.getHashSecret(), hashData.toString());
+        queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
+
+        String paymentUrl = vnPayProperties.getApiUrl() + "?" + queryUrl;
+
+        // 6. Trả về thông tin cho Frontend
+        return new VNPayPaymentResponse(paymentUrl);
+    }
+
+    @Transactional
+    public boolean verifyPayment(VerifyPaymentRequest request) {
+        // 1. Chuyển đổi Record sang Map để tính toán Checksum
+        Map<String, String> fields = new HashMap<>();
+        fields.put("vnp_Amount", request.vnp_Amount());
+        fields.put("vnp_BankCode", request.vnp_BankCode());
+        fields.put("vnp_BankTranNo", request.vnp_BankTranNo());
+        fields.put("vnp_CardType", request.vnp_CardType());
+        fields.put("vnp_OrderInfo", request.vnp_OrderInfo());
+        fields.put("vnp_PayDate", request.vnp_PayDate());
+        fields.put("vnp_ResponseCode", request.vnp_ResponseCode());
+        fields.put("vnp_TmnCode", request.vnp_TmnCode());
+        fields.put("vnp_TransactionNo", request.vnp_TransactionNo());
+        fields.put("vnp_TransactionStatus", request.vnp_TransactionStatus());
+        fields.put("vnp_TxnRef", request.vnp_TxnRef());
+
+        // 2. Kiểm tra chữ ký (Secure Hash)
+        // Sắp xếp tham số theo alphabet (giống như lúc tạo)
+        List<String> fieldNames = new ArrayList<>(fields.keySet());
+        Collections.sort(fieldNames);
+
+        StringBuilder hashData = new StringBuilder();
+        for (String fieldName : fieldNames) {
+            String fieldValue = fields.get(fieldName);
+            if (fieldValue != null && !fieldValue.isEmpty()) {
+                // Nếu StringBuilder đã có dữ liệu, thêm dấu & trước khi thêm tham số mới
+                if (hashData.length() > 0) {
+                    hashData.append('&');
+                }
+                hashData.append(fieldName)
+                        .append('=')
+                        .append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
+            }
+        }
+
+        String signValue = VNPayUtil.hmacSHA512(vnPayProperties.getHashSecret(), hashData.toString());
+        // So sánh hash từ VNPAY và hash mình tự tính
+        if (!signValue.equalsIgnoreCase(request.vnp_SecureHash())) {
+            throw new RuntimeException("Chữ ký không hợp lệ (Invalid Checksum)");
+        }
+
+        // 3. Tìm giao dịch đặt cọc trong DB
+        GiaoDichDatCoc deposit = giaoDichDatCocRepository.findById(request.vnp_TxnRef())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch đặt cọc"));
+
+        // 4. Kiểm tra số tiền
+        long vnpAmount = request.getActualAmount();
+        long dbAmount = deposit.getSoTien();
+        if (vnpAmount != dbAmount) {
+            throw new RuntimeException("Số tiền thanh toán không khớp");
+        }
+
+        // 5. Kiểm tra trạng thái giao dịch 
+        if (deposit.getTinhTrangGiaoDich() != TinhTrangGiaoDich.DANG_XU_LY) {
+            // Giao dịch này đã được cập nhật trước đó (bởi IPN hoặc lần verify trước)
+            return deposit.getTinhTrangGiaoDich() == TinhTrangGiaoDich.THANH_CONG;
+        }
+
+        // 6. Cập nhật kết quả dựa trên ResponseCode
+        if ("00".equals(request.vnp_ResponseCode())) {
+            // THÀNH CÔNG
+            deposit.setTinhTrangGiaoDich(TinhTrangGiaoDich.THANH_CONG);
+            // Lưu mã giao dịch VNPAY để đối soát sau này
+            deposit.setMaGiaoDichCuaDoiTac(request.vnp_TransactionNo());
+
+            giaoDichDatCocRepository.save(deposit);
+
+            return true;
+        } else {
+            deposit.setTinhTrangGiaoDich(TinhTrangGiaoDich.THAT_BAI);
+            giaoDichDatCocRepository.save(deposit);
+            return false;
+        }
+    }
+
+    public String getClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+
+        if (ip != null && !ip.isBlank()) {
+            return ip.split(",")[0].trim();
+        }
+
+        return request.getRemoteAddr();
     }
 }

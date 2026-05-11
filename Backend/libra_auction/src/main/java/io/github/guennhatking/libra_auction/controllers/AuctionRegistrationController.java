@@ -48,22 +48,16 @@ public class AuctionRegistrationController {
     public ResponseEntity<ServerAPIResponse<AuctionRegistrationResponse>> registerForAuction(
             @AuthenticationPrincipal JwtUserDetails userDetails,
             @Valid @RequestBody AuctionRegistrationCreateRequest request) {
-        
+
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ServerAPIResponse.error("Người dùng chưa đăng nhập"));
         }
-        
+
         try {
-            // Auto-extract userId từ JWT, ignore userId từ request body
             String userId = userDetails.getUserId();
-            AuctionRegistrationCreateRequest updatedRequest = new AuctionRegistrationCreateRequest(
-                userId, 
-                request.auctionSessionId()
-            );
-            
-            AuctionRegistrationResponse response = auctionRegistrationService.registerForAuction(updatedRequest);
-            return ResponseEntity.status(HttpStatus.CREATED)
+            AuctionRegistrationResponse response = auctionRegistrationService.registerForAuction(request, userId);
+            return ResponseEntity.status(HttpStatus.CREATED) 
                     .body(ServerAPIResponse.success(response));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

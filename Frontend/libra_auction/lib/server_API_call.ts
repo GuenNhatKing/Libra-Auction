@@ -31,6 +31,7 @@ export async function ServerAPICall<T>(path: string, request: RequestInit): Prom
     }
     catch (parseError) {
         console.error("Parse JSON failed:", parseError);
+        console.error("Response text:", await res.text());
         return {
             status: res.status,
             isSuccess: false,

@@ -16,17 +16,28 @@ public class VNPayUtil {
     /**
      * Tính toán HMAC SHA-512
      */
-    public static String hmacSHA512(String key, String data) throws NoSuchAlgorithmException, InvalidKeyException {
-        Mac hmac = Mac.getInstance("HmacSHA512");
-        SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
-        hmac.init(secretKey);
-        byte[] result = hmac.doFinal(data.getBytes(StandardCharsets.UTF_8));
+    public static String hmacSHA512(String key, String data) {
+        try {
+            if (key == null || data == null) {
+                throw new IllegalArgumentException("Key and data must not be null");
+            }
 
-        StringBuilder sb = new StringBuilder();
-        for (byte b : result) {
-            sb.append(String.format("%02x", b));
+            Mac hmac = Mac.getInstance("HmacSHA512");
+            SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
+            hmac.init(secretKey);
+
+            byte[] result = hmac.doFinal(data.getBytes(StandardCharsets.UTF_8));
+
+            // SHA-512 trả về 64 bytes -> Chuỗi Hex sẽ dài đúng 128 ký tự
+            StringBuilder sb = new StringBuilder(128);
+            for (byte b : result) {
+                sb.append(String.format("%02x", b & 0xff));
+            }
+            return sb.toString();
+
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new RuntimeException("Lỗi thực thi băm HMAC SHA512", e);
         }
-        return sb.toString();
     }
 
     /**
@@ -56,7 +67,7 @@ public class VNPayUtil {
     /**
      * Sắp xếp các tham số để tính toán secure hash
      */
-    public static String buildSecureHash(Map<String, String> params, String hashSecret) 
+    public static String buildSecureHash(Map<String, String> params, String hashSecret)
             throws NoSuchAlgorithmException, InvalidKeyException {
         List<String> keys = new ArrayList<>(params.keySet());
         Collections.sort(keys);
@@ -78,7 +89,7 @@ public class VNPayUtil {
     /**
      * Xác minh chữ ký từ VNPay callback
      */
-    public static boolean verifyCallback(Map<String, String> params, String hashSecret) 
+    public static boolean verifyCallback(Map<String, String> params, String hashSecret)
             throws NoSuchAlgorithmException, InvalidKeyException {
         String vnpSecureHash = params.get("vnp_SecureHash");
         String calculatedHash = buildSecureHash(params, hashSecret);

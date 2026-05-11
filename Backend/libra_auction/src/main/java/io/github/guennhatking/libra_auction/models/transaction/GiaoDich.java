@@ -60,7 +60,7 @@ public class GiaoDich {
         return ngayTao;
     }
 
-    public TinhTrangGiaoDich geTinhTrangGiaoDich() {
+    public TinhTrangGiaoDich getTinhTrangGiaoDich() {
         return tinhTrangGiaoDich;
     }
 

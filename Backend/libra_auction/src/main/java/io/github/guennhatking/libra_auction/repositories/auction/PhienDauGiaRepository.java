@@ -11,6 +11,8 @@ import io.github.guennhatking.libra_auction.models.auction.PhienDauGia;
 import io.github.guennhatking.libra_auction.models.product.TaiSan;
 
 public interface PhienDauGiaRepository extends JpaRepository<PhienDauGia, String> {
+    Optional<PhienDauGia> findById(String id);
+
     List<PhienDauGia> findByTrangThaiPhien(TrangThaiPhien trangThaiPhien);
 
     List<PhienDauGia> findByLoaiDauGia(LoaiDauGia loaiDauGia);

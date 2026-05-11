@@ -52,9 +52,9 @@ public class AuctionRegistrationService {
         }
 
         @Transactional
-        public AuctionRegistrationResponse registerForAuction(AuctionRegistrationCreateRequest request) {
+        public AuctionRegistrationResponse registerForAuction(AuctionRegistrationCreateRequest request, String userId) {
                 // 1. Kiểm tra User
-                NguoiDung user = nguoiDungRepository.findById(request.userId())
+                NguoiDung user = nguoiDungRepository.findById(userId)
                                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
                 // 2. Kiểm tra Phiên đấu giá
@@ -65,7 +65,7 @@ public class AuctionRegistrationService {
                 boolean alreadyRegistered = Optional.ofNullable(auctionSession.getDanhSachThamGia())
                                 .orElse(Collections.emptyList())
                                 .stream()
-                                .anyMatch(reg -> reg.getNguoiThamGia().getId().equals(request.userId()));
+                                .anyMatch(reg -> reg.getNguoiThamGia().getId().equals(userId));
 
                 if (alreadyRegistered) {
                         throw new IllegalArgumentException("User is already registered for this auction");

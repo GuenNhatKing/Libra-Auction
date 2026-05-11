@@ -22,7 +22,6 @@ export async function createAuction(auction: NewAuction): Promise<Auction> {
     }
     const res = await ServerAPICall<Auction>("/api/auctions", request);
     if (res.isSuccess && res.data) {
-        console.log(res.data);
         return res.data;
     }
     throw new Error(res.errorMessage || "Failed to create auctions");

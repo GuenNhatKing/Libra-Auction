@@ -29,9 +29,9 @@ public class TokenService {
 
         return new JwtResponse(
             accessToken,
-            refreshToken,
-            accessTokenExpiration / 1000,
-            userId
+            refreshToken, 
+            accessTokenExpiration,
+            refreshTokenExpiration
         );
     }
 
