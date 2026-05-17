@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>STOMP WebSocket Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+  <style>
+    body { font-family: monospace; background: #1e1e1e; color: #d4d4d4; padding: 20px; }
+    h2 { color: #4ec9b0; }
+    label { color: #9cdcfe; }
+    input, textarea { background: #252526; color: #d4d4d4; border: 1px solid #3c3c3c; padding: 6px; width: 100%; box-sizing: border-box; margin-bottom: 8px; border-radius: 3px; }
+    button { background: #0e639c; color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 3px; margin-right: 6px; margin-bottom: 8px; }
+    button:hover { background: #1177bb; }
+    button:disabled { background: #555; cursor: not-allowed; }
+    #log { background: #0d0d0d; border: 1px solid #3c3c3c; padding: 12px; height: 400px; overflow-y: auto; border-radius: 3px; font-size: 13px; }
+    .msg-in  { color: #4ec9b0; }
+    .msg-out { color: #ce9178; }
+    .msg-sys { color: #888; }
+    .msg-err { color: #f48771; }
+    .section { margin-bottom: 16px; padding: 12px; border: 1px solid #3c3c3c; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h2>STOMP WebSocket Test - Libra Auction</h2>
+
+  <div class="section">
+    <label>WebSocket URL:</label>
+    <input id="wsUrl" value="ws://localhost:8080/auction-websocket" />
+    <button id="btnConnect" onclick="connect()">Connect</button>
+    <button id="btnDisconnect" onclick="disconnect()" disabled>Disconnect</button>
+  </div>
+
+  <div class="section">
+    <label>Subscribe Topic (sau khi connect):</label>
+    <input id="subTopic" value="/topic/auction/95d578bb-b75f-4c43-8ce6-877fb4620114" />
+    <button id="btnSubscribe" onclick="subscribeTopic()" disabled>Subscribe</button>
+  </div>
+
+  <div class="section">
+    <label>Send Bid JSON:</label>
+    <textarea id="bidJson" rows="6">{
+  "auctionId": "95d578bb-b75f-4c43-8ce6-877fb4620114",
+  "bidAmount": 100000000,
+  "bidderId": "28a3d3a7-215e-4e17-b0f6-296e8f765c52",
+  "bidderName": "tuansan12345"
+}</textarea>
+    <button id="btnSend" onclick="sendBid()" disabled>Send Bid</button>
+  </div>
+
+  <div>
+    <b>Log:</b>
+    <button onclick="document.getElementById('log').innerHTML=''">Clear</button>
+  </div>
+  <div id="log"></div>
+
+  <script>
+    let client = null;
+    let subscription = null;
+
+    function log(msg, type = 'sys') {
+      const el = document.getElementById('log');
+      const time = new Date().toLocaleTimeString();
+      el.innerHTML += `<div class="msg-${type}">[${time}] ${msg}</div>`;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function connect() {
+      const url = document.getElementById('wsUrl').value;
+      client = new StompJs.Client({
+        brokerURL: url,
+        reconnectDelay: 0,
+        debug: (str) => log('DEBUG: ' + str, 'sys'),
+        onConnect: (frame) => {
+          log('✅ CONNECTED: ' + JSON.stringify(frame.headers), 'in');
+          document.getElementById('btnConnect').disabled = true;
+          document.getElementById('btnDisconnect').disabled = false;
+          document.getElementById('btnSubscribe').disabled = false;
+          document.getElementById('btnSend').disabled = false;
+        },
+        onDisconnect: () => {
+          log('❌ Disconnected', 'err');
+          document.getElementById('btnConnect').disabled = false;
+          document.getElementById('btnDisconnect').disabled = true;
+          document.getElementById('btnSubscribe').disabled = true;
+          document.getElementById('btnSend').disabled = true;
+        },
+        onStompError: (frame) => {
+          log('🔴 STOMP ERROR: ' + frame.headers['message'] + ' | ' + frame.body, 'err');
+        },
+        onWebSocketError: (evt) => {
+          log('🔴 WebSocket ERROR: ' + evt, 'err');
+        }
+      });
+      client.activate();
+      log('Connecting to ' + url + '...', 'sys');
+    }
+
+    function disconnect() {
+      if (client) { client.deactivate(); client = null; }
+    }
+
+    function subscribeTopic() {
+      const topic = document.getElementById('subTopic').value;
+      subscription = client.subscribe(topic, (message) => {
+        log('📨 RECEIVED on ' + topic + ': ' + message.body, 'in');
+      });
+      log('📋 Subscribed to: ' + topic, 'out');
+    }
+
+    function sendBid() {
+      try {
+        const body = document.getElementById('bidJson').value;
+        JSON.parse(body); // validate JSON
+        client.publish({ destination: '/app/bid', body: body });
+        log('📤 SENT bid: ' + body, 'out');
+      } catch (e) {
+        log('❌ Invalid JSON: ' + e.message, 'err');
+      }
+    }
+  </script>
+</body>
+</html>

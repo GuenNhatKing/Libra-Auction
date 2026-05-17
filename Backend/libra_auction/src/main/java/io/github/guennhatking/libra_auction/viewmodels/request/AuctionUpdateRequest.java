@@ -6,9 +6,11 @@ import jakarta.validation.constraints.Positive;
 import java.time.OffsetDateTime;
 
 import io.github.guennhatking.libra_auction.enums.auction.LoaiDauGia;
+import io.github.guennhatking.libra_auction.validators.FutureTime;
 
 public record AuctionUpdateRequest(
     @NotNull(message = "thoiGianBatDau is required")
+    @FutureTime(message = "thoiGianBatDau must be in the future")
     OffsetDateTime thoiGianBatDau,
 
     @NotNull(message = "thoiLuong is required")
