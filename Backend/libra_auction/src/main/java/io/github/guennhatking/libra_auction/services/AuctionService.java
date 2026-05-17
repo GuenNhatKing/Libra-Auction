@@ -29,17 +29,20 @@ public class AuctionService {
         private final ProductResponseMapper productResponseMapper;
         private final TaiSanRepository taiSanRepository;
         private final NguoiDungRepository nguoiDungRepository;
+        private final AuctionStateRedisService auctionStateRedisService;
 
         public AuctionService(PhienDauGiaRepository phienDauGiaRepository,
                         AuctionMapper auctionMapper,
                         ProductResponseMapper productResponseMapper,
                         TaiSanRepository taiSanRepository,
-                        NguoiDungRepository nguoiDungRepository) {
+                        NguoiDungRepository nguoiDungRepository,
+                        AuctionStateRedisService auctionStateRedisService) {
                 this.phienDauGiaRepository = phienDauGiaRepository;
                 this.auctionMapper = auctionMapper;
                 this.productResponseMapper = productResponseMapper;
                 this.taiSanRepository = taiSanRepository;
                 this.nguoiDungRepository = nguoiDungRepository;
+                this.auctionStateRedisService = auctionStateRedisService;
         }
 
         @Transactional(readOnly = true)
@@ -141,6 +144,19 @@ public class AuctionService {
                 session.setLoaiDauGia(request.loaiDauGia());
 
                 PhienDauGia updatedSession = phienDauGiaRepository.save(session);
+
+                // If auction is already approved, update Redis scheduling
+                if (updatedSession.getTrangThaiKiemDuyet() == TrangThaiKiemDuyet.DA_DUYET) {
+                        auctionStateRedisService.removeAuctionStartEvent(id);
+                        auctionStateRedisService.removeAuctionEndEvent(id);
+                        
+                        if (updatedSession.getThoiGianBatDau() != null) {
+                                auctionStateRedisService.addAuctionStartEvent(updatedSession.getId(), updatedSession.getThoiGianBatDau());
+                                auctionStateRedisService.addAuctionEndEvent(updatedSession.getId(), 
+                                        updatedSession.getThoiGianBatDau().plusSeconds(updatedSession.getThoiLuong()));
+                        }
+                }
+
                 return auctionMapper.toAuctionResponse(updatedSession);
         }
 
@@ -156,6 +172,10 @@ public class AuctionService {
                         throw new AccessDeniedException("Bạn không có quyền xóa phiên đấu giá này");
                 }
 
+                // Clean up Redis scheduling when deleting
+                auctionStateRedisService.removeAuctionStartEvent(id);
+                auctionStateRedisService.removeAuctionEndEvent(id);
+
                 phienDauGiaRepository.delete(session);
         }
 
@@ -169,6 +189,14 @@ public class AuctionService {
                 session.setTrangThaiKiemDuyet(TrangThaiKiemDuyet.DA_DUYET);
                 PhienDauGia saved = phienDauGiaRepository.save(session);
 
+                // Register the auction in Redis for automatic start/end scheduling
+                if (saved.getThoiGianBatDau() != null) {
+                        auctionStateRedisService.addAuctionStartEvent(saved.getId(), saved.getThoiGianBatDau());
+                        // Calculate end time: start_time + duration
+                        auctionStateRedisService.addAuctionEndEvent(saved.getId(), 
+                                saved.getThoiGianBatDau().plusSeconds(saved.getThoiLuong()));
+                }
+
                 return auctionMapper.toAuctionResponse(saved);
         }
 
@@ -180,7 +208,38 @@ public class AuctionService {
                 session.setTrangThaiKiemDuyet(TrangThaiKiemDuyet.BI_TU_CHOI);
                 PhienDauGia saved = phienDauGiaRepository.save(session);
 
+                // Clean up Redis scheduling when rejecting
+                auctionStateRedisService.removeAuctionStartEvent(id);
+                auctionStateRedisService.removeAuctionEndEvent(id);
+
                 return auctionMapper.toAuctionResponse(saved);
+        }
+
+        /**
+         * Register all existing approved but not-yet-started auctions in Redis.
+         * This is useful after deploying the fix to retroactively register auctions
+         * that were approved before Redis integration was added.
+         * @return Number of auctions registered
+         */
+        public int registerExistingAuctionsToRedis() {
+                List<PhienDauGia> approvedNotStarted = phienDauGiaRepository.findByTrangThaiPhien(TrangThaiPhien.CHUA_BAT_DAU);
+                int count = 0;
+                
+                for (PhienDauGia auction : approvedNotStarted) {
+                        if (auction.getTrangThaiKiemDuyet() == TrangThaiKiemDuyet.DA_DUYET && 
+                            auction.getThoiGianBatDau() != null) {
+                                try {
+                                        auctionStateRedisService.addAuctionStartEvent(auction.getId(), auction.getThoiGianBatDau());
+                                        auctionStateRedisService.addAuctionEndEvent(auction.getId(), 
+                                                auction.getThoiGianBatDau().plusSeconds(auction.getThoiLuong()));
+                                        count++;
+                                } catch (Exception e) {
+                                        // Log and continue with next auction
+                                }
+                        }
+                }
+                
+                return count;
         }
 
         // ========== MERGED ADMIN APPROVAL METHODS ==========

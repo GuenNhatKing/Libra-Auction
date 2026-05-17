@@ -351,4 +351,25 @@ public class AuctionController {
                 sortOrder,
                 null);
     }
+
+    @PostMapping("/admin/auctions/register-to-scheduler")
+    public ResponseEntity<ServerAPIResponse<java.util.Map<String, Integer>>> registerAuctionsToScheduler(
+            @AuthenticationPrincipal JwtUserDetails userDetails) {
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error("Authentication required"));
+        }
+
+        if (!isAdminUser(userDetails.getUserId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ServerAPIResponse.error("Admin role required"));
+        }
+
+        int registeredCount = auctionService.registerExistingAuctionsToRedis();
+        java.util.Map<String, Integer> result = new java.util.HashMap<>();
+        result.put("registeredCount", registeredCount);
+
+        return ResponseEntity.ok(ServerAPIResponse.success(result));
+    }
 }
