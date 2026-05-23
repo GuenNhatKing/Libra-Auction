@@ -8,6 +8,8 @@ import io.github.guennhatking.libra_auction.services.AuctionStateRedisService;
 import io.github.guennhatking.libra_auction.services.AuctionWebSocketNotificationService;
 import io.github.guennhatking.libra_auction.viewmodels.request.BidMessage;
 import io.github.guennhatking.libra_auction.viewmodels.response.BidResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -26,6 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Controller
 public class AuctionWebSocketController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuctionWebSocketController.class);
 
     private final SimpMessagingTemplate messagingTemplate;
     private final PhienDauGiaRepository phienDauGiaRepository;
@@ -54,15 +58,22 @@ public class AuctionWebSocketController {
      */
     @MessageMapping("/bid")
     public void handleBid(BidMessage bidMessage) {
+        logger.info("Received bid message: auctionId={}, bidAmount={}, bidderId={}, bidderName={}",
+                bidMessage.auctionId(), bidMessage.bidAmount(), bidMessage.bidderId(), bidMessage.bidderName());
         try {
             // Validate auction exists
             PhienDauGia auction = phienDauGiaRepository.findById(bidMessage.auctionId())
                     .orElseThrow(() -> new IllegalArgumentException("Auction not found"));
 
+            logger.info("Auction found: id={}, status={}, type={}, giaHienTai={}, giaKhoiDiem={}, buocGiaNhoNhat={}",
+                    auction.getId(), auction.getTrangThaiPhien(), auction.getLoaiDauGia(),
+                    auction.getGiaHienTai(), auction.getGiaKhoiDiem(), auction.getBuocGiaNhoNhat());
+
             // Validate auction is active
             if (!auction.getTrangThaiPhien().equals(TrangThaiPhien.DANG_DIEN_RA)) {
-                sendErrorNotification(bidMessage.auctionId(),
-                        "Auction is not active. Current status: " + auction.getTrangThaiPhien());
+                String errorMsg = "Auction is not active. Current status: " + auction.getTrangThaiPhien();
+                logger.error(errorMsg);
+                sendErrorNotification(bidMessage.auctionId(), errorMsg);
                 return;
             }
 
@@ -70,8 +81,9 @@ public class AuctionWebSocketController {
             if (auction.getLoaiDauGia().equals(LoaiDauGia.DAU_GIA_LEN)) {
                 handleAscendingAuction(bidMessage, auction);
             } else {
-                sendErrorNotification(bidMessage.auctionId(),
-                        "Unknown auction type: " + auction.getLoaiDauGia());
+                String errorMsg = "Unknown auction type: " + auction.getLoaiDauGia();
+                logger.error(errorMsg);
+                sendErrorNotification(bidMessage.auctionId(), errorMsg);
             }
 
             // After processing bid, check if auction should be extended
@@ -79,8 +91,10 @@ public class AuctionWebSocketController {
             checkAndExtendAuctionIfNeeded(bidMessage.auctionId());
 
         } catch (IllegalArgumentException e) {
+            logger.error("IllegalArgumentException: {}", e.getMessage());
             sendErrorNotification(bidMessage.auctionId(), e.getMessage());
         } catch (Exception e) {
+            logger.error("Exception processing bid: {}", e.getMessage(), e);
             sendErrorNotification(bidMessage.auctionId(),
                     "Internal error: " + e.getMessage());
         }
@@ -99,11 +113,14 @@ public class AuctionWebSocketController {
                 ? auction.getGiaHienTai() + auction.getBuocGiaNhoNhat()
                 : auction.getGiaKhoiDiem();
 
+        logger.info("Processing ascending auction bid: minimumBid={}, bidAmount={}", minimumBid, bidMessage.bidAmount());
+
         // Validate bid amount
         if (bidMessage.bidAmount() < minimumBid) {
-            sendErrorNotification(bidMessage.auctionId(),
-                    String.format("Bid must be at least %.0f (current price: %.0f + minimum step: %.0f)",
-                            minimumBid, auction.getGiaHienTai(), auction.getBuocGiaNhoNhat()));
+            String errorMsg = String.format("Bid must be at least %.0f (current price: %.0f + minimum step: %.0f)",
+                    minimumBid, auction.getGiaHienTai(), auction.getBuocGiaNhoNhat());
+            logger.error(errorMsg);
+            sendErrorNotification(bidMessage.auctionId(), errorMsg);
             return;
         }
 
@@ -114,6 +131,8 @@ public class AuctionWebSocketController {
         // Update current price
         auction.setGiaHienTai(bidMessage.bidAmount());
         phienDauGiaRepository.save(auction);
+
+        logger.info("Bid accepted and saved: auctionId={}, newPrice={}", bidMessage.auctionId(), bidMessage.bidAmount());
 
         // Broadcast to all participants (bids are visible)
         broadcastBid(bidMessage.auctionId(), bidResponse);
