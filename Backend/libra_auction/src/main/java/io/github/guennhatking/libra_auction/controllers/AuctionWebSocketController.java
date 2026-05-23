@@ -65,7 +65,7 @@ public class AuctionWebSocketController {
                     .orElseThrow(() -> new IllegalArgumentException("Auction not found"));
 
             logger.info("Auction found: id={}, status={}, type={}, giaHienTai={}, giaKhoiDiem={}, buocGiaNhoNhat={}",
-                    auction.getId(), auction.getTrangThaiPhien(), auction.getLoaiDauGia(),
+                    auction.getId(), auction.getTrangThaiPhien(),
                     auction.getGiaHienTai(), auction.getGiaKhoiDiem(), auction.getBuocGiaNhoNhat());
 
             // Validate auction is active
