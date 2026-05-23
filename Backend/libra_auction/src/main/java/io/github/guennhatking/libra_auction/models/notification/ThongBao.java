@@ -3,7 +3,7 @@ package io.github.guennhatking.libra_auction.models.notification;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
-import io.github.guennhatking.libra_auction.models.person.NguoiDung;
+import io.github.guennhatking.libra_auction.models.person.Customer;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -20,7 +20,7 @@ public abstract class ThongBao {
     protected String id;
 
     @ManyToOne
-    protected NguoiDung nguoiNhan;
+    protected Customer nguoiNhan;
 
     protected String noiDung;
     protected OffsetDateTime thoiGianGui;
@@ -29,7 +29,7 @@ public abstract class ThongBao {
     protected ThongBao() {
     }
 
-    public ThongBao(NguoiDung nguoiNhan, String noiDung) {
+    public ThongBao(Customer nguoiNhan, String noiDung) {
         this.nguoiNhan = nguoiNhan;
         this.noiDung = noiDung;
         this.thoiGianGui = OffsetDateTime.now(ZoneOffset.ofHours(7));
@@ -40,7 +40,7 @@ public abstract class ThongBao {
         return id;
     }
 
-    public NguoiDung getNguoiNhan() {
+    public Customer getNguoiNhan() {
         return nguoiNhan;
     }
 
@@ -57,7 +57,7 @@ public abstract class ThongBao {
         this.id = id;
     }
 
-    public void setNguoiNhan(NguoiDung nguoiNhan) {
+    public void setNguoiNhan(Customer nguoiNhan) {
         this.nguoiNhan = nguoiNhan;
     }
 

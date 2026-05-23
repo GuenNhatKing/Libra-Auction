@@ -1,8 +1,8 @@
 package io.github.guennhatking.libra_auction.controllers;
 
-import io.github.guennhatking.libra_auction.enums.auction.TrangThaiPhien;
-import io.github.guennhatking.libra_auction.models.auction.PhienDauGia;
-import io.github.guennhatking.libra_auction.repositories.auction.PhienDauGiaRepository;
+import io.github.guennhatking.libra_auction.enums.auction.AuctionStatus;
+import io.github.guennhatking.libra_auction.models.auction.Auction;
+import io.github.guennhatking.libra_auction.repositories.auction.AuctionRepository;
 import io.github.guennhatking.libra_auction.services.AuctionStateRedisService;
 import io.github.guennhatking.libra_auction.services.AuctionWebSocketNotificationService;
 import io.github.guennhatking.libra_auction.viewmodels.request.BidMessage;
@@ -31,7 +31,7 @@ public class AuctionWebSocketController {
     private static final Logger logger = LoggerFactory.getLogger(AuctionWebSocketController.class);
 
     private final SimpMessagingTemplate messagingTemplate;
-    private final PhienDauGiaRepository phienDauGiaRepository;
+    private final AuctionRepository phienDauGiaRepository;
     private final AuctionStateRedisService auctionStateRedisService;
     private final AuctionWebSocketNotificationService auctionWebSocketNotificationService;
 
@@ -43,7 +43,7 @@ public class AuctionWebSocketController {
     private static final int EXTENSION_MINUTES = 5;
 
     public AuctionWebSocketController(SimpMessagingTemplate messagingTemplate,
-            PhienDauGiaRepository phienDauGiaRepository,
+            AuctionRepository phienDauGiaRepository,
             AuctionStateRedisService auctionStateRedisService,
             AuctionWebSocketNotificationService auctionWebSocketNotificationService) {
         this.messagingTemplate = messagingTemplate;
@@ -61,7 +61,7 @@ public class AuctionWebSocketController {
                 bidMessage.auctionId(), bidMessage.bidAmount(), bidMessage.bidderId(), bidMessage.bidderName());
         try {
             // Validate auction exists
-            PhienDauGia auction = phienDauGiaRepository.findById(bidMessage.auctionId())
+            Auction auction = phienDauGiaRepository.findById(bidMessage.auctionId())
                     .orElseThrow(() -> new IllegalArgumentException("Auction not found"));
 
             logger.info("Auction found: id={}, status={}, type={}, giaHienTai={}, giaKhoiDiem={}, buocGiaNhoNhat={}",
@@ -69,7 +69,7 @@ public class AuctionWebSocketController {
                     auction.getGiaHienTai(), auction.getGiaKhoiDiem(), auction.getBuocGiaNhoNhat());
 
             // Validate auction is active
-            if (!auction.getTrangThaiPhien().equals(TrangThaiPhien.DANG_DIEN_RA)) {
+            if (!auction.getTrangThaiPhien().equals(AuctionStatus.DANG_DIEN_RA)) {
                 String errorMsg = "Auction is not active. Current status: " + auction.getTrangThaiPhien();
                 logger.error(errorMsg);
                 sendErrorNotification(bidMessage.auctionId(), errorMsg);
@@ -100,7 +100,7 @@ public class AuctionWebSocketController {
      * - Highest bidder at the end wins
      * - All bids are visible to participants
      */
-    private void handleAscendingAuction(BidMessage bidMessage, PhienDauGia auction) {
+    private void handleAscendingAuction(BidMessage bidMessage, Auction auction) {
         long minimumBid = auction.getGiaHienTai() > 0
                 ? auction.getGiaHienTai() + auction.getBuocGiaNhoNhat()
                 : auction.getGiaKhoiDiem();

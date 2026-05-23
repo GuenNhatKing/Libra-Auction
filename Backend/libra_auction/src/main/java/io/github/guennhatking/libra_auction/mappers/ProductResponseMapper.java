@@ -3,7 +3,7 @@ package io.github.guennhatking.libra_auction.mappers;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import io.github.guennhatking.libra_auction.models.product.TaiSan;
+import io.github.guennhatking.libra_auction.models.product.Product;
 import io.github.guennhatking.libra_auction.viewmodels.response.ProductResponse;
 
 import java.util.List;
@@ -19,7 +19,7 @@ public interface ProductResponseMapper {
     @Mapping(source = "danhMuc.tenDanhMuc", target = "category_name")
     @Mapping(source = "hinhAnhTaiSanList", target = "images")
     @Mapping(source = "thuocTinhTaiSanList", target = "attributes")
-    ProductResponse toProductResponse(TaiSan product);
+    ProductResponse toProductResponse(Product product);
 
-    List<ProductResponse> toProductResponseList(List<TaiSan> products);
+    List<ProductResponse> toProductResponseList(List<Product> products);
 }

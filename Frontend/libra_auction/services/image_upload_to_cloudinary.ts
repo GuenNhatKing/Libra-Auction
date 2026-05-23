@@ -4,15 +4,15 @@ import { ImageUploadConfig } from "@/types/image_upload_config";
 export async function uploadImageToCloudinary(file: File, config: ImageUploadConfig): Promise<string | undefined> {
     const formData = new FormData();
 
-    // 1. Thêm file ảnh thực tế
+    // 1. Add the actual image file
     formData.append("file", file);
 
-    // 2. Thêm các thông tin bảo mật cơ bản
+    // 2. Add the basic security information
     formData.append("api_key", config.apiKey); 
     formData.append("signature", config.signature);
     formData.append("timestamp", config.timestamp.toString());
 
-    // 3. Đổ tất cả các params bổ sung từ Backend 
+    // 3. Forward all extra params from the backend
     Object.keys(config.additionalParams).forEach((key) => {
         formData.append(key, String(config.additionalParams[key]));
     });
@@ -29,9 +29,9 @@ export async function uploadImageToCloudinary(file: File, config: ImageUploadCon
         }
 
         const result = await response.json();
-        console.log("Thành công! Link ảnh:", result.secure_url);
+        console.log("Upload successful! Image URL:", result.secure_url);
         return result.secure_url;
     } catch (error) {
-        console.error("Lỗi upload:", error);
+        console.error("Upload error:", error);
     }
 }

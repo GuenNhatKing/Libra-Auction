@@ -13,11 +13,11 @@ export default async function ProfilePage() {
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             <div className="border-b border-gray-100 pb-4 mb-6">
-                <h1 className="text-2xl font-bold text-[var(--secondary-color)]">Hồ sơ của tôi</h1>
-                <p className="text-gray-500 text-sm mt-1">Quản lý thông tin bảo mật và hồ sơ cá nhân</p>
+                <h1 className="text-2xl font-bold text-[var(--secondary-color)]">My Profile</h1>
+                <p className="text-gray-500 text-sm mt-1">Manage security settings and personal profile information</p>
             </div>
 
-            {/* Component InfoCard cũ của bạn */}
+            {/* Existing InfoCard component */}
             {user && <InfoCard user={user} />}
 
         </div>

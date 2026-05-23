@@ -8,25 +8,25 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.github.guennhatking.libra_auction.mappers.AuctionRegistrationMapper;
-import io.github.guennhatking.libra_auction.models.auction.PhienDauGia;
-import io.github.guennhatking.libra_auction.models.auction.ThongTinThamGiaDauGia;
-import io.github.guennhatking.libra_auction.models.person.NguoiDung;
-import io.github.guennhatking.libra_auction.repositories.auction.PhienDauGiaRepository;
-import io.github.guennhatking.libra_auction.repositories.auction.ThongTinThamGiaDauGiaRepository;
-import io.github.guennhatking.libra_auction.repositories.person.NguoiDungRepository;
+import io.github.guennhatking.libra_auction.models.auction.Auction;
+import io.github.guennhatking.libra_auction.models.auction.AuctionParticipationInfo;
+import io.github.guennhatking.libra_auction.models.person.Customer;
+import io.github.guennhatking.libra_auction.repositories.auction.AuctionRepository;
+import io.github.guennhatking.libra_auction.repositories.auction.AuctionParticipationInfoRepository;
+import io.github.guennhatking.libra_auction.repositories.person.CustomerRepository;
 import io.github.guennhatking.libra_auction.viewmodels.request.AuctionRegistrationCreateRequest;
 import io.github.guennhatking.libra_auction.viewmodels.response.AuctionRegistrationResponse;
 
 @Service
 public class AuctionRegistrationService {
-        private final ThongTinThamGiaDauGiaRepository thongTinThamGiaDauGiaRepository;
-        private final NguoiDungRepository nguoiDungRepository;
-        private final PhienDauGiaRepository phienDauGiaRepository;
+        private final AuctionParticipationInfoRepository thongTinThamGiaDauGiaRepository;
+        private final CustomerRepository nguoiDungRepository;
+        private final AuctionRepository phienDauGiaRepository;
         private final AuctionRegistrationMapper auctionRegistrationMapper;
 
-        public AuctionRegistrationService(ThongTinThamGiaDauGiaRepository thongTinThamGiaDauGiaRepository,
-                        NguoiDungRepository nguoiDungRepository,
-                        PhienDauGiaRepository phienDauGiaRepository,
+        public AuctionRegistrationService(AuctionParticipationInfoRepository thongTinThamGiaDauGiaRepository,
+                        CustomerRepository nguoiDungRepository,
+                        AuctionRepository phienDauGiaRepository,
                         AuctionRegistrationMapper auctionRegistrationMapper) {
                 this.thongTinThamGiaDauGiaRepository = thongTinThamGiaDauGiaRepository;
                 this.nguoiDungRepository = nguoiDungRepository;
@@ -36,7 +36,7 @@ public class AuctionRegistrationService {
 
         @Transactional(readOnly = true)
         public List<AuctionRegistrationResponse> getAllRegistrations() {
-                List<ThongTinThamGiaDauGia> entities = thongTinThamGiaDauGiaRepository.findAll();
+                List<AuctionParticipationInfo> entities = thongTinThamGiaDauGiaRepository.findAll();
                 List<AuctionRegistrationResponse> responses = auctionRegistrationMapper.toResponseList(entities);
                 return responses;
         }
@@ -44,7 +44,7 @@ public class AuctionRegistrationService {
         @Transactional(readOnly = true)
         public AuctionRegistrationResponse getRegistrationById(String id) {
                 // 1. Tìm entity từ Database
-                ThongTinThamGiaDauGia registration = thongTinThamGiaDauGiaRepository.findById(id)
+                AuctionParticipationInfo registration = thongTinThamGiaDauGiaRepository.findById(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Registration not found"));
 
                 // 2. Sử dụng mapper để chuyển đổi và trả về
@@ -54,11 +54,11 @@ public class AuctionRegistrationService {
         @Transactional
         public AuctionRegistrationResponse registerForAuction(AuctionRegistrationCreateRequest request, String userId) {
                 // 1. Kiểm tra User
-                NguoiDung user = nguoiDungRepository.findById(userId)
+                Customer user = nguoiDungRepository.findById(userId)
                                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
                 // 2. Kiểm tra Phiên đấu giá
-                PhienDauGia auction = phienDauGiaRepository.findById(request.auctionId())
+                Auction auction = phienDauGiaRepository.findById(request.auctionId())
                                 .orElseThrow(() -> new IllegalArgumentException("Auction not found"));
 
                 // 3. Kiểm tra đăng ký trùng lặp (Logic cũ giữ nguyên)
@@ -72,15 +72,15 @@ public class AuctionRegistrationService {
                 }
 
                 // 4. Tạo và lưu đăng ký
-                ThongTinThamGiaDauGia registration = new ThongTinThamGiaDauGia(user, auction);
-                ThongTinThamGiaDauGia savedRegistration = thongTinThamGiaDauGiaRepository.save(registration);
+                AuctionParticipationInfo registration = new AuctionParticipationInfo(user, auction);
+                AuctionParticipationInfo savedRegistration = thongTinThamGiaDauGiaRepository.save(registration);
 
                 return auctionRegistrationMapper.toResponse(savedRegistration);
         }
 
         @Transactional
         public void deleteRegistration(String id) {
-                ThongTinThamGiaDauGia registration = thongTinThamGiaDauGiaRepository.findById(id)
+                AuctionParticipationInfo registration = thongTinThamGiaDauGiaRepository.findById(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Registration not found"));
                 thongTinThamGiaDauGiaRepository.delete(registration);
         }
@@ -93,7 +93,7 @@ public class AuctionRegistrationService {
                 }
 
                 // 2. Lấy dữ liệu đã lọc từ DB (Thay vì lấy tất cả rồi filter)
-                List<ThongTinThamGiaDauGia> entities = thongTinThamGiaDauGiaRepository.findByNguoiThamGiaId(userId);
+                List<AuctionParticipationInfo> entities = thongTinThamGiaDauGiaRepository.findByNguoiThamGiaId(userId);
 
                 // 3. Sử dụng mapper để chuyển đổi toàn bộ danh sách
                 return auctionRegistrationMapper.toResponseList(entities);
@@ -107,7 +107,7 @@ public class AuctionRegistrationService {
                 }
 
                 // 2. Lấy dữ liệu từ DB thông qua phương thức mới ở Repository
-                List<ThongTinThamGiaDauGia> entities = thongTinThamGiaDauGiaRepository
+                List<AuctionParticipationInfo> entities = thongTinThamGiaDauGiaRepository
                                 .findByPhienDauGiaId(auctionId);
 
                 // 3. Sử dụng Mapper để chuyển đổi sang danh sách Response

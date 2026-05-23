@@ -1,13 +1,13 @@
 import { Attribute } from "../product/attribute";
-import { LoaiDauGia, TrangThaiPhien } from "../status";
+import { AuctionType, AuctionSessionStatus } from "../status";
 
 export interface Auction {
         category_id: string,
         category_name: string,
         auction_id: string,
         auction_name: string,
-        auction_status: TrangThaiPhien,
-        auction_type: LoaiDauGia,
+        auction_status: AuctionSessionStatus,
+        auction_type: AuctionType,
         start_time: Date,
         duration: number,
 

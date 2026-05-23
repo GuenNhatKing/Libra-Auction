@@ -1,10 +1,10 @@
 package io.github.guennhatking.libra_auction.services;
 
-import io.github.guennhatking.libra_auction.enums.auction.TrangThaiPhien;
-import io.github.guennhatking.libra_auction.models.auction.KetQuaDauGia;
-import io.github.guennhatking.libra_auction.models.auction.PhienDauGia;
-import io.github.guennhatking.libra_auction.repositories.auction.KetQuaDauGiaRepository;
-import io.github.guennhatking.libra_auction.repositories.auction.PhienDauGiaRepository;
+import io.github.guennhatking.libra_auction.enums.auction.AuctionStatus;
+import io.github.guennhatking.libra_auction.models.auction.AuctionResult;
+import io.github.guennhatking.libra_auction.models.auction.Auction;
+import io.github.guennhatking.libra_auction.repositories.auction.AuctionResultRepository;
+import io.github.guennhatking.libra_auction.repositories.auction.AuctionRepository;
 import io.github.guennhatking.libra_auction.viewmodels.response.BidResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,15 +25,15 @@ public class AuctionStateTransitionService {
     
     private static final Logger logger = LoggerFactory.getLogger(AuctionStateTransitionService.class);
     
-    private final PhienDauGiaRepository phienDauGiaRepository;
-    private final KetQuaDauGiaRepository ketQuaDauGiaRepository;
+    private final AuctionRepository phienDauGiaRepository;
+    private final AuctionResultRepository ketQuaDauGiaRepository;
     private final BidHistoryService bidHistoryService;
     private final SimpMessagingTemplate messagingTemplate;
     private final EmailNotificationService emailNotificationService;
     
     public AuctionStateTransitionService(
-            PhienDauGiaRepository phienDauGiaRepository,
-            KetQuaDauGiaRepository ketQuaDauGiaRepository,
+            AuctionRepository phienDauGiaRepository,
+            AuctionResultRepository ketQuaDauGiaRepository,
             BidHistoryService bidHistoryService,
             SimpMessagingTemplate messagingTemplate,
             EmailNotificationService emailNotificationService) {
@@ -53,23 +53,23 @@ public class AuctionStateTransitionService {
     @Transactional
     public void startAuction(String auctionId) {
         try {
-            Optional<PhienDauGia> auctionOpt = phienDauGiaRepository.findById(auctionId);
+            Optional<Auction> auctionOpt = phienDauGiaRepository.findById(auctionId);
             if (auctionOpt.isEmpty()) {
                 logger.warn("Auction not found: {}", auctionId);
                 return;
             }
             
-            PhienDauGia auction = auctionOpt.get();
+            Auction auction = auctionOpt.get();
             
             // Only transition if currently in CHUA_BAT_DAU state
-            if (auction.getTrangThaiPhien() != TrangThaiPhien.CHUA_BAT_DAU) {
+            if (auction.getTrangThaiPhien() != AuctionStatus.CHUA_BAT_DAU) {
                 logger.warn("Auction {} is not in CHUA_BAT_DAU state, current: {}", 
                     auctionId, auction.getTrangThaiPhien());
                 return;
             }
             
             // Change status to DANG_DIEN_RA
-            auction.setTrangThaiPhien(TrangThaiPhien.DANG_DIEN_RA);
+            auction.setTrangThaiPhien(AuctionStatus.DANG_DIEN_RA);
             phienDauGiaRepository.save(auction);
             
             logger.info("Auction {} started", auctionId);
@@ -82,7 +82,7 @@ public class AuctionStateTransitionService {
             }
             
             // Send WebSocket notification
-            sendAuctionStatusUpdate(auctionId, TrangThaiPhien.DANG_DIEN_RA.toString());
+            sendAuctionStatusUpdate(auctionId, AuctionStatus.DANG_DIEN_RA.toString());
             
         } catch (Exception e) {
             logger.error("Error starting auction {}: {}", auctionId, e.getMessage(), e);
@@ -100,16 +100,16 @@ public class AuctionStateTransitionService {
     @Transactional
     public void endAuction(String auctionId) {
         try {
-            Optional<PhienDauGia> auctionOpt = phienDauGiaRepository.findById(auctionId);
+            Optional<Auction> auctionOpt = phienDauGiaRepository.findById(auctionId);
             if (auctionOpt.isEmpty()) {
                 logger.warn("Auction not found: {}", auctionId);
                 return;
             }
             
-            PhienDauGia auction = auctionOpt.get();
+            Auction auction = auctionOpt.get();
             
             // Only transition if currently in DANG_DIEN_RA state
-            if (auction.getTrangThaiPhien() != TrangThaiPhien.DANG_DIEN_RA) {
+            if (auction.getTrangThaiPhien() != AuctionStatus.DANG_DIEN_RA) {
                 logger.warn("Auction {} is not in DANG_DIEN_RA state, current: {}", 
                     auctionId, auction.getTrangThaiPhien());
                 return;
@@ -119,7 +119,7 @@ public class AuctionStateTransitionService {
             BidResponse latestBidResponse = bidHistoryService.getLatestBid(auctionId);
             
             // Create KetQuaDauGia (Auction Result)
-            KetQuaDauGia result = new KetQuaDauGia();
+            AuctionResult result = new AuctionResult();
             result.setPhienDauGia(auction);
             result.setThoiGianKetThuc(OffsetDateTime.now(ZoneOffset.ofHours(7)));
             
@@ -136,11 +136,11 @@ public class AuctionStateTransitionService {
                 logger.info("Auction {} ended with no bids", auctionId);
             }
             
-            KetQuaDauGia savedResult = ketQuaDauGiaRepository.save(result);
+            AuctionResult savedResult = ketQuaDauGiaRepository.save(result);
             auction.setKetQuaDauGia(savedResult);
             
             // Change status to DA_KET_THUC
-            auction.setTrangThaiPhien(TrangThaiPhien.DA_KET_THUC);
+            auction.setTrangThaiPhien(AuctionStatus.DA_KET_THUC);
             phienDauGiaRepository.save(auction);
             
             // Send email notifications
@@ -155,7 +155,7 @@ public class AuctionStateTransitionService {
             }
             
             // Send WebSocket notification
-            sendAuctionStatusUpdate(auctionId, TrangThaiPhien.DA_KET_THUC.toString());
+            sendAuctionStatusUpdate(auctionId, AuctionStatus.DA_KET_THUC.toString());
             
         } catch (Exception e) {
             logger.error("Error ending auction {}: {}", auctionId, e.getMessage(), e);

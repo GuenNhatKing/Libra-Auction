@@ -7,19 +7,19 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import io.github.guennhatking.libra_auction.enums.auction.TrangThaiKiemDuyet;
+import io.github.guennhatking.libra_auction.enums.auction.ApprovalStatus;
 import io.github.guennhatking.libra_auction.mappers.ProductResponseMapper;
-import io.github.guennhatking.libra_auction.models.person.NguoiDung;
-import io.github.guennhatking.libra_auction.models.product.DanhMuc;
-import io.github.guennhatking.libra_auction.models.product.HinhAnhTaiSan;
-import io.github.guennhatking.libra_auction.models.product.TaiSan;
-import io.github.guennhatking.libra_auction.models.product.ThuocTinhTaiSan;
-import io.github.guennhatking.libra_auction.repositories.auction.PhienDauGiaRepository;
-import io.github.guennhatking.libra_auction.repositories.person.NguoiDungRepository;
-import io.github.guennhatking.libra_auction.repositories.product.DanhMucRepository;
-import io.github.guennhatking.libra_auction.repositories.product.HinhAnhTaiSanRepository;
-import io.github.guennhatking.libra_auction.repositories.product.TaiSanRepository;
-import io.github.guennhatking.libra_auction.repositories.product.ThuocTinhTaiSanRepository;
+import io.github.guennhatking.libra_auction.models.person.Customer;
+import io.github.guennhatking.libra_auction.models.product.Category;
+import io.github.guennhatking.libra_auction.models.product.ProductImage;
+import io.github.guennhatking.libra_auction.models.product.Product;
+import io.github.guennhatking.libra_auction.models.product.ProductAttribute;
+import io.github.guennhatking.libra_auction.repositories.auction.AuctionRepository;
+import io.github.guennhatking.libra_auction.repositories.person.CustomerRepository;
+import io.github.guennhatking.libra_auction.repositories.product.CategoryRepository;
+import io.github.guennhatking.libra_auction.repositories.product.ProductImageRepository;
+import io.github.guennhatking.libra_auction.repositories.product.ProductRepository;
+import io.github.guennhatking.libra_auction.repositories.product.ProductAttributeRepository;
 import io.github.guennhatking.libra_auction.viewmodels.request.AttributeRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.ProductCreateRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.ProductUpdateRequest;
@@ -27,20 +27,20 @@ import io.github.guennhatking.libra_auction.viewmodels.response.ProductResponse;
 
 @Service
 public class ProductService {
-    private final DanhMucRepository danhMucRepository;
-    private final TaiSanRepository taiSanRepository;
-    private final HinhAnhTaiSanRepository hinhAnhTaiSanRepository;
-    private final ThuocTinhTaiSanRepository thuocTinhTaiSanRepository;
+    private final CategoryRepository danhMucRepository;
+    private final ProductRepository taiSanRepository;
+    private final ProductImageRepository hinhAnhTaiSanRepository;
+    private final ProductAttributeRepository thuocTinhTaiSanRepository;
     private final ProductResponseMapper productResponseMapper;
-    private final NguoiDungRepository nguoiDungRepository;
+    private final CustomerRepository nguoiDungRepository;
 
-    public ProductService(DanhMucRepository danhMucRepository,
-            TaiSanRepository taiSanRepository,
-            HinhAnhTaiSanRepository hinhAnhTaiSanRepository,
-            PhienDauGiaRepository phienDauGiaRepository,
-            ThuocTinhTaiSanRepository thuocTinhTaiSanRepository,
+    public ProductService(CategoryRepository danhMucRepository,
+            ProductRepository taiSanRepository,
+            ProductImageRepository hinhAnhTaiSanRepository,
+            AuctionRepository phienDauGiaRepository,
+            ProductAttributeRepository thuocTinhTaiSanRepository,
             ProductResponseMapper productResponseMapper,
-            NguoiDungRepository nguoiDungRepository) {
+            CustomerRepository nguoiDungRepository) {
         this.danhMucRepository = danhMucRepository;
         this.taiSanRepository = taiSanRepository;
         this.hinhAnhTaiSanRepository = hinhAnhTaiSanRepository;
@@ -51,13 +51,13 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public List<ProductResponse> getProducts() {
-        List<TaiSan> taiSanList = taiSanRepository.findAll().stream().toList();
+        List<Product> taiSanList = taiSanRepository.findAll().stream().toList();
         return productResponseMapper.toProductResponseList(taiSanList);
     }
 
     @Transactional(readOnly = true)
     public ProductResponse getProductById(String id) {
-        TaiSan product = taiSanRepository.findById(id)
+        Product product = taiSanRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
         return productResponseMapper.toProductResponse(product);
     }
@@ -66,27 +66,27 @@ public class ProductService {
     public ProductResponse createProduct(ProductCreateRequest request, String userId) {
         System.out.println("=== SERVICE START ===");
 
-        NguoiDung nguoiTao = nguoiDungRepository.findById(userId)
+        Customer nguoiTao = nguoiDungRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        DanhMuc category = danhMucRepository.findById(request.danhMucId())
+        Category category = danhMucRepository.findById(request.danhMucId())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));
 
-        TaiSan product = new TaiSan(
+        Product product = new Product(
                 request.tenTaiSan(),
                 request.soLuong(),
                 request.moTa(),
                 category);
 
         product.setNguoiTao(nguoiTao);
-        product.setTrangThaiKiemDuyet(TrangThaiKiemDuyet.CHUA_DUYET);
-        TaiSan savedProduct = taiSanRepository.save(product);
+        product.setTrangThaiKiemDuyet(ApprovalStatus.CHUA_DUYET);
+        Product savedProduct = taiSanRepository.save(product);
 
         // 1. Lưu Attributes
         if (request.attributes() != null) {
             for (AttributeRequest attr : request.attributes()) {
                 if (!attr.isSystem()) {
-                    ThuocTinhTaiSan entity = new ThuocTinhTaiSan();
+                    ProductAttribute entity = new ProductAttribute();
                     entity.setTaiSan(savedProduct);
                     entity.setTenThuocTinh(attr.key());
                     entity.setGiaTri(attr.value());
@@ -99,7 +99,7 @@ public class ProductService {
         if (request.imageUrls() != null && !request.imageUrls().isEmpty()) {
             int order = 0;
             for (String url : request.imageUrls()) {
-                HinhAnhTaiSan image = new HinhAnhTaiSan(savedProduct, order++, url);
+                ProductImage image = new ProductImage(savedProduct, order++, url);
                 hinhAnhTaiSanRepository.save(image);
                 System.out.println("Saved Image URL: " + url);
             }
@@ -114,7 +114,7 @@ public class ProductService {
         System.out.println("=== UPDATE SERVICE START (URL MODE) ===");
 
         // 1. Tìm và kiểm tra quyền sở hữu
-        TaiSan product = taiSanRepository.findById(id)
+        Product product = taiSanRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
         if (!userId.equals(product.getNguoiTao().getId())) {
@@ -122,7 +122,7 @@ public class ProductService {
         }
 
         // 2. Tìm category mới
-        DanhMuc category = danhMucRepository.findById(request.danhMucId())
+        Category category = danhMucRepository.findById(request.danhMucId())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));
 
         // 3. Update thông tin cơ bản
@@ -130,14 +130,14 @@ public class ProductService {
         product.setSoLuong(request.soLuong());
         product.setMoTa(request.moTa());
         product.setDanhMuc(category);
-        TaiSan updatedProduct = taiSanRepository.save(product);
+        Product updatedProduct = taiSanRepository.save(product);
 
         // 4. XỬ LÝ ATTRIBUTES: Xóa cũ, thêm mới
         thuocTinhTaiSanRepository.deleteByTaiSanId(id);
         if (request.attributes() != null) {
             for (AttributeRequest attr : request.attributes()) {
                 if (!attr.isSystem()) {
-                    ThuocTinhTaiSan entity = new ThuocTinhTaiSan();
+                    ProductAttribute entity = new ProductAttribute();
                     entity.setTaiSan(updatedProduct);
                     entity.setTenThuocTinh(attr.key());
                     entity.setGiaTri(attr.value());
@@ -157,7 +157,7 @@ public class ProductService {
 
         int order = 0;
         for (String url : allImagesToSave) {
-            HinhAnhTaiSan image = new HinhAnhTaiSan(updatedProduct, order++, url);
+            ProductImage image = new ProductImage(updatedProduct, order++, url);
             hinhAnhTaiSanRepository.save(image);
         }
 
@@ -167,7 +167,7 @@ public class ProductService {
 
     @Transactional
     public void deleteProduct(String id, String userId) {
-        TaiSan product = taiSanRepository.findById(id)
+        Product product = taiSanRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
         if (!userId.equals(product.getNguoiTao().getId())) {
@@ -181,22 +181,22 @@ public class ProductService {
 
     @Transactional
     public ProductResponse approveProduct(String id, String adminId) {
-        TaiSan product = taiSanRepository.findById(id)
+        Product product = taiSanRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
-        product.setTrangThaiKiemDuyet(TrangThaiKiemDuyet.DA_DUYET);
-        TaiSan saved = taiSanRepository.save(product);
+        product.setTrangThaiKiemDuyet(ApprovalStatus.DA_DUYET);
+        Product saved = taiSanRepository.save(product);
 
         return productResponseMapper.toProductResponse(saved);
     }
 
     @Transactional
     public ProductResponse rejectProduct(String id, String adminId, String reason) {
-        TaiSan product = taiSanRepository.findById(id)
+        Product product = taiSanRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
-        product.setTrangThaiKiemDuyet(TrangThaiKiemDuyet.BI_TU_CHOI);
-        TaiSan saved = taiSanRepository.save(product);
+        product.setTrangThaiKiemDuyet(ApprovalStatus.BI_TU_CHOI);
+        Product saved = taiSanRepository.save(product);
 
         return productResponseMapper.toProductResponse(saved);
     }

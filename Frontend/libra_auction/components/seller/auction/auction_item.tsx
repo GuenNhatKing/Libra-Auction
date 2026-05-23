@@ -1,7 +1,7 @@
 "use client";
 
 import { Auction } from "@/types/auction/auction";
-import { TrangThaiPhien } from "@/types/status";
+import { AuctionSessionStatus } from "@/types/status";
 
 interface AuctionItemProps {
     auction: Auction;
@@ -10,11 +10,11 @@ interface AuctionItemProps {
     onDelete: (id: string) => void;
 }
 
-const statusConfig: Record<TrangThaiPhien, { label: string, classes: string }> = {
-    "CHUA_BAT_DAU": { label: 'Sắp diễn ra', classes: 'bg-amber-50 text-amber-600 border-amber-100' },
-    "DANG_DIEN_RA": { label: 'Đang diễn ra', classes: 'bg-green-50 text-green-600 border-green-100' },
-    "DA_KET_THUC": { label: 'Đã kết thúc', classes: 'bg-gray-50 text-gray-500 border-gray-100' },
-    "BI_HUY": { label: 'Đã hủy', classes: 'bg-red-50 text-red-600 border-red-100' },
+const statusConfig: Record<AuctionSessionStatus, { label: string, classes: string }> = {
+    "CHUA_BAT_DAU": { label: 'Upcoming', classes: 'bg-amber-50 text-amber-600 border-amber-100' },
+    "DANG_DIEN_RA": { label: 'Live', classes: 'bg-green-50 text-green-600 border-green-100' },
+    "DA_KET_THUC": { label: 'Ended', classes: 'bg-gray-50 text-gray-500 border-gray-100' },
+    "BI_HUY": { label: 'Cancelled', classes: 'bg-red-50 text-red-600 border-red-100' },
 };
 
 export const AuctionItem = ({ auction, onView, onEdit, onDelete }: AuctionItemProps) => {
@@ -23,7 +23,7 @@ export const AuctionItem = ({ auction, onView, onEdit, onDelete }: AuctionItemPr
     return (
         <div className="bg-white p-4 rounded-2xl border border-gray-100 hover:border-(--accent-color) hover:shadow-sm transition-all flex items-center justify-between group">
             <div className="flex items-center gap-4">
-                {/* Icon đại diện cho Auction (giống style Product) */}
+                {/* Auction icon */}
                 <div className="h-12 w-12 bg-(--background-color) rounded-xl flex items-center justify-center text-(--secondary-color)">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
@@ -55,8 +55,8 @@ export const AuctionItem = ({ auction, onView, onEdit, onDelete }: AuctionItemPr
                 {/* View Action */}
                 <button
                     onClick={() => onView(auction.auction_id)}
-                    className="p-2 text-gray-400 hover:text--(--primary-color) hover:bg-blue-50 rounded-lg transition-colors"
-                    title="Xem chi tiết"
+                    className="p-2 text-gray-400 hover:text-[var(--primary-color)] hover:bg-blue-50 rounded-lg transition-colors"
+                    title="View details"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
                 </button>
@@ -65,7 +65,7 @@ export const AuctionItem = ({ auction, onView, onEdit, onDelete }: AuctionItemPr
                 <button
                     onClick={() => onEdit(auction.auction_id)}
                     className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                    title="Chỉnh sửa"
+                    title="Edit"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" /></svg>
                 </button>
@@ -74,7 +74,7 @@ export const AuctionItem = ({ auction, onView, onEdit, onDelete }: AuctionItemPr
                 <button
                     onClick={() => onDelete(auction.auction_id)}
                     className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Xóa"
+                    title="Delete"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
                 </button>

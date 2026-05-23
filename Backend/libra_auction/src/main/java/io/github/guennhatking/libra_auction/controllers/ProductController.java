@@ -2,7 +2,7 @@ package io.github.guennhatking.libra_auction.controllers;
 
 import io.github.guennhatking.libra_auction.services.ProductService;
 import io.github.guennhatking.libra_auction.services.ProductSearchService;
-import io.github.guennhatking.libra_auction.services.UserService;
+import io.github.guennhatking.libra_auction.services.CustomerService;
 import io.github.guennhatking.libra_auction.services.AuctionService;
 import io.github.guennhatking.libra_auction.viewmodels.request.ProductCreateRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.ProductUpdateRequest;
@@ -13,7 +13,7 @@ import io.github.guennhatking.libra_auction.viewmodels.response.ProductResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.ServerAPIResponse;
 import jakarta.validation.Valid;
 import io.github.guennhatking.libra_auction.security.JwtUserDetails;
-import io.github.guennhatking.libra_auction.models.person.NguoiDung;
+import io.github.guennhatking.libra_auction.models.person.Customer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -35,11 +35,11 @@ import java.util.Optional;
 public class ProductController {
     private final ProductService productService;
     private final ProductSearchService productSearchService;
-    private final UserService userService;
+    private final CustomerService userService;
     private final AuctionService auctionService;
 
     public ProductController(ProductService productService, ProductSearchService productSearchService,
-            UserService userService, AuctionService auctionService) {
+            CustomerService userService, AuctionService auctionService) {
         this.productService = productService;
         this.productSearchService = productSearchService;
         this.userService = userService;
@@ -48,7 +48,7 @@ public class ProductController {
 
     // Helper method to check if user is admin
     private boolean isAdminUser(String userId) {
-        Optional<NguoiDung> user = userService.findById(userId);
+        Optional<Customer> user = userService.findById(userId);
         if (user.isEmpty()) {
             return false;
         }

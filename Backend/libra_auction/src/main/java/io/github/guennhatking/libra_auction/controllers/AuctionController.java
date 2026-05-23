@@ -2,7 +2,7 @@ package io.github.guennhatking.libra_auction.controllers;
 
 import io.github.guennhatking.libra_auction.services.AuctionSearchService;
 import io.github.guennhatking.libra_auction.services.AuctionService;
-import io.github.guennhatking.libra_auction.services.UserService;
+import io.github.guennhatking.libra_auction.services.CustomerService;
 import io.github.guennhatking.libra_auction.utils.ParseDateTime;
 import io.github.guennhatking.libra_auction.viewmodels.request.AuctionCreateRequest;
 import io.github.guennhatking.libra_auction.security.JwtUserDetails;
@@ -12,7 +12,7 @@ import io.github.guennhatking.libra_auction.viewmodels.request.AuctionUpdateRequ
 import io.github.guennhatking.libra_auction.viewmodels.response.AuctionResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.PageResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.ServerAPIResponse;
-import io.github.guennhatking.libra_auction.models.person.NguoiDung;
+import io.github.guennhatking.libra_auction.models.person.Customer;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,11 +35,11 @@ import java.util.Optional;
 public class AuctionController {
     private final AuctionService auctionService;
     private final AuctionSearchService searchService;
-    private final UserService userService;
+    private final CustomerService userService;
 
     public AuctionController(AuctionService auctionService,
             AuctionSearchService searchService,
-            UserService userService) {
+            CustomerService userService) {
         this.auctionService = auctionService;
         this.searchService = searchService;
         this.userService = userService;
@@ -47,7 +47,7 @@ public class AuctionController {
 
     // Helper method to check if user is admin
     private boolean isAdminUser(String userId) {
-        Optional<NguoiDung> user = userService.findById(userId);
+        Optional<Customer> user = userService.findById(userId);
         if (user.isEmpty()) {
             return false;
         }

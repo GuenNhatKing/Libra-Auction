@@ -1,12 +1,12 @@
 package io.github.guennhatking.libra_auction.services;
 
 import io.github.guennhatking.libra_auction.mappers.AuctionMapper;
-import io.github.guennhatking.libra_auction.models.auction.PhienDauGia;
-import io.github.guennhatking.libra_auction.repositories.auction.PhienDauGiaRepository;
+import io.github.guennhatking.libra_auction.models.auction.Auction;
+import io.github.guennhatking.libra_auction.repositories.auction.AuctionRepository;
 import io.github.guennhatking.libra_auction.viewmodels.request.AuctionSearchRequest;
 import io.github.guennhatking.libra_auction.viewmodels.response.AuctionResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.PageResponse;
-import io.github.guennhatking.libra_auction.enums.auction.TrangThaiKiemDuyet;
+import io.github.guennhatking.libra_auction.enums.auction.ApprovalStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -16,10 +16,10 @@ import java.util.stream.Collectors;
 
 @Service
 public class AuctionSearchService {
-    private final PhienDauGiaRepository phienDauGiaRepository;
+    private final AuctionRepository phienDauGiaRepository;
     private final AuctionMapper auctionMapper;
 
-    public AuctionSearchService(PhienDauGiaRepository phienDauGiaRepository,
+    public AuctionSearchService(AuctionRepository phienDauGiaRepository,
             AuctionMapper auctionMapper) {
         this.phienDauGiaRepository = phienDauGiaRepository;
         this.auctionMapper = auctionMapper;
@@ -27,10 +27,10 @@ public class AuctionSearchService {
 
     public PageResponse<AuctionResponse> searchAuctions(AuctionSearchRequest criteria) {
         // Get all sessions
-        List<PhienDauGia> allSessions = phienDauGiaRepository.findAll();
+        List<Auction> allSessions = phienDauGiaRepository.findAll();
 
         // Apply filters
-        List<PhienDauGia> filtered = applyFilters(allSessions, criteria);
+        List<Auction> filtered = applyFilters(allSessions, criteria);
 
         // Apply sorting
         filtered = applySort(filtered, criteria);
@@ -66,7 +66,7 @@ public class AuctionSearchService {
                 baseCriteria.timeEnd(),
                 baseCriteria.attributes(),
                 baseCriteria.status(),
-                TrangThaiKiemDuyet.DA_DUYET.toString(),
+                ApprovalStatus.DA_DUYET.toString(),
                 baseCriteria.page(),
                 baseCriteria.pageSize(),
                 baseCriteria.sortBy(),
@@ -91,7 +91,7 @@ public class AuctionSearchService {
                 baseCriteria.timeEnd(),
                 baseCriteria.attributes(),
                 baseCriteria.status(),
-                TrangThaiKiemDuyet.CHUA_DUYET.toString(),
+                ApprovalStatus.CHUA_DUYET.toString(),
                 baseCriteria.page(),
                 baseCriteria.pageSize(),
                 baseCriteria.sortBy(),
@@ -101,7 +101,7 @@ public class AuctionSearchService {
         return searchAuctions(criteria);
     }
 
-    private List<PhienDauGia> applyFilters(List<PhienDauGia> sessions, AuctionSearchRequest criteria) {
+    private List<Auction> applyFilters(List<Auction> sessions, AuctionSearchRequest criteria) {
         return sessions.stream()
                 .filter(session -> filterByName(session, criteria.name()))
                 .filter(session -> filterByCategory(session, criteria.categoryId()))
@@ -117,7 +117,7 @@ public class AuctionSearchService {
     }
 
 
-    private boolean filterByName(PhienDauGia session, String name) {
+    private boolean filterByName(Auction session, String name) {
         if (name == null || name.isBlank()) {
             return true;
         }
@@ -126,7 +126,7 @@ public class AuctionSearchService {
                 session.getTaiSan().getTenTaiSan().toLowerCase().contains(name.toLowerCase());
     }
 
-    private boolean filterByCategory(PhienDauGia session, String categoryId) {
+    private boolean filterByCategory(Auction session, String categoryId) {
         if (categoryId == null || categoryId.isBlank()) {
             return true;
         }
@@ -135,7 +135,7 @@ public class AuctionSearchService {
                 session.getTaiSan().getDanhMuc().getId().equals(categoryId);
     }
 
-    private boolean filterByPriceRange(PhienDauGia session, Long priceFrom, Long priceTo) {
+    private boolean filterByPriceRange(Auction session, Long priceFrom, Long priceTo) {
         if (priceFrom == null && priceTo == null) {
             return true;
         }
@@ -152,14 +152,14 @@ public class AuctionSearchService {
         return true;
     }
 
-    private boolean filterByStartingPrice(PhienDauGia session, Long startingPrice) {
+    private boolean filterByStartingPrice(Auction session, Long startingPrice) {
         if (startingPrice == null) {
             return true;
         }
         return session.getGiaKhoiDiem() == startingPrice;
     }
 
-    private boolean filterByTimeRange(PhienDauGia session, OffsetDateTime timeStart, OffsetDateTime timeEnd) {
+    private boolean filterByTimeRange(Auction session, OffsetDateTime timeStart, OffsetDateTime timeEnd) {
         if (timeStart == null && timeEnd == null) {
             return true;
         }
@@ -176,7 +176,7 @@ public class AuctionSearchService {
         return true;
     }
 
-    private boolean filterByStatus(PhienDauGia session, String status) {
+    private boolean filterByStatus(Auction session, String status) {
         if (status == null || status.isBlank()) {
             return true;
         }
@@ -184,7 +184,7 @@ public class AuctionSearchService {
                 session.getTrangThaiPhien().toString().equals(status);
     }
 
-    private boolean filterByAttributes(PhienDauGia session, List<java.util.Map<String, String>> attributes) {
+    private boolean filterByAttributes(Auction session, List<java.util.Map<String, String>> attributes) {
 
         if (attributes == null || attributes.isEmpty()) {
             return true;
@@ -210,7 +210,7 @@ public class AuctionSearchService {
         });
     }
 
-    private boolean filterByOwner(PhienDauGia session, String ownerId) {
+    private boolean filterByOwner(Auction session, String ownerId) {
         if (ownerId == null || ownerId.isBlank()) {
             return true; // no owner filter
         }
@@ -220,7 +220,7 @@ public class AuctionSearchService {
         return ownerId.equals(session.getNguoiTao().getId());
     }
 
-    private boolean filterByApprovalStatus(PhienDauGia session, String trangThaiKiemDuyet, String chuSoHuuId) {
+    private boolean filterByApprovalStatus(Auction session, String trangThaiKiemDuyet, String chuSoHuuId) {
         // If a specific approval status filter is specified (e.g., admin filtering), apply it
         if (trangThaiKiemDuyet != null && !trangThaiKiemDuyet.isBlank()) {
             if (session.getTrangThaiKiemDuyet() == null) {
@@ -237,10 +237,10 @@ public class AuctionSearchService {
         
         // For public/unauthenticated users, only show approved auctions
         return session.getTrangThaiKiemDuyet() != null && 
-               session.getTrangThaiKiemDuyet().equals(TrangThaiKiemDuyet.DA_DUYET);
+               session.getTrangThaiKiemDuyet().equals(ApprovalStatus.DA_DUYET);
     }
 
-    private boolean filterByProductApprovalStatus(PhienDauGia session, String trangThaiKiemDuyet, String chuSoHuuId) {
+    private boolean filterByProductApprovalStatus(Auction session, String trangThaiKiemDuyet, String chuSoHuuId) {
         // If a specific approval status filter is specified (admin viewing), don't check product approval
         if (trangThaiKiemDuyet != null && !trangThaiKiemDuyet.isBlank()) {
             return true;
@@ -256,18 +256,18 @@ public class AuctionSearchService {
             return false;
         }
         return session.getTaiSan().getTrangThaiKiemDuyet() != null &&
-               session.getTaiSan().getTrangThaiKiemDuyet().equals(TrangThaiKiemDuyet.DA_DUYET);
+               session.getTaiSan().getTrangThaiKiemDuyet().equals(ApprovalStatus.DA_DUYET);
     }
 
-    private List<PhienDauGia> applySort(List<PhienDauGia> sessions, AuctionSearchRequest criteria) {
+    private List<Auction> applySort(List<Auction> sessions, AuctionSearchRequest criteria) {
         String sortBy = criteria.sortBy() != null ? criteria.sortBy() : "thoiGianBatDau";
         boolean isAsc = "ASC".equalsIgnoreCase(criteria.sortOrder());
 
-        Comparator<PhienDauGia> comparator = switch (sortBy) {
-            case "giaKhoiDiem" -> Comparator.comparing(PhienDauGia::getGiaKhoiDiem);
-            case "giaHienTai" -> Comparator.comparing(PhienDauGia::getGiaHienTai);
-            case "thoiGianBatDau" -> Comparator.comparing(PhienDauGia::getThoiGianBatDau);
-            default -> Comparator.comparing(PhienDauGia::getThoiGianBatDau);
+        Comparator<Auction> comparator = switch (sortBy) {
+            case "giaKhoiDiem" -> Comparator.comparing(Auction::getGiaKhoiDiem);
+            case "giaHienTai" -> Comparator.comparing(Auction::getGiaHienTai);
+            case "thoiGianBatDau" -> Comparator.comparing(Auction::getThoiGianBatDau);
+            default -> Comparator.comparing(Auction::getThoiGianBatDau);
         };
 
         if (!isAsc) {
@@ -279,7 +279,7 @@ public class AuctionSearchService {
                 .collect(Collectors.toList());
     }
 
-    private PageResponse<AuctionResponse> applyPagination(List<PhienDauGia> sessions,
+    private PageResponse<AuctionResponse> applyPagination(List<Auction> sessions,
             AuctionSearchRequest criteria) {
         int page = criteria.page() != null ? criteria.page() : 0;
         int pageSize = criteria.pageSize() != null ? criteria.pageSize() : 20;
@@ -290,7 +290,7 @@ public class AuctionSearchService {
         int startIndex = Math.min(page * pageSize, totalElements);
         int endIndex = Math.min(startIndex + pageSize, totalElements);
 
-        List<PhienDauGia> pageContent = sessions.subList(startIndex, endIndex);
+        List<Auction> pageContent = sessions.subList(startIndex, endIndex);
         List<AuctionResponse> responseContent = auctionMapper.toAuctionResponseList(pageContent);
 
         return new PageResponse<>(

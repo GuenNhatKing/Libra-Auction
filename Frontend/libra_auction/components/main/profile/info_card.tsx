@@ -12,12 +12,12 @@ export const InfoCard = ({ user }: { user: UserInfo }) => {
 
   return (
     <div className="bg-white p-8 rounded-2xl shadow-sm mt-6 border border-gray-100">
-      <h3 className="text-xl font-bold mb-6 border-l-4 border-[--primary-color] pl-4">Thông tin cá nhân</h3>
+      <h3 className="text-xl font-bold mb-6 border-l-4 border-[--primary-color] pl-4">Profile</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12">
-        {detailItem("Số điện thoại", user.soDienThoai)}
-        {detailItem("Số CCCD", user.CCCD)}
-        {detailItem("Trạng thái Email", user.trangThaiEmail, true)}
-        {detailItem("Trạng thái tài khoản", user.trangThaiTaiKhoan, true)}
+        {detailItem("Phone", user.soDienThoai)}
+        {detailItem("CCCD", user.CCCD)}
+        {detailItem("Email Status", user.trangThaiEmail, true)}
+        {detailItem("Account Status", user.trangThaiTaiKhoan, true)}
       </div>
     </div>
   );

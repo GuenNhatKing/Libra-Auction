@@ -2,7 +2,7 @@ package io.github.guennhatking.libra_auction.services;
 
 import io.github.guennhatking.libra_auction.viewmodels.request.SignupFormRequest;
 import io.github.guennhatking.libra_auction.models.account.TaiKhoanPassword;
-import io.github.guennhatking.libra_auction.models.person.NguoiDung;
+import io.github.guennhatking.libra_auction.models.person.Customer;
 import io.github.guennhatking.libra_auction.viewmodels.request.GoogleLoginRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.GoogleUserInfo;
 import io.github.guennhatking.libra_auction.viewmodels.request.RefreshTokenRequest;
@@ -15,12 +15,12 @@ import java.util.Optional;
 
 @Service
 public class AuthenticationService {
-    private final UserService userService;
+    private final CustomerService userService;
     private final TokenService tokenService;
     private final PasswordService passwordService;
     private final GoogleOAuthService googleOAuthService;
 
-    public AuthenticationService(UserService userService,
+    public AuthenticationService(CustomerService userService,
                                TokenService tokenService,
                                PasswordService passwordService,
                                GoogleOAuthService googleOAuthService) {
@@ -31,7 +31,7 @@ public class AuthenticationService {
     }
 
     public JwtResponse signup(SignupRequest request) throws Exception {
-        NguoiDung newUser = userService.createPasswordUser(
+        Customer newUser = userService.createPasswordUser(
             request.email(),
             request.username(),
             request.password(),
@@ -42,7 +42,7 @@ public class AuthenticationService {
     }
 
     public JwtResponse signup(SignupFormRequest request) throws Exception {
-        NguoiDung newUser = userService.createPasswordUser(
+        Customer newUser = userService.createPasswordUser(
             request.email(),
             request.username(),
             request.password(),
@@ -71,7 +71,7 @@ public class AuthenticationService {
     public JwtResponse googleLogin(GoogleLoginRequest request) throws Exception {
         GoogleUserInfo userInfo = googleOAuthService.exchangeCodeForUserInfo(request.code());
 
-        NguoiDung user = userService.createOAuthUser(
+        Customer user = userService.createOAuthUser(
             userInfo.email(),
             userInfo.sub(),
             userInfo.name(),

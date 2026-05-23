@@ -7,8 +7,8 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import io.github.guennhatking.libra_auction.models.auction.PhienDauGia;
-import io.github.guennhatking.libra_auction.models.person.NguoiDung;
+import io.github.guennhatking.libra_auction.models.auction.Auction;
+import io.github.guennhatking.libra_auction.models.person.Customer;
 
 import java.time.format.DateTimeFormatter;
 
@@ -37,7 +37,7 @@ public class EmailNotificationService {
      * Send notification when an auction has started
      * @param auction The auction
      */
-    public void sendAuctionStartedNotification(PhienDauGia auction) {
+    public void sendAuctionStartedNotification(Auction auction) {
         try {
             String productName = auction.getTaiSan() != null ? auction.getTaiSan().getTenTaiSan() : "N/A";
             String auctionId = auction.getId();
@@ -65,7 +65,7 @@ public class EmailNotificationService {
      * @param winner The winner user
      * @param finalPrice The final winning price
      */
-    public void sendAuctionWinnerNotification(PhienDauGia auction, NguoiDung winner, Long finalPrice) {
+    public void sendAuctionWinnerNotification(Auction auction, Customer winner, Long finalPrice) {
         try {
             if (winner == null || winner.getEmail() == null) {
                 logger.warn("Cannot send winner notification: winner email is null");
@@ -94,7 +94,7 @@ public class EmailNotificationService {
      * Send notification when an auction has ended
      * @param auction The auction
      */
-    public void sendAuctionEndedNotification(PhienDauGia auction) {
+    public void sendAuctionEndedNotification(Auction auction) {
         try {
             if (auction.getNguoiTao() == null || auction.getNguoiTao().getEmail() == null) {
                 logger.warn("Cannot send auction ended notification: creator email is null");
@@ -124,7 +124,7 @@ public class EmailNotificationService {
      * @param winner The winner
      * @param amount The amount to pay
      */
-    public void sendPaymentRequestNotification(PhienDauGia auction, NguoiDung winner, Long amount) {
+    public void sendPaymentRequestNotification(Auction auction, Customer winner, Long amount) {
         try {
             if (winner == null || winner.getEmail() == null) {
                 logger.warn("Cannot send payment request notification: winner email is null");

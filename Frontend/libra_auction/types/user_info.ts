@@ -1,4 +1,4 @@
-import { TrangThaiEmail, TrangThaiTaiKhoan } from "./status"
+import { EmailStatus, AccountStatus } from "./status"
 
 export interface UserInfo {
     id: string,
@@ -7,8 +7,8 @@ export interface UserInfo {
     CCCD: string,
     email: string,
     anhDaiDien: string,
-    trangThaiEmail: TrangThaiEmail,
-    trangThaiTaiKhoan: TrangThaiTaiKhoan,
+    trangThaiEmail: EmailStatus,
+    trangThaiTaiKhoan: AccountStatus,
     roles: Role[]
 }
 

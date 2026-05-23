@@ -1,6 +1,6 @@
 package io.github.guennhatking.libra_auction.models.account;
 
-import io.github.guennhatking.libra_auction.enums.account.TrangThaiTaiKhoan;
+import io.github.guennhatking.libra_auction.enums.account.AccountStatus;
 import jakarta.persistence.Entity;
 
 @Entity
@@ -15,7 +15,7 @@ public class TaiKhoanPassword extends TaiKhoan {
     }
 
     public TaiKhoanPassword(String id, String username, String passwordHash, byte[] salt) {
-        super(id, TrangThaiTaiKhoan.CHO_XAC_NHAN);
+        super(id, AccountStatus.CHO_XAC_NHAN);
         this.username = username;
         this.passwordHash = passwordHash;
         this.salt = salt;

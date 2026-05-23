@@ -4,7 +4,7 @@ import { NewAuction } from "@/types/auction/new-auction";
 import { Product } from "@/types/product/product";
 import { useState } from "react";
 
-export enum LoaiDauGia {
+export enum AuctionType {
   DAU_GIA_LEN = "DAU_GIA_LEN",
   DAU_GIA_XUONG = "DAU_GIA_XUONG",
   DAU_GIA_KIN = "DAU_GIA_KIN",
@@ -20,8 +20,8 @@ export default function AuctionForm({ products }: { products: Product[] }) {
     thoiLuong: 60,
     giaKhoiDiem: 0,
     buocGiaNhoNhat: 0,
-    tienCoc: 0, // State cho tiền cọc
-    loaiDauGia: LoaiDauGia.DAU_GIA_LEN
+    tienCoc: 0,
+    loaiDauGia: AuctionType.DAU_GIA_LEN
   });
 
   const handleChange = (field: string, value: string | number) => {
@@ -45,12 +45,12 @@ export default function AuctionForm({ products }: { products: Product[] }) {
 
       const res = await createAuction(auction);
       if (res) {
-        alert("Tạo phiên đấu giá thành công!");
+        alert("Auction created successfully!");
         window.location.href = "/seller-dashboard/auctions";
       }
     } catch (err) {
       console.error(err);
-      alert("Tạo phiên đấu giá thất bại!");
+      alert("Failed to create auction!");
     }
   };
 
@@ -59,10 +59,10 @@ export default function AuctionForm({ products }: { products: Product[] }) {
       {/* STEP HEADER */}
       <div className="flex border-b border-[#AFD3E2]">
         <div className={`flex-1 p-4 text-center font-bold ${step === 1 ? 'bg-[#19A7CE] text-white' : 'bg-gray-50'}`}>
-          1. Chọn Sản Phẩm
+          1. Select Product
         </div>
         <div className={`flex-1 p-4 text-center font-bold ${step === 2 ? 'bg-[#19A7CE] text-white' : 'bg-gray-50'}`}>
-          2. Thiết Lập Đấu Giá
+          2. Configure Auction
         </div>
       </div>
 
@@ -83,7 +83,7 @@ export default function AuctionForm({ products }: { products: Product[] }) {
                   <p className="font-bold text-[#146C94]">{p.product_name}</p>
                   <p className="text-xs text-gray-400">ID: {p.product_id}</p>
                   {"quantity" in p && (
-                    <p className="text-xs text-gray-500">Số lượng: {p.quantity}</p>
+                    <p className="text-xs text-gray-500">Quantity: {p.quantity}</p>
                   )}
                 </div>
               </div>
@@ -103,7 +103,7 @@ export default function AuctionForm({ products }: { products: Product[] }) {
           <div className="space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Thời gian bắt đầu</label>
+                <label className="text-sm font-medium">Start time</label>
                 <input
                   type="datetime-local"
                   onChange={(e) => handleChange("thoiGianBatDau", e.target.value)}
@@ -112,7 +112,7 @@ export default function AuctionForm({ products }: { products: Product[] }) {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Thời lượng (phút)</label>
+                <label className="text-sm font-medium">Duration (minutes)</label>
                 <input
                   type="number"
                   value={formData.thoiLuong}
@@ -122,7 +122,7 @@ export default function AuctionForm({ products }: { products: Product[] }) {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Giá khởi điểm</label>
+                <label className="text-sm font-medium">Starting price</label>
                 <input
                   type="number"
                   onChange={(e) => handleChange("giaKhoiDiem", Number(e.target.value))}
@@ -131,7 +131,7 @@ export default function AuctionForm({ products }: { products: Product[] }) {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Bước giá tối thiểu</label>
+                <label className="text-sm font-medium">Minimum bid increment</label>
                 <input
                   type="number"
                   onChange={(e) => handleChange("buocGiaNhoNhat", Number(e.target.value))}
@@ -139,9 +139,8 @@ export default function AuctionForm({ products }: { products: Product[] }) {
                 />
               </div>
 
-              {/* TRƯỜNG TIỀN CỌC - CSS ĐỒNG NHẤT */}
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Tiền đặt cọc</label>
+                <label className="text-sm font-medium">Deposit</label>
                 <input
                   type="number"
                   placeholder="0"
@@ -151,16 +150,16 @@ export default function AuctionForm({ products }: { products: Product[] }) {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Loại đấu giá</label>
+                <label className="text-sm font-medium">Auction type</label>
                 <select
                   value={formData.loaiDauGia}
                   onChange={(e) => handleChange("loaiDauGia", e.target.value)}
                   className="border p-2 rounded"
                 >
-                  <option value={LoaiDauGia.DAU_GIA_LEN}>Đấu giá tăng</option>
-                  <option value={LoaiDauGia.DAU_GIA_XUONG}>Đấu giá giảm</option>
-                  <option value={LoaiDauGia.DAU_GIA_KIN}>Đấu giá kín</option>
-                  <option value={LoaiDauGia.DAU_GIA_NGUOC}>Đấu giá ngược</option>
+                  <option value={AuctionType.DAU_GIA_LEN}>Ascending auction</option>
+                  <option value={AuctionType.DAU_GIA_XUONG}>Descending auction</option>
+                  <option value={AuctionType.DAU_GIA_KIN}>Sealed-bid auction</option>
+                  <option value={AuctionType.DAU_GIA_NGUOC}>Reverse auction</option>
                 </select>
               </div>
             </div>
@@ -170,13 +169,13 @@ export default function AuctionForm({ products }: { products: Product[] }) {
                 onClick={() => setStep(1)}
                 className="flex-1 border py-3 rounded"
               >
-                Quay lại
+                Back
               </button>
               <button
                 onClick={handleSubmit}
                 className="flex-1 bg-[#146C94] text-white py-3 rounded"
               >
-                Tạo phiên đấu giá
+                Create auction
               </button>
             </div>
           </div>

@@ -17,7 +17,7 @@ export default function LiveAuction({ auctionId }: { auctionId: string }) {
   useEffect(() => {
     auctionSocket.connect(auctionId);
 
-    // Subscribe nhận bid mới
+    // Subscribe to new bids
     auctionSocket.subscribe(`/topic/auction/${auctionId}/bids`, (newBid: Bid) => {
       setBids(prev => [newBid, ...prev]);
       setCurrentPrice(newBid.amount);
@@ -28,7 +28,7 @@ export default function LiveAuction({ auctionId }: { auctionId: string }) {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-[#F6F1F1] p-4 rounded-xl">
-      {/* Thông tin chính */}
+      {/* Main information */}
       <div className="lg:col-span-2 space-y-4">
         <div className="bg-white p-6 rounded-lg border border-[#AFD3E2] shadow-sm">
           <div className="flex justify-between items-start">
@@ -43,12 +43,12 @@ export default function LiveAuction({ auctionId }: { auctionId: string }) {
           </div>
 
           <div className="mt-8 p-4 bg-[#F6F1F1] rounded flex justify-between items-center">
-            <span className="text-gray-600">Giá hiện tại:</span>
+            <span className="text-gray-600">Current price:</span>
             <span className="text-4xl font-black text-[#19A7CE]">${currentPrice.toLocaleString()}</span>
           </div>
         </div>
 
-        {/* Biểu đồ giá nhanh (Mini) */}
+        {/* Mini price chart */}
         <div className="bg-white p-4 rounded-lg border border-[#AFD3E2] h-32 flex items-end gap-1">
           {bids.slice(0, 20).reverse().map((b, i) => (
             <div 
@@ -60,13 +60,13 @@ export default function LiveAuction({ auctionId }: { auctionId: string }) {
         </div>
       </div>
 
-      {/* Danh sách Bid Realtime */}
+      {/* Realtime bid list */}
       <div className="bg-white rounded-lg border border-[#AFD3E2] flex flex-col h-[500px]">
         <div className="p-4 border-b border-[#AFD3E2] font-bold text-[#146C94]">
-          Lịch sử đấu giá
+          Bid history
         </div>
         <div className="flex-1 overflow-y-auto p-2 space-y-2">
-          {bids.length === 0 && <p className="text-center text-gray-400 py-10">Chưa có lượt ra giá nào...</p>}
+          {bids.length === 0 && <p className="text-center text-gray-400 py-10">No bids yet...</p>}
           {bids.map((bid) => (
             <div key={bid.id} className="flex justify-between items-center p-3 bg-[#F6F1F1] rounded border-l-4 border-[#19A7CE] animate-in slide-in-from-right-4">
               <div>

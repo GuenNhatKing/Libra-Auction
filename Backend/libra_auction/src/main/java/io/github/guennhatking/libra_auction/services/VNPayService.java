@@ -1,21 +1,21 @@
 package io.github.guennhatking.libra_auction.services;
 
-import io.github.guennhatking.libra_auction.enums.transaction.LoaiGiaoDich;
-import io.github.guennhatking.libra_auction.enums.transaction.TinhTrangGiaoDich;
-import io.github.guennhatking.libra_auction.models.auction.KetQuaDauGia;
-import io.github.guennhatking.libra_auction.models.auction.PhienDauGia;
-import io.github.guennhatking.libra_auction.models.auction.ThongTinThamGiaDauGia;
-import io.github.guennhatking.libra_auction.models.person.NguoiDung;
-import io.github.guennhatking.libra_auction.models.transaction.GiaoDich;
-import io.github.guennhatking.libra_auction.models.transaction.GiaoDichDatCoc;
-import io.github.guennhatking.libra_auction.models.transaction.GiaoDichThanhToan;
+import io.github.guennhatking.libra_auction.enums.transaction.TransactionType;
+import io.github.guennhatking.libra_auction.enums.transaction.TransactionStatus;
+import io.github.guennhatking.libra_auction.models.auction.AuctionResult;
+import io.github.guennhatking.libra_auction.models.auction.Auction;
+import io.github.guennhatking.libra_auction.models.auction.AuctionParticipationInfo;
+import io.github.guennhatking.libra_auction.models.person.Customer;
+import io.github.guennhatking.libra_auction.models.transaction.Transaction;
+import io.github.guennhatking.libra_auction.models.transaction.DepositTransaction;
+import io.github.guennhatking.libra_auction.models.transaction.PaymentTransaction;
 import io.github.guennhatking.libra_auction.properties.VNPayProperties;
-import io.github.guennhatking.libra_auction.repositories.auction.PhienDauGiaRepository;
-import io.github.guennhatking.libra_auction.repositories.auction.ThongTinThamGiaDauGiaRepository;
-import io.github.guennhatking.libra_auction.repositories.person.NguoiDungRepository;
-import io.github.guennhatking.libra_auction.repositories.transaction.GiaoDichDatCocRepository;
-import io.github.guennhatking.libra_auction.repositories.transaction.GiaoDichRepository;
-import io.github.guennhatking.libra_auction.repositories.transaction.GiaoDichThanhToanRepository;
+import io.github.guennhatking.libra_auction.repositories.auction.AuctionRepository;
+import io.github.guennhatking.libra_auction.repositories.auction.AuctionParticipationInfoRepository;
+import io.github.guennhatking.libra_auction.repositories.person.CustomerRepository;
+import io.github.guennhatking.libra_auction.repositories.transaction.DepositTransactionRepository;
+import io.github.guennhatking.libra_auction.repositories.transaction.TransactionRepository;
+import io.github.guennhatking.libra_auction.repositories.transaction.PaymentTransactionRepository;
 import io.github.guennhatking.libra_auction.utils.VNPayUtil;
 import io.github.guennhatking.libra_auction.viewmodels.request.VNPayDepositRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.VNPayPaymentRequest;
@@ -45,19 +45,19 @@ import java.util.Map;
 @Service
 public class VNPayService {
     private final VNPayProperties vnPayProperties;
-    private final GiaoDichDatCocRepository giaoDichDatCocRepository;
-    private final ThongTinThamGiaDauGiaRepository thongTinThamGiaDauGiaRepository;
-    private final NguoiDungRepository nguoiDungRepository;
-    private final PhienDauGiaRepository phienDauGiaRepository;
-    private final GiaoDichThanhToanRepository giaoDichThanhToanRepository;
+    private final DepositTransactionRepository giaoDichDatCocRepository;
+    private final AuctionParticipationInfoRepository thongTinThamGiaDauGiaRepository;
+    private final CustomerRepository nguoiDungRepository;
+    private final AuctionRepository phienDauGiaRepository;
+    private final PaymentTransactionRepository giaoDichThanhToanRepository;
 
     public VNPayService(VNPayProperties vnPayProperties,
-            GiaoDichRepository giaoDichRepository,
-            GiaoDichThanhToanRepository giaoDichThanhToanRepository,
-            NguoiDungRepository nguoiDungRepository,
-            GiaoDichDatCocRepository giaoDichDatCocRepository,
-            ThongTinThamGiaDauGiaRepository thongTinThamGiaDauGiaRepository,
-            PhienDauGiaRepository phienDauGiaRepository) {
+            TransactionRepository giaoDichRepository,
+            PaymentTransactionRepository giaoDichThanhToanRepository,
+            CustomerRepository nguoiDungRepository,
+            DepositTransactionRepository giaoDichDatCocRepository,
+            AuctionParticipationInfoRepository thongTinThamGiaDauGiaRepository,
+            AuctionRepository phienDauGiaRepository) {
         this.vnPayProperties = vnPayProperties;
         this.nguoiDungRepository = nguoiDungRepository;
         this.giaoDichDatCocRepository = giaoDichDatCocRepository;
@@ -70,21 +70,21 @@ public class VNPayService {
     public VNPayPaymentResponse createDeposit(VNPayDepositRequest request, String userId,
             HttpServletRequest servletRequest) {
 
-        NguoiDung user = nguoiDungRepository.findById(userId)
+        Customer user = nguoiDungRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        ThongTinThamGiaDauGia thongTinThamGiaDauGia = thongTinThamGiaDauGiaRepository
+        AuctionParticipationInfo thongTinThamGiaDauGia = thongTinThamGiaDauGiaRepository
                 .findByNguoiThamGiaIdAndPhienDauGiaId(userId, request.phienDauGiaId())
                 .orElseThrow(() -> new RuntimeException("Thông tin tham gia không tồn tại"));
 
-        PhienDauGia phienDauGia = phienDauGiaRepository.findById(request.phienDauGiaId())
+        Auction phienDauGia = phienDauGiaRepository.findById(request.phienDauGiaId())
                 .orElseThrow(() -> new RuntimeException("Phiên đấu giá không tồn tại"));
 
-        GiaoDichDatCoc deposit = new GiaoDichDatCoc(phienDauGia.getTienCoc(),
+        DepositTransaction deposit = new DepositTransaction(phienDauGia.getTienCoc(),
                 user, thongTinThamGiaDauGia);
 
         deposit.setNgayTao(OffsetDateTime.now(ZoneOffset.ofHours(7)));
-        deposit.setTinhTrangGiaoDich(TinhTrangGiaoDich.DANG_XU_LY);
+        deposit.setTinhTrangGiaoDich(TransactionStatus.DANG_XU_LY);
 
         // Lưu để có ID (mã đơn hàng)
         deposit = giaoDichDatCocRepository.save(deposit);
@@ -146,24 +146,24 @@ public class VNPayService {
     @Transactional
     public VNPayPaymentResponse createPayment(VNPayPaymentRequest request, String userId,
             HttpServletRequest servletRequest) {
-        NguoiDung user = nguoiDungRepository.findById(userId)
+        Customer user = nguoiDungRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
 
-        PhienDauGia phienDauGia = phienDauGiaRepository.findById(request.phienDauGiaId())
+        Auction phienDauGia = phienDauGiaRepository.findById(request.phienDauGiaId())
                 .orElseThrow(() -> new RuntimeException("Phiên đấu giá không tồn tại"));
 
-        KetQuaDauGia ketQuaDauGia = phienDauGia.getKetQuaDauGia();
+        AuctionResult ketQuaDauGia = phienDauGia.getKetQuaDauGia();
         if (ketQuaDauGia == null || !ketQuaDauGia.getNguoiThangDauGia().getId().equals(userId)) {
             throw new RuntimeException("Người dùng không phải là người thắng cuộc của phiên đấu giá này");
         }
 
-        NguoiDung nguoiBan = phienDauGia.getNguoiTao();
+        Customer nguoiBan = phienDauGia.getNguoiTao();
 
-        GiaoDichThanhToan payment = new GiaoDichThanhToan(phienDauGia.getGiaHienTai(),
+        PaymentTransaction payment = new PaymentTransaction(phienDauGia.getGiaHienTai(),
                 user, nguoiBan, ketQuaDauGia);
 
         payment.setNgayTao(OffsetDateTime.now(ZoneOffset.ofHours(7)));
-        payment.setTinhTrangGiaoDich(TinhTrangGiaoDich.DANG_XU_LY);
+        payment.setTinhTrangGiaoDich(TransactionStatus.DANG_XU_LY);
 
         // Lưu để có ID (mã đơn hàng)
         payment = giaoDichThanhToanRepository.save(payment);
@@ -264,7 +264,7 @@ public class VNPayService {
         }
 
         // 3. Tìm giao dịch đặt cọc trong DB
-        GiaoDichDatCoc deposit = giaoDichDatCocRepository.findById(request.vnp_TxnRef())
+        DepositTransaction deposit = giaoDichDatCocRepository.findById(request.vnp_TxnRef())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch đặt cọc"));
 
         // 4. Kiểm tra số tiền
@@ -275,15 +275,15 @@ public class VNPayService {
         }
 
         // 5. Kiểm tra trạng thái giao dịch
-        if (deposit.getTinhTrangGiaoDich() != TinhTrangGiaoDich.DANG_XU_LY) {
+        if (deposit.getTinhTrangGiaoDich() != TransactionStatus.DANG_XU_LY) {
             // Giao dịch này đã được cập nhật trước đó (bởi IPN hoặc lần verify trước)
-            return deposit.getTinhTrangGiaoDich() == TinhTrangGiaoDich.THANH_CONG;
+            return deposit.getTinhTrangGiaoDich() == TransactionStatus.THANH_CONG;
         }
 
         // 6. Cập nhật kết quả dựa trên ResponseCode
         if ("00".equals(request.vnp_ResponseCode())) {
             // THÀNH CÔNG
-            deposit.setTinhTrangGiaoDich(TinhTrangGiaoDich.THANH_CONG);
+            deposit.setTinhTrangGiaoDich(TransactionStatus.THANH_CONG);
             // Lưu mã giao dịch VNPAY để đối soát sau này
             deposit.setMaGiaoDichCuaDoiTac(request.vnp_TransactionNo());
 
@@ -291,7 +291,7 @@ public class VNPayService {
 
             return true;
         } else {
-            deposit.setTinhTrangGiaoDich(TinhTrangGiaoDich.THAT_BAI);
+            deposit.setTinhTrangGiaoDich(TransactionStatus.THAT_BAI);
             giaoDichDatCocRepository.save(deposit);
             return false;
         }
@@ -334,7 +334,7 @@ public class VNPayService {
         }
 
         // 3. Tìm giao dịch thanh toán trong DB
-        GiaoDichThanhToan payment = giaoDichThanhToanRepository.findById(request.vnp_TxnRef())
+        PaymentTransaction payment = giaoDichThanhToanRepository.findById(request.vnp_TxnRef())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch thanh toán"));
 
         // 4. Kiểm tra số tiền
@@ -345,15 +345,15 @@ public class VNPayService {
         }
 
         // 5. Kiểm tra trạng thái giao dịch
-        if (payment.getTinhTrangGiaoDich() != TinhTrangGiaoDich.DANG_XU_LY) {
+        if (payment.getTinhTrangGiaoDich() != TransactionStatus.DANG_XU_LY) {
             // Giao dịch này đã được cập nhật trước đó (bởi IPN hoặc lần verify trước)
-            return payment.getTinhTrangGiaoDich() == TinhTrangGiaoDich.THANH_CONG;
+            return payment.getTinhTrangGiaoDich() == TransactionStatus.THANH_CONG;
         }
 
         // 6. Cập nhật kết quả dựa trên ResponseCode
         if ("00".equals(request.vnp_ResponseCode())) {
             // THÀNH CÔNG
-            payment.setTinhTrangGiaoDich(TinhTrangGiaoDich.THANH_CONG);
+            payment.setTinhTrangGiaoDich(TransactionStatus.THANH_CONG);
             // Lưu mã giao dịch VNPAY để đối soát sau này
             payment.setMaGiaoDichCuaDoiTac(request.vnp_TransactionNo());
 
@@ -361,17 +361,17 @@ public class VNPayService {
 
             return true;
         } else {
-            payment.setTinhTrangGiaoDich(TinhTrangGiaoDich.THAT_BAI);
+            payment.setTinhTrangGiaoDich(TransactionStatus.THAT_BAI);
             giaoDichThanhToanRepository.save(payment);
             return false;
         }
     }
 
     public VNPayTransactionResponse getTransactionStatus(String transactionId) {
-        GiaoDich giaoDich = giaoDichDatCocRepository.findById(transactionId)
-                .map(gd -> (GiaoDich) gd)
+        Transaction giaoDich = giaoDichDatCocRepository.findById(transactionId)
+                .map(gd -> (Transaction) gd)
                 .orElseGet(() -> giaoDichThanhToanRepository.findById(transactionId)
-                        .map(gd -> (GiaoDich) gd)
+                        .map(gd -> (Transaction) gd)
                         .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch")));
 
         String moTa = "";
@@ -379,21 +379,21 @@ public class VNPayService {
 
         if (giaoDich.getLoaiGiaoDich() == null) {
             throw new RuntimeException("Giao dịch không hợp lệ");
-        } else if (giaoDich.getLoaiGiaoDich().equals(LoaiGiaoDich.DAT_COC)) {
-            if (!(giaoDich instanceof GiaoDichDatCoc)) {
+        } else if (giaoDich.getLoaiGiaoDich().equals(TransactionType.DAT_COC)) {
+            if (!(giaoDich instanceof DepositTransaction)) {
                 throw new RuntimeException("Giao dịch đặt cọc không hợp lệ");
             }
             moTa = "Đặt cọc đấu giá";
-            GiaoDichDatCoc datCoc = (GiaoDichDatCoc) giaoDich;
-            ThongTinThamGiaDauGia thongTin = datCoc.getThongTinThamGia();
+            DepositTransaction datCoc = (DepositTransaction) giaoDich;
+            AuctionParticipationInfo thongTin = datCoc.getThongTinThamGia();
             thongTinChiTiet = "Phiên đấu giá: " + thongTin.getPhienDauGia().getId() + ", Sản phẩm: "
                     + thongTin.getPhienDauGia().getTaiSan().getTenTaiSan();
-        } else if (giaoDich.getLoaiGiaoDich().equals(LoaiGiaoDich.THANH_TOAN)) {
-            if (!(giaoDich instanceof GiaoDichThanhToan)) {
+        } else if (giaoDich.getLoaiGiaoDich().equals(TransactionType.THANH_TOAN)) {
+            if (!(giaoDich instanceof PaymentTransaction)) {
                 throw new RuntimeException("Giao dịch thanh toán không hợp lệ");
             }
             moTa = "Thanh toán đấu giá";
-            GiaoDichThanhToan thanhToan = (GiaoDichThanhToan) giaoDich;
+            PaymentTransaction thanhToan = (PaymentTransaction) giaoDich;
             thongTinChiTiet = "Phiên đấu giá: " + thanhToan.getKetQuaDauGia().getPhienDauGia().getId() + ", Sản phẩm: "
                     + thanhToan.getKetQuaDauGia().getPhienDauGia().getTaiSan().getTenTaiSan();
         }

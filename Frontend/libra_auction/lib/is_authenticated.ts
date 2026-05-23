@@ -16,12 +16,12 @@ export async function isAuthenticated() {
         }
         catch (error) {
             if (error instanceof JWTExpired) {
-                console.log("Token hết hạn");
+                console.log("Token expired");
                 return await refreshToken();
             }
 
             if (error instanceof JWSSignatureVerificationFailed) {
-                console.log("Invaild token");
+                console.log("Invalid token");
             }
             return false;
         }

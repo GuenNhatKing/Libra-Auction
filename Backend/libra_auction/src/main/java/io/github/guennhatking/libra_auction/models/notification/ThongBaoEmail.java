@@ -1,6 +1,6 @@
 package io.github.guennhatking.libra_auction.models.notification;
 
-import io.github.guennhatking.libra_auction.models.person.NguoiDung;
+import io.github.guennhatking.libra_auction.models.person.Customer;
 import jakarta.persistence.Entity;
 
 @Entity
@@ -10,7 +10,7 @@ public class ThongBaoEmail extends ThongBao {
     protected ThongBaoEmail() {
     }
 
-    public ThongBaoEmail(NguoiDung nguoiNhan, String noiDung) {
+    public ThongBaoEmail(Customer nguoiNhan, String noiDung) {
         super(nguoiNhan, noiDung);
     }
 }

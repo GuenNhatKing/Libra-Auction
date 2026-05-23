@@ -8,8 +8,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-import io.github.guennhatking.libra_auction.models.auction.PhienDauGia;
-import io.github.guennhatking.libra_auction.models.product.TaiSan;
+import io.github.guennhatking.libra_auction.models.auction.Auction;
+import io.github.guennhatking.libra_auction.models.product.Product;
 import io.github.guennhatking.libra_auction.viewmodels.response.AttributeResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.AuctionResponse;
 
@@ -38,17 +38,17 @@ public interface AuctionMapper {
     @Mapping(source = ".", target = "attributes", qualifiedByName = "resolveAttributes")
     @Mapping(source = ".", target = "total_bids", qualifiedByName = "resolveTotalBids")
     @Mapping(source = ".", target = "total_participants", qualifiedByName = "resolveTotalParticipants")
-    AuctionResponse toAuctionResponse(PhienDauGia session);
+    AuctionResponse toAuctionResponse(Auction session);
 
-    List<AuctionResponse> toAuctionResponseList(List<PhienDauGia> sessions);
+    List<AuctionResponse> toAuctionResponseList(List<Auction> sessions);
 
     @Named("resolveAttributes")
-    default List<AttributeResponse> resolveAttributes(PhienDauGia session) {
+    default List<AttributeResponse> resolveAttributes(Auction session) {
         if (session == null || session.getTaiSan() == null)
             return Collections.emptyList();
 
         List<AttributeResponse> results = new ArrayList<>();
-        TaiSan taiSan = session.getTaiSan();
+        Product taiSan = session.getTaiSan();
 
         // Lấy từ ThuocTinhTaiSan (isSystem = false)
         if (taiSan.getThuocTinhTaiSanList() != null) {
@@ -72,21 +72,21 @@ public interface AuctionMapper {
     }
 
     @Named("resolveTotalBids")
-    default Long resolveTotalBids(PhienDauGia session) {
+    default Long resolveTotalBids(Auction session) {
         if (session == null || session.getLichSuDatGia() == null)
             return 0L;
         return (long) session.getLichSuDatGia().size();
     }
 
     @Named("resolveTotalParticipants")
-    default Long resolveTotalParticipants(PhienDauGia session) {
+    default Long resolveTotalParticipants(Auction session) {
         if (session == null || session.getDanhSachThamGia() == null)
             return 0L;
         return (long) session.getDanhSachThamGia().size();
     }
 
     @Named("resolveAuctionTitle")
-    default String resolveAuctionTitle(PhienDauGia session) {
+    default String resolveAuctionTitle(Auction session) {
         if (session == null || session.getTaiSan() == null) {
             return "Vật phẩm không tên";
         }

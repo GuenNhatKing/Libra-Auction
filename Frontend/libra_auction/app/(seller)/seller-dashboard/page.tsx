@@ -3,7 +3,7 @@
 export default function page() {
   return (
     <div className="space-y-8">
-      {/* 4 Cards Thống kê */}
+      {/* 4 stat cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* {stats.map((item) => (
           <div key={item.label} className="p-5 bg-white border border-[#AFD3E2] rounded-lg">
@@ -16,7 +16,7 @@ export default function page() {
         ))} */}
       </div>
 
-      {/* Mock Chart Section */}
+      {/* Mock chart section */}
       <div className="p-6 bg-white border border-[#AFD3E2] rounded-lg">
         <h2 className="text-lg font-bold text-[#146C94] mb-6">Revenue Growth (Last 7 Days)</h2>
         <div className="flex items-end gap-4 h-40 w-full px-2">
@@ -32,7 +32,7 @@ export default function page() {
         </div>
       </div>
 
-      {/* Recent Auctions Table */}
+      {/* Recent auctions table */}
       <div className="bg-white border border-[#AFD3E2] rounded-lg overflow-hidden">
         <div className="p-4 border-b border-[#AFD3E2] bg-gray-50">
           <h2 className="font-bold text-[#146C94]">Recent Auctions</h2>

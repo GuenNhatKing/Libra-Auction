@@ -26,8 +26,8 @@ export default function ProductDetailPage() {
     return () => clearTimeout(timer);
   }, [params.product_id]);
 
-  if (loading) return <div className="p-10 text-center text-gray-400 italic">Đang tải tài sản...</div>;
-  if (!product) return <div className="p-10 text-center text-red-500 font-bold">Không tìm thấy tài sản!</div>;
+  if (loading) return <div className="p-10 text-center text-gray-400 italic">Loading product...</div>;
+  if (!product) return <div className="p-10 text-center text-red-500 font-bold">Product not found!</div>;
 
   return (
     <main className="p-6 md:p-10 bg-(--background-color) min-h-screen">
@@ -37,7 +37,7 @@ export default function ProductDetailPage() {
           className="mb-6 flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-(--primary-color) hover:cursor-pointer transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
-          Danh sách tài sản
+          Product list
         </button>
 
         <ProductDetail data={product} />

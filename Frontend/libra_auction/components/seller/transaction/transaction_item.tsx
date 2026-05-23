@@ -8,7 +8,7 @@ interface TransactionItemProps {
 }
 
 export const TransactionItem = ({ transaction, onView }: TransactionItemProps) => {
-  // Mapping màu sắc badge trạng thái
+  // Status badge color mapping
   const statusConfig = {
     SUCCESS: "text-green-600 bg-green-50 border-green-100",
     PENDING: "text-amber-600 bg-amber-50 border-amber-100",
@@ -18,7 +18,7 @@ export const TransactionItem = ({ transaction, onView }: TransactionItemProps) =
   return (
     <div className="bg-white p-4 rounded-2xl border border-gray-100 hover:border-[var(--accent-color)] hover:shadow-sm transition-all flex items-center justify-between group">
       <div className="flex items-center gap-4">
-        {/* Icon đại diện cho Giao dịch (giống style Product) */}
+        {/* Transaction icon (matching the product style) */}
         <div className="h-12 w-12 bg-[var(--background-color)] rounded-xl flex items-center justify-center text-[var(--secondary-color)]">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
@@ -38,7 +38,7 @@ export const TransactionItem = ({ transaction, onView }: TransactionItemProps) =
               {transaction.participant_name}
             </span>
             <span className="text-sm text-gray-500">
-              Số tiền: <b className="text-gray-900">+{transaction.amount.toLocaleString()} VND</b>
+              Amount: <b className="text-gray-900">+{transaction.amount.toLocaleString()} VND</b>
             </span>
             <span className="hidden md:block text-xs text-gray-400">
               {transaction.created_at}
@@ -48,11 +48,11 @@ export const TransactionItem = ({ transaction, onView }: TransactionItemProps) =
       </div>
 
       <div className="flex items-center gap-1">
-        {/* View Action - Đồng bộ style icon button của ProductItem */}
+        {/* View action - matches the ProductItem icon button style */}
         <button 
           onClick={() => onView(transaction.id)}
           className="p-2 text-gray-400 hover:text-[var(--primary-color)] hover:bg-blue-50 rounded-lg transition-colors"
-          title="Xem chi tiết"
+          title="View details"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>

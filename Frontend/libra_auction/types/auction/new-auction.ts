@@ -1,4 +1,4 @@
-import { LoaiDauGia } from "../status";
+import { AuctionType } from "../status";
 
 export interface NewAuction {
   taiSanId: string;
@@ -7,5 +7,5 @@ export interface NewAuction {
   tienCoc: number;
   giaKhoiDiem: number;
   buocGiaNhoNhat: number;
-  loaiDauGia: LoaiDauGia;
+  loaiDauGia: AuctionType;
 }

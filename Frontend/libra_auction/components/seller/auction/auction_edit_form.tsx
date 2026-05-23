@@ -2,7 +2,7 @@
 
 import { NewAuction } from "@/types/auction/new-auction";
 import { useState, useEffect } from "react";
-import { LoaiDauGia } from "@/components/seller/auction/auctionForm";
+import { AuctionType } from "@/components/seller/auction/auctionForm";
 
 interface AuctionFormProps {
   initialData?: NewAuction;
@@ -17,7 +17,7 @@ export const AuctionEditForm = ({ initialData, onSubmit, isUpdating }: AuctionFo
     thoiLuong: 60,
     giaKhoiDiem: 0,
     buocGiaNhoNhat: 0,
-    loaiDauGia: LoaiDauGia.DAU_GIA_LEN,
+    loaiDauGia: AuctionType.DAU_GIA_LEN,
     tienCoc: 0
   });
 
@@ -54,14 +54,13 @@ export const AuctionEditForm = ({ initialData, onSubmit, isUpdating }: AuctionFo
     <form onSubmit={handleSubmit} className="flex flex-col gap-6 bg-white p-8 rounded-2xl border border-gray-100 shadow-sm max-w-2xl">
       
       <h2 className="text-lg md:text-xl font-bold text-gray-800 border-b pb-4">
-        {isUpdating ? "Cập nhật phiên đấu giá" : "Tạo phiên đấu giá"}
+        {isUpdating ? "Update auction" : "Create auction"}
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-        {/* Thời gian bắt đầu */}
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Thời gian bắt đầu</label>
+          <label className="text-sm font-medium">Start time</label>
           <input
             type="datetime-local"
             value={
@@ -75,9 +74,8 @@ export const AuctionEditForm = ({ initialData, onSubmit, isUpdating }: AuctionFo
           />
         </div>
 
-        {/* Thời lượng */}
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Thời lượng (phút)</label>
+          <label className="text-sm font-medium">Duration (minutes)</label>
           <input
             type="number"
             value={formData.thoiLuong}
@@ -88,9 +86,8 @@ export const AuctionEditForm = ({ initialData, onSubmit, isUpdating }: AuctionFo
           />
         </div>
 
-        {/* Giá khởi điểm */}
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Giá khởi điểm</label>
+          <label className="text-sm font-medium">Starting price</label>
           <input
             type="number"
             value={formData.giaKhoiDiem}
@@ -101,9 +98,8 @@ export const AuctionEditForm = ({ initialData, onSubmit, isUpdating }: AuctionFo
           />
         </div>
 
-        {/* Bước giá */}
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Bước giá tối thiểu</label>
+          <label className="text-sm font-medium">Minimum bid increment</label>
           <input
             type="number"
             value={formData.buocGiaNhoNhat}
@@ -114,9 +110,8 @@ export const AuctionEditForm = ({ initialData, onSubmit, isUpdating }: AuctionFo
           />
         </div>
 
-        {/* ✅ Tiền cọc */}
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Tiền cọc</label>
+          <label className="text-sm font-medium">Deposit</label>
           <input
             type="number"
             value={formData.tienCoc}
@@ -127,18 +122,17 @@ export const AuctionEditForm = ({ initialData, onSubmit, isUpdating }: AuctionFo
           />
         </div>
 
-        {/* Loại đấu giá */}
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Loại đấu giá</label>
+          <label className="text-sm font-medium">Auction type</label>
           <select
             value={formData.loaiDauGia}
             onChange={(e) => handleChange("loaiDauGia", e.target.value)}
             className="p-2.5 border rounded-xl bg-white"
           >
-            <option value={LoaiDauGia.DAU_GIA_LEN}>Đấu giá tăng</option>
-            <option value={LoaiDauGia.DAU_GIA_XUONG}>Đấu giá giảm</option>
-            <option value={LoaiDauGia.DAU_GIA_KIN}>Đấu giá kín</option>
-            <option value={LoaiDauGia.DAU_GIA_NGUOC}>Đấu giá ngược</option>
+            <option value={AuctionType.DAU_GIA_LEN}>Ascending auction</option>
+            <option value={AuctionType.DAU_GIA_XUONG}>Descending auction</option>
+            <option value={AuctionType.DAU_GIA_KIN}>Sealed-bid auction</option>
+            <option value={AuctionType.DAU_GIA_NGUOC}>Reverse auction</option>
           </select>
         </div>
 
@@ -150,7 +144,7 @@ export const AuctionEditForm = ({ initialData, onSubmit, isUpdating }: AuctionFo
           disabled={loading}
           className="flex-1 bg-(--primary-color) text-white font-bold py-3 rounded-xl disabled:opacity-50"
         >
-          {loading ? "Đang lưu..." : "Lưu thay đổi"}
+          {loading ? "Saving..." : "Save changes"}
         </button>
       </div>
 

@@ -5,7 +5,7 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import io.github.guennhatking.libra_auction.models.auction.ThongTinThamGiaDauGia;
+import io.github.guennhatking.libra_auction.models.auction.AuctionParticipationInfo;
 import io.github.guennhatking.libra_auction.viewmodels.response.AuctionRegistrationResponse;
 
 @Mapper(componentModel = "spring")
@@ -17,7 +17,7 @@ public interface AuctionRegistrationMapper {
     @Mapping(source = "phienDauGia.id", target = "auctionId")
 
     @Mapping(source = "thoiGianDangKy", target = "registrationTime")
-    AuctionRegistrationResponse toResponse(ThongTinThamGiaDauGia entity);
+    AuctionRegistrationResponse toResponse(AuctionParticipationInfo entity);
 
-    List<AuctionRegistrationResponse> toResponseList(List<ThongTinThamGiaDauGia> entities);
+    List<AuctionRegistrationResponse> toResponseList(List<AuctionParticipationInfo> entities);
 }

@@ -1,7 +1,7 @@
 package io.github.guennhatking.libra_auction.models.account;
 
-import io.github.guennhatking.libra_auction.enums.account.TrangThaiTaiKhoan;
-import io.github.guennhatking.libra_auction.models.person.NguoiDung;
+import io.github.guennhatking.libra_auction.enums.account.AccountStatus;
+import io.github.guennhatking.libra_auction.models.person.Customer;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -17,21 +17,21 @@ public abstract class TaiKhoan {
     protected String id;
 
     @Enumerated(EnumType.STRING)
-    protected TrangThaiTaiKhoan trangThai;
+    protected AccountStatus trangThai;
 
     @ManyToOne
-    protected NguoiDung nguoiDung;
+    protected Customer nguoiDung;
 
     // CONSTRUCTOR
     protected TaiKhoan() {
     }
 
-    public TaiKhoan(String id, TrangThaiTaiKhoan trangThai) {
+    public TaiKhoan(String id, AccountStatus trangThai) {
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("ID không được để trống.");
         }
         this.id = id;
-        this.trangThai = trangThai != null ? trangThai : TrangThaiTaiKhoan.CHO_XAC_NHAN;
+        this.trangThai = trangThai != null ? trangThai : AccountStatus.CHO_XAC_NHAN;
     }
 
     // GETTER
@@ -39,11 +39,11 @@ public abstract class TaiKhoan {
         return id;
     }
 
-    public TrangThaiTaiKhoan getTrangThai() {
+    public AccountStatus getTrangThai() {
         return trangThai;
     }
 
-    public NguoiDung getNguoiDung() {
+    public Customer getNguoiDung() {
         return nguoiDung;
     }
 
@@ -52,11 +52,11 @@ public abstract class TaiKhoan {
         this.id = id;
     }
 
-    public void setTrangThai(TrangThaiTaiKhoan trangThai) {
+    public void setTrangThai(AccountStatus trangThai) {
         this.trangThai = trangThai;
     }
 
-    public void setNguoiDung(NguoiDung nguoiDung) {
+    public void setNguoiDung(Customer nguoiDung) {
         this.nguoiDung = nguoiDung;
     }
 }

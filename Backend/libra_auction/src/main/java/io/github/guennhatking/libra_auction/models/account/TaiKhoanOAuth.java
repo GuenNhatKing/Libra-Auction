@@ -1,6 +1,6 @@
 package io.github.guennhatking.libra_auction.models.account;
 
-import io.github.guennhatking.libra_auction.enums.account.TrangThaiTaiKhoan;
+import io.github.guennhatking.libra_auction.enums.account.AccountStatus;
 import jakarta.persistence.Entity;
 
 @Entity
@@ -13,7 +13,7 @@ public class TaiKhoanOAuth extends TaiKhoan {
     }
 
     public TaiKhoanOAuth(String id, String provider, String providerId) {
-        super(id, TrangThaiTaiKhoan.CHO_XAC_NHAN);
+        super(id, AccountStatus.CHO_XAC_NHAN);
         if (provider == null || provider.isBlank()) {
             throw new IllegalArgumentException("Provider không được để trống.");
         }

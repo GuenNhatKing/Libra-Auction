@@ -1,12 +1,12 @@
 package io.github.guennhatking.libra_auction.services;
 
 import io.github.guennhatking.libra_auction.mappers.ProductResponseMapper;
-import io.github.guennhatking.libra_auction.models.product.TaiSan;
-import io.github.guennhatking.libra_auction.repositories.product.TaiSanRepository;
+import io.github.guennhatking.libra_auction.models.product.Product;
+import io.github.guennhatking.libra_auction.repositories.product.ProductRepository;
 import io.github.guennhatking.libra_auction.viewmodels.request.ProductSearchRequest;
 import io.github.guennhatking.libra_auction.viewmodels.response.PageResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.ProductResponse;
-import io.github.guennhatking.libra_auction.enums.auction.TrangThaiKiemDuyet;
+import io.github.guennhatking.libra_auction.enums.auction.ApprovalStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -15,10 +15,10 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductSearchService {
-    private final TaiSanRepository taiSanRepository;
+    private final ProductRepository taiSanRepository;
     private final ProductResponseMapper productResponseMapper;
 
-    public ProductSearchService(TaiSanRepository taiSanRepository,
+    public ProductSearchService(ProductRepository taiSanRepository,
                                 ProductResponseMapper productResponseMapper) {
         this.taiSanRepository = taiSanRepository;
         this.productResponseMapper = productResponseMapper;
@@ -26,10 +26,10 @@ public class ProductSearchService {
 
     public PageResponse<ProductResponse> searchProducts(ProductSearchRequest criteria) {
         // Get all products
-        List<TaiSan> allProducts = taiSanRepository.findAll();
+        List<Product> allProducts = taiSanRepository.findAll();
 
         // Apply filters
-        List<TaiSan> filtered = applyFilters(allProducts, criteria);
+        List<Product> filtered = applyFilters(allProducts, criteria);
 
         // Apply sorting
         filtered = applySort(filtered, criteria);
@@ -38,7 +38,7 @@ public class ProductSearchService {
         return applyPagination(filtered, criteria);
     }
 
-    private List<TaiSan> applyFilters(List<TaiSan> products, ProductSearchRequest criteria) {
+    private List<Product> applyFilters(List<Product> products, ProductSearchRequest criteria) {
         return products.stream()
                 .filter(product -> filterByName(product, criteria.name()))
                 .filter(product -> filterByCategory(product, criteria.categoryId()))
@@ -48,7 +48,7 @@ public class ProductSearchService {
                 .collect(Collectors.toList());
     }
 
-    private boolean filterByName(TaiSan product, String name) {
+    private boolean filterByName(Product product, String name) {
         if (name == null || name.isBlank()) {
             return true;
         }
@@ -56,7 +56,7 @@ public class ProductSearchService {
                 product.getTenTaiSan().toLowerCase().contains(name.toLowerCase());
     }
 
-    private boolean filterByCategory(TaiSan product, String categoryId) {
+    private boolean filterByCategory(Product product, String categoryId) {
         if (categoryId == null || categoryId.isBlank()) {
             return true;
         }
@@ -64,7 +64,7 @@ public class ProductSearchService {
                 product.getDanhMuc().getId().equals(categoryId);
     }
 
-    private boolean filterByAttributes(TaiSan product, List<java.util.Map<String, String>> attributes) {
+    private boolean filterByAttributes(Product product, List<java.util.Map<String, String>> attributes) {
         if (attributes == null || attributes.isEmpty()) {
             return true;
         }
@@ -87,7 +87,7 @@ public class ProductSearchService {
         });
     }
 
-    private boolean filterByCreator(TaiSan product, String nguoiTaoId) {
+    private boolean filterByCreator(Product product, String nguoiTaoId) {
         if (nguoiTaoId == null || nguoiTaoId.isBlank()) {
             return true; // no creator filter
         }
@@ -97,11 +97,11 @@ public class ProductSearchService {
         return nguoiTaoId.equals(product.getNguoiTao().getId());
     }
 
-    private boolean filterByApprovalStatus(TaiSan product, String trangThaiKiemDuyet) {
+    private boolean filterByApprovalStatus(Product product, String trangThaiKiemDuyet) {
         if (trangThaiKiemDuyet == null || trangThaiKiemDuyet.isBlank()) {
             // If no approval filter is specified, only show approved products by default
             return product.getTrangThaiKiemDuyet() != null && 
-                   product.getTrangThaiKiemDuyet().equals(TrangThaiKiemDuyet.DA_DUYET);
+                   product.getTrangThaiKiemDuyet().equals(ApprovalStatus.DA_DUYET);
         }
         if (product.getTrangThaiKiemDuyet() == null) {
             return false;
@@ -109,12 +109,12 @@ public class ProductSearchService {
         return product.getTrangThaiKiemDuyet().toString().equals(trangThaiKiemDuyet);
     }
 
-    private List<TaiSan> applySort(List<TaiSan> products, ProductSearchRequest criteria) {
+    private List<Product> applySort(List<Product> products, ProductSearchRequest criteria) {
         String sortBy = criteria.sortBy() != null ? criteria.sortBy() : "tenTaiSan";
         boolean isAsc = "ASC".equalsIgnoreCase(criteria.sortOrder());
 
-        Comparator<TaiSan> comparator = switch (sortBy) {
-            case "soLuong" -> Comparator.comparing(TaiSan::getSoLuong);
+        Comparator<Product> comparator = switch (sortBy) {
+            case "soLuong" -> Comparator.comparing(Product::getSoLuong);
             // Mặc định sắp xếp theo tên tài sản
             case "tenTaiSan" -> Comparator.comparing(t -> t.getTenTaiSan() != null ? t.getTenTaiSan() : "");
             default -> Comparator.comparing(t -> t.getTenTaiSan() != null ? t.getTenTaiSan() : "");
@@ -129,7 +129,7 @@ public class ProductSearchService {
                 .collect(Collectors.toList());
     }
 
-    private PageResponse<ProductResponse> applyPagination(List<TaiSan> products,
+    private PageResponse<ProductResponse> applyPagination(List<Product> products,
                                                           ProductSearchRequest criteria) {
         int page = criteria.page() != null ? criteria.page() : 0;
         int pageSize = criteria.pageSize() != null ? criteria.pageSize() : 20;
@@ -140,7 +140,7 @@ public class ProductSearchService {
         int startIndex = Math.min(page * pageSize, totalElements);
         int endIndex = Math.min(startIndex + pageSize, totalElements);
 
-        List<TaiSan> pageContent = products.subList(startIndex, endIndex);
+        List<Product> pageContent = products.subList(startIndex, endIndex);
         List<ProductResponse> responseContent = productResponseMapper.toProductResponseList(pageContent);
 
         return new PageResponse<>(

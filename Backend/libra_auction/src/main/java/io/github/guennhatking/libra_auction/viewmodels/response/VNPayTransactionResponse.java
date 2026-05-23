@@ -1,6 +1,6 @@
 package io.github.guennhatking.libra_auction.viewmodels.response;
 
-import io.github.guennhatking.libra_auction.enums.transaction.TinhTrangGiaoDich;
+import io.github.guennhatking.libra_auction.enums.transaction.TransactionStatus;
 
 /**
  * Response thông tin giao dịch VNPay
@@ -11,6 +11,6 @@ public record VNPayTransactionResponse(
     long soTien,                // Số tiền
     String moTa,                // Mô tả
     String thongTinChiTiet,     // Thông tin đơn hàng
-    TinhTrangGiaoDich trangThai,   // Trạng thái thanh toán
+    TransactionStatus trangThai,   // Trạng thái thanh toán
     String ngayTao              // Ngày tạo
 ) {}
