@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // Mock Chart Data
 const mockChartData = [
@@ -20,8 +20,51 @@ const mockChartData = [
   { date: "May 14", revenue: 7100 },
 ];
 
+interface PendingData {
+  pendingUsers: number;
+  pendingAuctions: number;
+  pendingProducts: number;
+}
+
 export default function AdminDashboardPage() {
   const [timeRange, setTimeRange] = useState<"day" | "month" | "year">("month");
+  const [pendingData, setPendingData] = useState<PendingData>({
+    pendingUsers: 0,
+    pendingAuctions: 0,
+    pendingProducts: 0,
+  });
+
+  // Fetch pending data from backend on component mount
+  useEffect(() => {
+    const fetchPendingData = async () => {
+      try {
+        // Fetch pending users
+        const usersResponse = await fetch('/api/admin/users/pending');
+        const usersData = await usersResponse.json();
+        const pendingUsersCount = Array.isArray(usersData) ? usersData.length : 0;
+
+        // Fetch pending auctions
+        const auctionsResponse = await fetch('/api/admin/auctions/pending');
+        const auctionsData = await auctionsResponse.json();
+        const pendingAuctionsCount = Array.isArray(auctionsData) ? auctionsData.length : 0;
+
+        // Fetch pending products
+        const productsResponse = await fetch('/api/admin/products/pending');
+        const productsData = await productsResponse.json();
+        const pendingProductsCount = Array.isArray(productsData) ? productsData.length : 0;
+
+        setPendingData({
+          pendingUsers: pendingUsersCount,
+          pendingAuctions: pendingAuctionsCount,
+          pendingProducts: pendingProductsCount,
+        });
+      } catch (error) {
+        console.error('Error fetching pending data:', error);
+      }
+    };
+
+    fetchPendingData();
+  }, []);
 
   // Calculate max revenue for scaling
   const maxRevenue = Math.max(...mockChartData.map((d) => d.revenue));
@@ -52,6 +95,27 @@ export default function AdminDashboardPage() {
         <div className="bg-white rounded-lg border border-[#AFD3E2] p-5">
           <p className="text-xs font-semibold text-gray-600 uppercase">New Users</p>
           <p className="text-2xl font-bold text-gray-800 mt-1">342</p>
+        </div>
+      </div>
+
+      {/* Pending Approvals Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Pending Users Card */}
+        <div className="bg-white rounded-lg border border-[#AFD3E2] p-5">
+          <p className="text-xs font-semibold text-gray-600 uppercase">Pending Users</p>
+          <p className="text-2xl font-bold text-orange-600 mt-1">{pendingData.pendingUsers}</p>
+        </div>
+
+        {/* Pending Auctions Card */}
+        <div className="bg-white rounded-lg border border-[#AFD3E2] p-5">
+          <p className="text-xs font-semibold text-gray-600 uppercase">Pending Auctions</p>
+          <p className="text-2xl font-bold text-orange-600 mt-1">{pendingData.pendingAuctions}</p>
+        </div>
+
+        {/* Pending Products Card */}
+        <div className="bg-white rounded-lg border border-[#AFD3E2] p-5">
+          <p className="text-xs font-semibold text-gray-600 uppercase">Pending Products</p>
+          <p className="text-2xl font-bold text-orange-600 mt-1">{pendingData.pendingProducts}</p>
         </div>
       </div>
 
