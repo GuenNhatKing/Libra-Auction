@@ -9,24 +9,24 @@ const paymentHistory = [
 export default function PaymentSummary() {
   return (
     <div className="space-y-6">
-      {/* Tài chính tổng quan */}
+      {/* Financial overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="p-6 bg-[#146C94] text-white rounded-lg shadow-sm">
-          <p className="text-sm opacity-80 font-medium">Số dư khả dụng</p>
+          <p className="text-sm opacity-80 font-medium">Available balance</p>
           <p className="text-3xl font-bold mt-2">$10,600.00</p>
           <button className="mt-4 w-full bg-white text-[#146C94] py-2 rounded text-sm font-bold hover:bg-[#F6F1F1] transition-colors">
-            Rút tiền
+            Withdraw
           </button>
         </div>
 
         <div className="p-6 bg-white border border-[#AFD3E2] rounded-lg">
-          <p className="text-sm text-gray-500 font-medium">Đang xử lý (Pending)</p>
+          <p className="text-sm text-gray-500 font-medium">Pending</p>
           <p className="text-3xl font-bold mt-2 text-[#19A7CE]">$3,099.00</p>
-          <p className="text-[10px] text-gray-400 mt-2">* Tiền sẽ khả dụng sau khi người mua xác nhận</p>
+          <p className="text-[10px] text-gray-400 mt-2">* Funds become available after buyer confirmation</p>
         </div>
 
         <div className="p-6 bg-white border border-[#AFD3E2] rounded-lg">
-          <p className="text-sm text-gray-500 font-medium">Tổng doanh thu</p>
+          <p className="text-sm text-gray-500 font-medium">Total revenue</p>
           <p className="text-3xl font-bold mt-2 text-gray-800">$13,699.00</p>
           <div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
             <div className="h-full bg-green-500 w-[75%]"></div>
@@ -34,18 +34,18 @@ export default function PaymentSummary() {
         </div>
       </div>
 
-      {/* Lịch sử giao dịch */}
+      {/* Transaction history */}
       <div className="bg-white border border-[#AFD3E2] rounded-lg overflow-hidden">
         <div className="p-4 border-b border-[#AFD3E2] bg-gray-50">
-          <h3 className="font-bold text-[#146C94]">Giao dịch gần đây</h3>
+          <h3 className="font-bold text-[#146C94]">Recent transactions</h3>
         </div>
         <table className="w-full text-left">
           <thead>
             <tr className="text-[12px] text-gray-400 uppercase border-b border-[#AFD3E2]">
-              <th className="p-4">Mã GD</th>
-              <th className="p-4">Phiên đấu giá</th>
-              <th className="p-4">Số tiền</th>
-              <th className="p-4">Trạng thái</th>
+              <th className="p-4">Txn ID</th>
+              <th className="p-4">Auction</th>
+              <th className="p-4">Amount</th>
+              <th className="p-4">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50 text-sm">

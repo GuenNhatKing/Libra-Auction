@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AuctionEditForm } from "@/components/seller/auction/auction_edit_form";
 import { NewAuction } from "@/types/auction/new-auction";
-import { fetchPublicAuction } from "@/services/fetch_public_auction";
+import { fetchAuction } from "@/services/fetch_auction";
 import { updateAuction } from "@/services/update_auction";
 
 export default function EditAuctionPage() {
@@ -15,7 +15,7 @@ export default function EditAuctionPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchAuction = async () => {
+        const loadAuction = async () => {
             if (!params.auction_id || Array.isArray(params.auction_id)) {
                 setLoading(false);
                 return;
@@ -24,15 +24,14 @@ export default function EditAuctionPage() {
             try {
                 setLoading(true);
 
-                const data = await fetchPublicAuction(params.auction_id);
+                const data = await fetchAuction(params.auction_id);
                 const newAuction: NewAuction = {
                     taiSanId: data.product_id,
                     buocGiaNhoNhat: data.min_bid_increment,
                     giaKhoiDiem: data.starting_price,
-                    loaiDauGia: data.auction_type,
                     thoiGianBatDau: data.start_time,
                     thoiLuong: data.duration,
-                    tienCoc: 0
+                    tienCoc: data.tien_coc
                 }
                 setAuctionData(newAuction);
             } catch (e) {
@@ -42,15 +41,15 @@ export default function EditAuctionPage() {
             }
         };
 
-        fetchAuction();
+        loadAuction();
     }, [params.auction_id]);
 
     if (loading) {
-        return <div className="p-10 text-center">Đang tải dữ liệu...</div>;
+        return <div className="p-10 text-center">Loading data...</div>;
     }
 
     if (!auctionData) {
-        return <div className="p-10 text-center text-red-500">Không tìm thấy phiên đấu giá</div>;
+        return <div className="p-10 text-center text-red-500">Auction not found</div>;
     }
 
     return (
@@ -61,7 +60,7 @@ export default function EditAuctionPage() {
                 onClick={() => router.push("/seller-dashboard/auctions")}
                 className="mb-6 text-sm text-gray-600 hover:text-(--primary-color) transition-colors"
             >
-                ← Quay lại danh sách
+                Back to list
             </button>
 
             <AuctionEditForm
@@ -75,17 +74,16 @@ export default function EditAuctionPage() {
                         taiSanId: formData.taiSanId,
                         buocGiaNhoNhat: formData.buocGiaNhoNhat,
                         giaKhoiDiem: formData.giaKhoiDiem,
-                        loaiDauGia: formData.loaiDauGia,
                         thoiGianBatDau: formData.thoiGianBatDau,
                         thoiLuong: formData.thoiLuong,
                         tienCoc: formData.tienCoc
                     };
                     const res = await updateAuction(params.auction_id, newAuction);
                     if (res) {
-                        alert("Chúc mừng! Phiên đấu giá đã được cập nhật thành công.");
+                        alert("Success! The auction was updated successfully.");
                         window.location.replace("/seller-dashboard/auctions/" + params.auction_id);
                     } else {
-                        throw new Error("Backend trả về lỗi");
+                        throw new Error("Backend returned an error");
                     }
                 }}
                 isUpdating={true}

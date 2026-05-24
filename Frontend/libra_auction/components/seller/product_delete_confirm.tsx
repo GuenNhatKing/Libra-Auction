@@ -50,14 +50,14 @@ export default function ProductDeleteConfirm({ product, onDelete, onCancel }: Pr
             disabled={isDeleting}
             className="flex-1 py-3 px-4 border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all active:scale-95 disabled:opacity-50"
           >
-            CANCEL
+            Cancel
           </button>
           <button
             onClick={handleDelete}
             disabled={isDeleting}
             className="flex-1 py-3 px-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-100 active:scale-95 disabled:opacity-50"
           >
-            {isDeleting ? "DELETING..." : "CONFIRM DELETE"}
+            {isDeleting ? "Deleting..." : "Confirm delete"}
           </button>
         </div>
       </div>

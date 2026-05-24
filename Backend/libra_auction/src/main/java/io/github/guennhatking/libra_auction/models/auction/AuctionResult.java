@@ -6,6 +6,7 @@ import java.time.ZoneOffset;
 import io.github.guennhatking.libra_auction.models.person.Customer;
 import io.github.guennhatking.libra_auction.models.transaction.PaymentTransaction;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,7 +19,7 @@ public class AuctionResult {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     private Auction phienDauGia;
 
     @ManyToOne

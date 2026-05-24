@@ -6,7 +6,6 @@ import io.github.guennhatking.libra_auction.repositories.product.ProductReposito
 import io.github.guennhatking.libra_auction.viewmodels.request.ProductSearchRequest;
 import io.github.guennhatking.libra_auction.viewmodels.response.PageResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.ProductResponse;
-import io.github.guennhatking.libra_auction.enums.auction.ApprovalStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -19,7 +18,7 @@ public class ProductSearchService {
     private final ProductResponseMapper productResponseMapper;
 
     public ProductSearchService(ProductRepository taiSanRepository,
-                                ProductResponseMapper productResponseMapper) {
+            ProductResponseMapper productResponseMapper) {
         this.taiSanRepository = taiSanRepository;
         this.productResponseMapper = productResponseMapper;
     }
@@ -40,11 +39,14 @@ public class ProductSearchService {
 
     private List<Product> applyFilters(List<Product> products, ProductSearchRequest criteria) {
         return products.stream()
-                .filter(product -> filterByName(product, criteria.name()))
-                .filter(product -> filterByCategory(product, criteria.categoryId()))
-                .filter(product -> filterByAttributes(product, criteria.attributes()))
-                .filter(product -> filterByCreator(product, criteria.nguoiTaoId()))
-                .filter(product -> filterByApprovalStatus(product, criteria.trangThaiKiemDuyet()))
+                .filter(product -> criteria.name() == null
+                        || filterByName(product, criteria.name()))
+                .filter(product -> criteria.categoryId() == null
+                        || filterByCategory(product, criteria.categoryId()))
+                .filter(product -> criteria.attributes() == null
+                        || filterByAttributes(product, criteria.attributes()))
+                .filter(product -> criteria.nguoiTaoId() == null
+                    || filterByCreator(product, criteria.nguoiTaoId()))
                 .collect(Collectors.toList());
     }
 
@@ -97,18 +99,6 @@ public class ProductSearchService {
         return nguoiTaoId.equals(product.getNguoiTao().getId());
     }
 
-    private boolean filterByApprovalStatus(Product product, String trangThaiKiemDuyet) {
-        if (trangThaiKiemDuyet == null || trangThaiKiemDuyet.isBlank()) {
-            // If no approval filter is specified, only show approved products by default
-            return product.getTrangThaiKiemDuyet() != null && 
-                   product.getTrangThaiKiemDuyet().equals(ApprovalStatus.DA_DUYET);
-        }
-        if (product.getTrangThaiKiemDuyet() == null) {
-            return false;
-        }
-        return product.getTrangThaiKiemDuyet().toString().equals(trangThaiKiemDuyet);
-    }
-
     private List<Product> applySort(List<Product> products, ProductSearchRequest criteria) {
         String sortBy = criteria.sortBy() != null ? criteria.sortBy() : "tenTaiSan";
         boolean isAsc = "ASC".equalsIgnoreCase(criteria.sortOrder());
@@ -130,7 +120,7 @@ public class ProductSearchService {
     }
 
     private PageResponse<ProductResponse> applyPagination(List<Product> products,
-                                                          ProductSearchRequest criteria) {
+            ProductSearchRequest criteria) {
         int page = criteria.page() != null ? criteria.page() : 0;
         int pageSize = criteria.pageSize() != null ? criteria.pageSize() : 20;
 

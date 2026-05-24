@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AuctionDeleteConfirm } from "@/components/seller/auction/auction_delete_confirm";
 import { Auction } from "@/types/auction/auction";
-import { fetchPublicAuction } from "@/services/fetch_public_auction";
+import { fetchAuction } from "@/services/fetch_auction";
 import { deleteAuction } from "@/services/delete_auction";
 
 export default function DeleteAuctionPage() {
@@ -20,7 +20,7 @@ export default function DeleteAuctionPage() {
   // FETCH DETAIL AUCTION
   // =========================
   useEffect(() => {
-    const fetchAuction = async () => {
+    const loadAuction = async () => {
       if (!auctionId) return;
 
       try {
@@ -29,7 +29,7 @@ export default function DeleteAuctionPage() {
           return;
         }
 
-        const data = await fetchPublicAuction(params.auction_id);
+        const data = await fetchAuction(params.auction_id);
 
         setAuction(data);
       } catch (error) {
@@ -40,8 +40,8 @@ export default function DeleteAuctionPage() {
       }
     };
 
-    fetchAuction();
-  }, [auctionId, router]);
+    loadAuction();
+  }, [auctionId, router, params.auction_id]);
 
   // =========================
   // DELETE AUCTION
@@ -58,7 +58,7 @@ export default function DeleteAuctionPage() {
       router.refresh();
     } catch (error) {
       console.error("Delete error:", error);
-      alert("Đã xảy ra lỗi khi xóa phiên đấu giá.");
+      alert("An error occurred while deleting the auction.");
     }
   };
 
@@ -68,7 +68,7 @@ export default function DeleteAuctionPage() {
   if (loading) {
     return (
       <div className="p-10 text-center italic text-gray-400">
-        Đang kiểm tra dữ liệu...
+        Checking data...
       </div>
     );
   }
@@ -76,7 +76,7 @@ export default function DeleteAuctionPage() {
   if (!auction) {
     return (
       <div className="p-10 text-center text-red-500">
-        Không tìm thấy phiên đấu giá
+        Auction not found
       </div>
     );
   }

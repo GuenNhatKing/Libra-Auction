@@ -74,16 +74,16 @@ export default function ProductForm() {
     newProduct.imageUrls = uploadedUrls.filter((url): url is string => !!url);
 
     if (newProduct.imageUrls.length === 0 && images.length > 0) {
-      alert("Không thể upload ảnh. Vui lòng thử lại!");
+      alert("Unable to upload images. Please try again.");
       return;
     }
 
     const res = await createProduct(newProduct);
     if (res) {
-      alert("Chúc mừng! Sản phẩm đã được tạo thành công.");
+      alert("Success! The product was created successfully.");
       window.location.replace("/seller-dashboard/products");
     } else {
-      throw new Error("Backend trả về lỗi");
+      throw new Error("Backend returned an error");
     }
   };
 
@@ -92,19 +92,19 @@ export default function ProductForm() {
       onSubmit={handleSubmit}
       className="bg-white p-8 rounded-2xl border border-[#AFD3E2] space-y-8 shadow-sm"
     >
-      <h2 className="text-2xl font-bold text-[#146C94]">Thêm Tài Sản Mới</h2>
+      <h2 className="text-2xl font-bold text-[#146C94]">Add New Product</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-bold text-[#146C94]">Tên tài sản</label>
+          <label className="text-sm font-bold text-[#146C94]">Product name</label>
           <input
             required
             className="border border-[#AFD3E2] p-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#19A7CE] transition-all"
             name="tenTaiSan"
-            placeholder="VD: iPhone 15 Pro Max"
+            placeholder="Example: iPhone 15 Pro Max"
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-bold text-[#146C94]">Số lượng</label>
+          <label className="text-sm font-bold text-[#146C94]">Quantity</label>
           <input
             required
             type="number"
@@ -115,14 +115,14 @@ export default function ProductForm() {
         </div>
       </div>
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-bold text-[#146C94]">Danh mục</label>
+        <label className="text-sm font-bold text-[#146C94]">Category</label>
 
         <select
           name="danhMucId"
           required
           className="border border-[#AFD3E2] p-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#19A7CE]"
         >
-          <option value="">-- Chọn danh mục --</option>
+          <option value="">-- Select a category --</option>
 
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
@@ -133,16 +133,16 @@ export default function ProductForm() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-bold text-[#146C94]">Mô tả</label>
+        <label className="text-sm font-bold text-[#146C94]">Description</label>
         <textarea
           className="border border-[#AFD3E2] p-2.5 rounded-xl h-28 focus:outline-none focus:ring-2 focus:ring-[#19A7CE] transition-all resize-none"
           name="moTa"
-          placeholder="Nhập mô tả chi tiết về tài sản..."
+          placeholder="Enter a detailed product description..."
         />
       </div>
 
       <div className="space-y-3">
-        <label className="text-sm font-bold text-[#146C94]">Hình ảnh tài sản</label>
+        <label className="text-sm font-bold text-[#146C94]">Product images</label>
         <div className="flex flex-wrap gap-3">
           {previews.map((src, index) => (
             <div key={index} className="relative w-24 h-24 group">
@@ -152,7 +152,7 @@ export default function ProductForm() {
                 onClick={() => removeImage(index)}
                 className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
               >
-                ✕
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
               </button>
             </div>
           ))}
@@ -163,7 +163,7 @@ export default function ProductForm() {
             className="w-24 h-24 border-2 border-dashed border-[#AFD3E2] rounded-xl flex flex-col items-center justify-center text-[#19A7CE] hover:bg-[#F6F1F1] transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
-            <span className="text-[10px] font-bold mt-1">THÊM ẢNH</span>
+            <span className="text-[10px] font-bold mt-1">ADD IMAGE</span>
           </button>
           <input
             type="file"
@@ -178,41 +178,41 @@ export default function ProductForm() {
 
       <div className="space-y-4 pt-4 border-t border-[#F6F1F1]">
         <div className="flex justify-between items-center">
-          <h3 className="font-bold text-[#146C94]">Thuộc tính sản phẩm</h3>
+          <h3 className="font-bold text-[#146C94]">Product attributes</h3>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => addAttribute(true)}
               className="text-[10px] font-bold uppercase bg-[#19A7CE] text-white px-3 py-1.5 rounded-lg hover:bg-[#146C94] transition-all shadow-sm"
             >
-              + Hệ thống
+              + System
             </button>
             <button
               type="button"
               onClick={() => addAttribute(false)}
               className="text-[10px] font-bold uppercase bg-[#AFD3E2] text-[#146C94] px-3 py-1.5 rounded-lg hover:bg-[#97c4d6] transition-all shadow-sm"
             >
-              + Tự nhập
+              + Custom
             </button>
           </div>
         </div>
 
         {attributes.length === 0 && (
-          <p className="text-xs text-gray-400 italic">Chưa có thuộc tính nào được thêm.</p>
+          <p className="text-xs text-gray-400 italic">No attributes have been added yet.</p>
         )}
 
         <div className="grid grid-cols-1 gap-3">
           {attributes.map((attr, index) => (
             <div key={index} className="flex gap-3 items-center animate-in fade-in slide-in-from-left-2 duration-300">
               <input
-                placeholder={attr.isSystem ? "Tên thuộc tính (Searchable)" : "Tên thuộc tính (Custom)"}
+                placeholder={attr.isSystem ? "Attribute name (System)" : "Attribute name (Custom)"}
                 className={`flex-1 border p-2.5 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[#19A7CE] transition-all ${attr.isSystem ? 'border-[#19A7CE] bg-blue-50/30 font-medium' : 'border-gray-200'
                   }`}
                 value={attr.key}
                 onChange={(e) => updateAttribute(index, 'key', e.target.value)}
               />
               <input
-                placeholder="Giá trị"
+                placeholder="Value"
                 className="flex-1 border border-gray-200 p-2.5 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[#19A7CE] transition-all"
                 value={attr.value}
                 onChange={(e) => updateAttribute(index, 'value', e.target.value)}
@@ -230,7 +230,7 @@ export default function ProductForm() {
       </div>
 
       <button className="w-full bg-[#146C94] text-white py-4 rounded-xl font-bold hover:bg-[#19A7CE] transition-all active:scale-[0.98] shadow-lg shadow-blue-100">
-        Tạo sản phẩm
+        Create Product
       </button>
     </form>
   );

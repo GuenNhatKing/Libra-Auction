@@ -12,6 +12,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -33,9 +34,9 @@ public class Auction {
 
     private long tienCoc;
     private long giaKhoiDiem;
-    private long khoangGia;
+    private long buocGiaNhoNhat;
 
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "phienDauGia")
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "phienDauGia")
     private AuctionResult ketQuaDauGia;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "phienDauGia")
@@ -58,11 +59,8 @@ public class Auction {
 
     private OffsetDateTime thoiGianTao;
 
-    @ManyToOne
+    @OneToOne(fetch = FetchType.LAZY)
     private Product taiSan;
-
-    private long buocGiaNhoNhat;
-    private long giaHienTai;
 
     // CONSTRUCTOR
     public Auction() {
@@ -83,11 +81,8 @@ public class Auction {
         this.thoiLuong = thoiLuong;
         this.tienCoc = tienCoc;
         this.giaKhoiDiem = giaKhoiDiem;
-        this.khoangGia = khoangGia;
         this.buocGiaNhoNhat = buocGiaNhoNhat;
         this.thoiGianTao = OffsetDateTime.now(ZoneOffset.UTC);
-
-        this.giaHienTai = giaKhoiDiem;
     }
 
     public Auction(
@@ -108,16 +103,11 @@ public class Auction {
         this.thoiLuong = thoiLuong;
         this.tienCoc = tienCoc;
         this.giaKhoiDiem = giaKhoiDiem;
-        this.khoangGia = khoangGia;
         this.buocGiaNhoNhat = buocGiaNhoNhat;
         this.trangThaiKiemDuyet = trangThaiKiemDuyet;
         this.trangThaiPhien = trangThaiPhien;
         this.thoiGianTao = thoiGianTao != null ? thoiGianTao : OffsetDateTime.now(ZoneOffset.UTC);
-
-        this.giaHienTai = giaKhoiDiem;
     }
-
-
 
     // GETTER
     public String getId() {
@@ -180,16 +170,22 @@ public class Auction {
         return tienCoc;
     }
 
-    public long getKhoangGia() {
-        return khoangGia;
-    }
-
     public long getBuocGiaNhoNhat() {
         return buocGiaNhoNhat;
     }
 
+    /**
+     * Compute current price from bid history (`lichSuDatGia`).
+     * Returns 0 if there are no bids; callers may fall back to `giaKhoiDiem`.
+     */
     public long getGiaHienTai() {
-        return giaHienTai;
+        if (lichSuDatGia == null || lichSuDatGia.isEmpty()) {
+            return 0L;
+        }
+        return lichSuDatGia.stream()
+                .mapToLong(AuctionLog::getMucGia)
+                .max()
+                .orElse(0L);
     }
 
     // SETTER
@@ -253,15 +249,8 @@ public class Auction {
         this.tienCoc = tienCoc;
     }
 
-    public void setKhoangGia(long khoangGia) {
-        this.khoangGia = khoangGia;
-    }
-
     public void setBuocGiaNhoNhat(long buocGiaNhoNhat) {
         this.buocGiaNhoNhat = buocGiaNhoNhat;
     }
 
-    public void setGiaHienTai(long giaHienTai) {
-        this.giaHienTai = giaHienTai;
-    }
 }

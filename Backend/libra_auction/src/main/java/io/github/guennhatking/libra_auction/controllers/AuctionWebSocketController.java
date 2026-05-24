@@ -7,6 +7,7 @@ import io.github.guennhatking.libra_auction.services.AuctionStateRedisService;
 import io.github.guennhatking.libra_auction.services.AuctionWebSocketNotificationService;
 import io.github.guennhatking.libra_auction.viewmodels.request.BidMessage;
 import io.github.guennhatking.libra_auction.viewmodels.response.BidResponse;
+import io.github.guennhatking.libra_auction.models.auction.AuctionLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -22,8 +23,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * WebSocket Controller for handling auction bids
- * Supports ascending auctions:
- * - DAU_GIA_LEN (Ascending Auction)
  */
 @Controller
 public class AuctionWebSocketController {
@@ -120,11 +119,17 @@ public class AuctionWebSocketController {
         BidResponse bidResponse = createBidResponse(bidMessage, "SUCCESS");
         recordBid(bidMessage.auctionId(), bidResponse);
 
-        // Update current price
-        auction.setGiaHienTai(bidMessage.bidAmount());
+        AuctionLog log = new AuctionLog();
+        log.setPhienDauGia(auction);
+        log.setMucGia(bidMessage.bidAmount());
+
+        if (auction.getLichSuDatGia() == null) {
+            auction.setLichSuDatGia(new ArrayList<>());
+        }
+        auction.getLichSuDatGia().add(log);
         phienDauGiaRepository.save(auction);
 
-        logger.info("Bid accepted and saved: auctionId={}, newPrice={}", bidMessage.auctionId(), bidMessage.bidAmount());
+        logger.info("Bid accepted and saved to log: auctionId={}, bidAmount={}", bidMessage.auctionId(), bidMessage.bidAmount());
 
         // Broadcast to all participants (bids are visible)
         broadcastBid(bidMessage.auctionId(), bidResponse);

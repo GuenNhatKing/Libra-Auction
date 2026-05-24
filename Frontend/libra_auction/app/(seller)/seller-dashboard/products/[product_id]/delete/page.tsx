@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import ProductDeleteConfirm from "@/components/seller/product_delete_confirm";
 import { Product } from "@/types/product/product";
-import { fetchPublicProduct } from "@/services/fetch_public_product";
+import { fetchProduct } from "@/services/fetch_product";
 import { deleteProduct } from "@/services/delete_product";
 
 export default function DeleteProductPage() {
@@ -21,10 +21,10 @@ export default function DeleteProductPage() {
       }
 
       try {
-        const data = await fetchPublicProduct(params.product_id);
+        const data = await fetchProduct(params.product_id);
         setProduct(data);
       } catch (err) {
-        console.error("Lỗi fetch tài sản:", err);
+        console.error("Error fetching product:", err);
         window.location.replace("/seller-dashboard/products");
       } finally {
         setIsLoading(false);
@@ -34,7 +34,7 @@ export default function DeleteProductPage() {
     loadProduct();
   }, [params.product_id]);
 
-  // 2. Xử lý DELETE
+  // 2. Handle DELETE
   const handleDelete = async () => {
     if (!params.product_id || Array.isArray(params.product_id)) return;
 
@@ -43,12 +43,12 @@ export default function DeleteProductPage() {
 
       await deleteProduct(params.product_id);
 
-      alert("Xóa thành công!");
+      alert("Deleted successfully!");
 
       window.location.replace("/seller-dashboard/products")
     } catch (err) {
-      console.error("Lỗi API xóa:", err);
-      alert("Xóa tài sản thất bại!");
+      console.error("Delete API error:", err);
+      alert("Failed to delete product!");
     }
   };
 
@@ -57,7 +57,7 @@ export default function DeleteProductPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F6F1F1]">
         <div className="text-[#146C94] font-bold animate-pulse">
-          Đang tải thông tin...
+          Loading information...
         </div>
       </div>
     );

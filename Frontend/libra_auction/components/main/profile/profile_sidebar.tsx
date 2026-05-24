@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { UserInfo } from "@/types/user_info";
 
-// Các SVG Icons tự code (chỉnh width/height to lên 22px)
+// Inline SVG icons
 const UserIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
 const EditIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>;
 const AuctionIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 5 4 4"/><path d="M13 7 14.5 8.5"/><path d="M9 11 10.5 12.5"/><path d="m5 15 4 4"/><path d="m3 21 3-3"/><path d="M20.5 7.5 18 5l-5 5 2.5 2.5z"/></svg>;
@@ -10,10 +10,10 @@ const LogoutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="22" heig
 
 export const ProfileSidebar = ({ user }: { user: UserInfo }) => {
   const menuItems = [
-    { title: "Thông tin cá nhân", icon: <UserIcon />, href: "/profile" },
-    { title: "Chỉnh sửa thông tin", icon: <EditIcon />, href: "/profile/edit" },
-    { title: "Lịch sử đấu giá", icon: <AuctionIcon />, href: "/profile/auctions" },
-    { title: "Ví & Giao dịch", icon: <WalletIcon />, href: "/profile/transactions" },
+    { title: "Profile", icon: <UserIcon />, href: "/profile" },
+    { title: "Edit profile", icon: <EditIcon />, href: "/profile/edit" },
+    { title: "Auction history", icon: <AuctionIcon />, href: "/profile/auctions" },
+    { title: "Wallet & transactions", icon: <WalletIcon />, href: "/profile/transactions" },
   ];
 
   return (
@@ -37,7 +37,7 @@ export const ProfileSidebar = ({ user }: { user: UserInfo }) => {
         <p className="text-base text-gray-500 mt-1">{user.email}</p>
         
         <span className="mt-4 px-4 py-1.5 bg-[var(--accent-color)]/30 text-[var(--secondary-color)] text-sm font-bold rounded-full">
-          {user.roles[0]?.name || "Thành viên"}
+          {user.roles[0]?.name || "Member"}
         </span>
       </div>
 

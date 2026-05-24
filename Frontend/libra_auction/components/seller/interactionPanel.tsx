@@ -23,13 +23,13 @@ export default function InteractionPanel() {
           onClick={() => setActiveTab('qa')}
           className={`flex-1 p-4 font-bold transition-all ${activeTab === 'qa' ? 'text-[#146C94] border-b-2 border-[#146C94] bg-white' : 'text-gray-400'}`}
         >
-          Hỏi & Đáp ({questions.length})
+          Q&A ({questions.length})
         </button>
         <button 
           onClick={() => setActiveTab('users')}
           className={`flex-1 p-4 font-bold transition-all ${activeTab === 'users' ? 'text-[#146C94] border-b-2 border-[#146C94] bg-white' : 'text-gray-400'}`}
         >
-          Người Tham Gia ({participants.length})
+          Participants ({participants.length})
         </button>
       </div>
 
@@ -51,7 +51,7 @@ export default function InteractionPanel() {
                   <div className="flex gap-2 ml-6">
                     <input 
                       className="flex-1 border border-[#AFD3E2] rounded px-3 py-1 text-sm outline-none"
-                      placeholder="Nhập câu trả lời..."
+                      placeholder="Type an answer..."
                       value={reply[q.id] || ""}
                       onChange={(e) => setReply({...reply, [q.id]: e.target.value})}
                     />
@@ -59,7 +59,7 @@ export default function InteractionPanel() {
                       onClick={() => handleReply(q.id)}
                       className="bg-[#146C94] text-white px-4 py-1 rounded text-sm font-bold"
                     >
-                      Gửi
+                      Send
                     </button>
                   </div>
                 )}
@@ -71,10 +71,12 @@ export default function InteractionPanel() {
             {participants.map((u) => (
               <div key={u.id} className="flex justify-between items-center p-3 hover:bg-[#F6F1F1] rounded border-b border-gray-50">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-[#AFD3E2] rounded-full flex items-center justify-center text-xs">👤</div>
+                  <div className="w-8 h-8 bg-[#AFD3E2] rounded-full flex items-center justify-center text-[#146C94]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  </div>
                   <div>
                     <p className="text-sm font-medium">{u.name}</p>
-                    <p className="text-[10px] text-gray-400">Tham gia lúc: {u.joinTime}</p>
+                    <p className="text-[10px] text-gray-400">Joined at: {u.joinTime}</p>
                   </div>
                 </div>
                 <span className={`text-[10px] px-2 py-1 rounded-full ${u.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100'}`}>

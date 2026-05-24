@@ -9,7 +9,6 @@ public record ProductResponse(
         String category_name,
         Integer quantity,
         String description,
-
         List<String> images,
         List<AttributeResponse> attributes
 ) {

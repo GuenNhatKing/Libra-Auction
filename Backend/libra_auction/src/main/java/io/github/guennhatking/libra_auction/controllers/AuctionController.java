@@ -51,9 +51,9 @@ public class AuctionController {
         if (user.isEmpty()) {
             return false;
         }
-        return user.get().getRoles() != null && 
-               user.get().getRoles().stream()
-                   .anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()));
+        return user.get().getRoles() != null &&
+                user.get().getRoles().stream()
+                        .anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()));
     }
 
     @GetMapping("/public/categories/{categoryId}/auctions")
@@ -143,12 +143,29 @@ public class AuctionController {
     }
 
     @GetMapping("/public/auctions/{id}")
-    public ResponseEntity<ServerAPIResponse<AuctionResponse>> getAuctionByIdInCategory(
+    public ResponseEntity<ServerAPIResponse<AuctionResponse>> getPublicAuctionById(
             @PathVariable String id) {
 
         AuctionResponse response = auctionService.getAuctionById(id);
 
         return ResponseEntity.ok(ServerAPIResponse.success(response));
+    }
+
+    @GetMapping("/auctions/{id}")
+    public ResponseEntity<ServerAPIResponse<AuctionResponse>> getAuctionById(
+            @AuthenticationPrincipal JwtUserDetails userDetails,
+            @PathVariable String id) {
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error("Authentication required"));
+        }
+
+        String userId = userDetails.getUserId();
+        AuctionResponse response = auctionService.getAuctionById(id, userId);
+
+        return ResponseEntity.ok(ServerAPIResponse.success(response));
+
     }
 
     @PostMapping("/auctions")
@@ -224,7 +241,7 @@ public class AuctionController {
                     .body(ServerAPIResponse.error("Admin role required"));
         }
 
-        AuctionResponse response = auctionService.approveAuctionWithProduct(id, userDetails.getUserId());
+        AuctionResponse response = auctionService.approveAuction(id, userDetails.getUserId());
         return ResponseEntity.ok(ServerAPIResponse.success(response));
     }
 
@@ -245,7 +262,7 @@ public class AuctionController {
         }
 
         String reason = request != null ? request.get("reason") : null;
-        AuctionResponse response = auctionService.rejectAuctionWithProduct(id, userDetails.getUserId(), reason);
+        AuctionResponse response = auctionService.rejectAuction(id, userDetails.getUserId(), reason);
         return ResponseEntity.ok(ServerAPIResponse.success(response));
     }
 

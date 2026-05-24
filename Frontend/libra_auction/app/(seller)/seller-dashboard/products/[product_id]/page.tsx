@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ProductDetail } from "@/components/seller/product/product_detail";
 import { Product } from "@/types/product/product";
-import { fetchPublicProduct } from "@/services/fetch_public_product";
+import { fetchProduct } from "@/services/fetch_product";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -19,7 +19,7 @@ export default function ProductDetailPage() {
         setLoading(false);
         return;
       }
-      const product = await fetchPublicProduct(params.product_id);
+      const product = await fetchProduct(params.product_id);
       setProduct(product);
       setLoading(false);
     }, 300);
