@@ -99,6 +99,10 @@ public class AuctionService {
                 session.setNguoiTao(nguoiTao);
                 session.setTaiSan(product);
                 session.setThoiLuong(request.thoiLuong());
+                session.setThoiGianBatDau(request.thoiGianBatDau());
+                session.setGiaKhoiDiem(request.giaKhoiDiem());
+                session.setBuocGiaNhoNhat(request.buocGiaNhoNhat());
+                session.setTienCoc(request.tienCoc());
                 session.setTrangThaiKiemDuyet(ApprovalStatus.CHUA_DUYET);
                 session.setTrangThaiPhien(AuctionStatus.CHUA_BAT_DAU);
 

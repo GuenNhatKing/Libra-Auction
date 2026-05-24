@@ -1,7 +1,7 @@
 "use client";
 
 import { Auction } from "@/types/auction/auction";
-import { AuctionSessionStatus } from "@/types/status";
+import { AuctionStatus } from "@/types/status";
 
 interface AuctionItemProps {
     auction: Auction;
@@ -10,7 +10,7 @@ interface AuctionItemProps {
     onDelete: (id: string) => void;
 }
 
-const statusConfig: Record<AuctionSessionStatus, { label: string, classes: string }> = {
+const statusConfig: Record<AuctionStatus, { label: string, classes: string }> = {
     "CHUA_BAT_DAU": { label: 'Upcoming', classes: 'bg-amber-50 text-amber-600 border-amber-100' },
     "DANG_DIEN_RA": { label: 'Live', classes: 'bg-green-50 text-green-600 border-green-100' },
     "DA_KET_THUC": { label: 'Ended', classes: 'bg-gray-50 text-gray-500 border-gray-100' },
