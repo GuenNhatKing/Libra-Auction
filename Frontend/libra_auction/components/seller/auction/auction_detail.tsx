@@ -54,11 +54,6 @@ export const AuctionDetail = ({ data }: AuctionDetailProps) => {
             <div className="flex flex-wrap items-center gap-2 mb-6 pb-6 border-b border-gray-50">
             <span>
               Status: {" "}
-              {data.approval_status === "DA_DUYET" && (
-                <span className={`${isLive ? "text-green-600" : data.auction_status === "CHUA_BAT_DAU" ? "text-blue-500" : data.auction_status === "DA_KET_THUC" ? "text-gray-500" : "text-red-500"}`}>
-                  {data.auction_status}
-                </span>
-              )}
             </span>
               <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-lg border ${approvalStatusConfig[data.approval_status].classes}`}>
               {approvalStatusConfig[data.approval_status].label}
