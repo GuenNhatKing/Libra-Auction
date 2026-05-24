@@ -25,8 +25,9 @@ public interface AuctionMapper {
     @Mapping(source = "thoiGianBatDau", target = "start_time")
     @Mapping(source = "thoiLuong", target = "duration")
     @Mapping(source = "giaKhoiDiem", target = "starting_price")
+    @Mapping(target = "current_price", expression = "java(session.getGiaHienTai() > 0 ? session.getGiaHienTai() : session.getGiaKhoiDiem())")
+    @Mapping(source = "tienCoc", target = "tien_coc")
     @Mapping(source = "buocGiaNhoNhat", target = "min_bid_increment")
-    @Mapping(source = "giaKhoiDiem", target = "current_price")
 
     @Mapping(source = "taiSan.id", target = "product_id")
     @Mapping(source = "taiSan.tenTaiSan", target = "product_name")

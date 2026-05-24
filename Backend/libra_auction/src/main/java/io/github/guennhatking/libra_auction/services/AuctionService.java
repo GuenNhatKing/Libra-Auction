@@ -18,6 +18,9 @@ import io.github.guennhatking.libra_auction.viewmodels.response.ProductResponse;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Comparator;
 import java.util.List;
 
@@ -65,6 +68,14 @@ public class AuctionService {
         }
 
         @Transactional(readOnly = true)
+        public AuctionResponse getAuctionById(String id, String userId) {
+                Auction session = phienDauGiaRepository.findByIdAndNguoiTao_Id(id, userId)
+                                .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
+
+                return auctionMapper.toAuctionResponse(session);
+        }
+
+        @Transactional(readOnly = true)
         public AuctionResponse getAuctionByIdAndCategory(String id, String categoryId) {
                 Auction session = phienDauGiaRepository
                                 .findByIdAndTaiSan_DanhMuc_Id(id, categoryId)
@@ -86,6 +97,7 @@ public class AuctionService {
                                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
                 Auction session = new Auction();
+                session.setThoiGianTao(OffsetDateTime.now(ZoneOffset.ofHours(7)));
                 session.setNguoiTao(nguoiTao);
                 session.setTaiSan(product);
                 session.setThoiLuong(request.thoiLuong());

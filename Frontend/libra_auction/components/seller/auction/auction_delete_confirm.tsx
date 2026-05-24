@@ -34,14 +34,18 @@ export const AuctionDeleteConfirm = ({ auction, onDelete, onCancel }: AuctionDel
         </div>
 
         {/* Auction details for final verification */}
-        <div className="w-full bg-[var(--background-color)] p-4 rounded-xl text-left border border-gray-100 my-2">
+        <div className="w-full bg-(--background-color) p-4 rounded-xl text-left border border-gray-100 my-2">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Auction name</p>
           <p className="text-base font-semibold text-gray-800">{auction.auction_name}</p>
           
-          <div className="flex justify-between mt-3 pt-3 border-t border-gray-200">
+          <div className="flex justify-between mt-3 pt-3 border-t border-gray-200 gap-4">
             <div>
               <p className="text-[10px] text-gray-400 uppercase font-bold">Starting price</p>
-              <p className="text-sm font-bold text-[var(--secondary-color)]">{auction.starting_price.toLocaleString()} VND</p>
+              <p className="text-sm font-bold text-(--secondary-color)">{auction.starting_price.toLocaleString()} VND</p>
+            </div>
+            <div>
+              <p className="text-[10px] text-gray-400 uppercase font-bold">Deposit</p>
+              <p className="text-sm font-bold text-(--secondary-color)">{auction.tien_coc.toLocaleString()} VND</p>
             </div>
             <div>
               <p className="text-[10px] text-gray-400 uppercase font-bold text-right">Status</p>

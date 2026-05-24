@@ -3,7 +3,7 @@ import { getJWTTokenInfo } from "@/lib/get_jwt_token_info";
 import { ServerAPICall } from "@/lib/server_API_call";
 import { Product } from "@/types/product/product";
 
-export async function fetchPublicProduct(product_id: string): Promise<Product> {
+export async function fetchProduct(product_id: string): Promise<Product> {
     const jwtTokenInfo = await getJWTTokenInfo();
     if (!jwtTokenInfo.token) {
         throw new Error("User's credentials not found");

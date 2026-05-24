@@ -13,6 +13,7 @@ export interface Auction {
 
         starting_price: number,
         current_price: number,
+        tien_coc: number,
         min_bid_increment: number,
 
         product_id: string,

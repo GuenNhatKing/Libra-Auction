@@ -132,6 +132,16 @@ export default function AuctionInfoSection({
 
                   <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
                     <div className="flex items-center gap-2 text-gray-500 mb-2">
+                      <Image src={startFlag} width={16} height={16} alt='' />
+                      Deposit
+                    </div>
+                    <div className="text-2xl font-bold text-gray-900">
+                      {CurrencyFormat(autionInfos.tien_coc)}
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                    <div className="flex items-center gap-2 text-gray-500 mb-2">
                       <Image src={increment} width={16} height={16} alt='' />
                       Min. Increment
                     </div>

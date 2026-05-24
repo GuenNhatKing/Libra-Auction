@@ -3,10 +3,17 @@
 import Link from "next/link";
 import { Auction } from "@/types/auction/auction";
 import { QuestionList } from "./question_list";
+import { ApprovalStatus } from "@/types/status";
 
 interface AuctionDetailProps {
   data: Auction
 }
+
+const approvalStatusConfig: Record<ApprovalStatus, { label: string; classes: string }> = {
+  CHUA_DUYET: { label: "Pending", classes: "bg-amber-50 text-amber-700 border-amber-100" },
+  DA_DUYET: { label: "Approved", classes: "bg-emerald-50 text-emerald-700 border-emerald-100" },
+  BI_TU_CHOI: { label: "Rejected", classes: "bg-red-50 text-red-700 border-red-100" },
+};
 
 export const AuctionDetail = ({ data }: AuctionDetailProps) => {
   const isLive = data.auction_status === "DANG_DIEN_RA"
@@ -37,21 +44,28 @@ export const AuctionDetail = ({ data }: AuctionDetailProps) => {
               </h1>
 
               {/* trạng thái */}
-              <p className="text-sm mt-1 font-medium">
-                Trạng thái:{" "}
-                <span
-                  className={`${isLive
-                    ? "text-green-600"
-                    : data.auction_status === "CHUA_BAT_DAU"
-                      ? "text-blue-500"
-                      : data.auction_status === "DA_KET_THUC"
-                        ? "text-gray-500"
-                        : "text-red-500"
-                    }`}
-                >
-                  {data.auction_status}
+              <div className="mt-1 flex flex-wrap items-center gap-2 text-sm font-medium">
+                <span>
+                  Trạng thái: {" "}
+                  {data.approval_status === "DA_DUYET" && (
+                    <span
+                      className={`${isLive
+                        ? "text-green-600"
+                        : data.auction_status === "CHUA_BAT_DAU"
+                          ? "text-blue-500"
+                          : data.auction_status === "DA_KET_THUC"
+                            ? "text-gray-500"
+                            : "text-red-500"
+                        }`}
+                    >
+                      {data.auction_status}
+                    </span>
+                  )}
                 </span>
-              </p>
+                <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-lg border ${approvalStatusConfig[data.approval_status].classes}`}>
+                  {approvalStatusConfig[data.approval_status].label}
+                </span>
+              </div>
             </div>
 
             <p className="text-gray-600 text-sm leading-relaxed max-w-2xl">
@@ -65,6 +79,15 @@ export const AuctionDetail = ({ data }: AuctionDetailProps) => {
                 </p>
                 <p className="text-lg font-bold text-(--secondary-color)">
                   {data.starting_price.toLocaleString()} VND
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-400 uppercase font-semibold">
+                  Tiền cọc
+                </p>
+                <p className="text-lg font-bold text-(--secondary-color)">
+                  {data.tien_coc.toLocaleString()} VND
                 </p>
               </div>
 

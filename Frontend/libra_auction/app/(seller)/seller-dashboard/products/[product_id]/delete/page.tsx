@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import ProductDeleteConfirm from "@/components/seller/product_delete_confirm";
 import { Product } from "@/types/product/product";
-import { fetchPublicProduct } from "@/services/fetch_public_product";
+import { fetchProduct } from "@/services/fetch_product";
 import { deleteProduct } from "@/services/delete_product";
 
 export default function DeleteProductPage() {
@@ -21,7 +21,7 @@ export default function DeleteProductPage() {
       }
 
       try {
-        const data = await fetchPublicProduct(params.product_id);
+        const data = await fetchProduct(params.product_id);
         setProduct(data);
       } catch (err) {
         console.error("Lỗi fetch tài sản:", err);

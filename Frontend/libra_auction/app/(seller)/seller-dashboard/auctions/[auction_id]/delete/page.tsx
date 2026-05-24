@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AuctionDeleteConfirm } from "@/components/seller/auction/auction_delete_confirm";
 import { Auction } from "@/types/auction/auction";
-import { fetchPublicAuction } from "@/services/fetch_public_auction";
+import { fetchAuction } from "@/services/fetch_auction";
 import { deleteAuction } from "@/services/delete_auction";
 
 export default function DeleteAuctionPage() {
@@ -20,7 +20,7 @@ export default function DeleteAuctionPage() {
   // FETCH DETAIL AUCTION
   // =========================
   useEffect(() => {
-    const fetchAuction = async () => {
+    const loadAuction = async () => {
       if (!auctionId) return;
 
       try {
@@ -29,7 +29,7 @@ export default function DeleteAuctionPage() {
           return;
         }
 
-        const data = await fetchPublicAuction(params.auction_id);
+        const data = await fetchAuction(params.auction_id);
 
         setAuction(data);
       } catch (error) {
@@ -40,7 +40,7 @@ export default function DeleteAuctionPage() {
       }
     };
 
-    fetchAuction();
+    loadAuction();
   }, [auctionId, router]);
 
   // =========================

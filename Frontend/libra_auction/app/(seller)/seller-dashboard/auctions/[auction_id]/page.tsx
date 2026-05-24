@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { AuctionDetail } from "@/components/seller/auction/auction_detail";
 import { Auction } from "@/types/auction/auction";
-import { fetchPublicAuction } from "@/services/fetch_public_auction";
+import { fetchAuction } from "@/services/fetch_auction";
 
 export default function Page() {
     const params = useParams();
@@ -17,7 +17,7 @@ export default function Page() {
                 if (!params.auction_id || Array.isArray(params.auction_id)) {
                     return;
                 }
-                const data = await fetchPublicAuction(params.auction_id);
+                const data = await fetchAuction(params.auction_id);
                 if (data) {
                     setData(data);
                 }

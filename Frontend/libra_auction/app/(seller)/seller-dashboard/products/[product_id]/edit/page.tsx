@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import ProductEditForm from "@/components/seller/product/product_edit_form";
 import { Product } from "@/types/product/product";
-import { fetchPublicProduct } from "@/services/fetch_public_product";
+import { fetchProduct } from "@/services/fetch_product";
 import { useRouter } from "next/navigation";
 
 export default function EditProductPage() {
@@ -22,7 +22,7 @@ export default function EditProductPage() {
             try {
                 setLoading(true);
 
-                const data = await fetchPublicProduct(params.product_id);
+                const data = await fetchProduct(params.product_id);
                 console.log("Fetched product detail for editing:", data);
                 setProduct(data);
             } catch (e) {

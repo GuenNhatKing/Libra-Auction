@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AuctionEditForm } from "@/components/seller/auction/auction_edit_form";
 import { NewAuction } from "@/types/auction/new-auction";
-import { fetchPublicAuction } from "@/services/fetch_public_auction";
+import { fetchAuction } from "@/services/fetch_auction";
 import { updateAuction } from "@/services/update_auction";
 
 export default function EditAuctionPage() {
@@ -15,7 +15,7 @@ export default function EditAuctionPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchAuction = async () => {
+        const loadAuction = async () => {
             if (!params.auction_id || Array.isArray(params.auction_id)) {
                 setLoading(false);
                 return;
@@ -24,14 +24,14 @@ export default function EditAuctionPage() {
             try {
                 setLoading(true);
 
-                const data = await fetchPublicAuction(params.auction_id);
+                const data = await fetchAuction(params.auction_id);
                 const newAuction: NewAuction = {
                     taiSanId: data.product_id,
                     buocGiaNhoNhat: data.min_bid_increment,
                     giaKhoiDiem: data.starting_price,
                     thoiGianBatDau: data.start_time,
                     thoiLuong: data.duration,
-                    tienCoc: 0
+                    tienCoc: data.tien_coc
                 }
                 setAuctionData(newAuction);
             } catch (e) {
@@ -41,7 +41,7 @@ export default function EditAuctionPage() {
             }
         };
 
-        fetchAuction();
+        loadAuction();
     }, [params.auction_id]);
 
     if (loading) {

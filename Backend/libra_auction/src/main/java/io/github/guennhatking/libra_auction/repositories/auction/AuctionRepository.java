@@ -17,4 +17,6 @@ public interface AuctionRepository extends JpaRepository<Auction, String> {
     List<Auction> findByTaiSan(Product taiSan);
 
     Optional<Auction> findByIdAndTaiSan_DanhMuc_Id(String id, String categoryId);
+
+    Optional<Auction> findByIdAndNguoiTao_Id(String id, String userId);
 }

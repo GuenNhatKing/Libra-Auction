@@ -39,9 +39,11 @@ export const AuctionItem = ({ auction, onView, onEdit, onDelete }: AuctionItemPr
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                         <h3 className="font-bold text-gray-800 text-base">{auction.auction_name}</h3>
-                        <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-lg border ${status.classes}`}>
-                            {status.label}
-                        </span>
+                        {auction.approval_status === "DA_DUYET" && (
+                            <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-lg border ${status.classes}`}>
+                                {status.label}
+                            </span>
+                        )}
                         <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-lg border ${approvalStatusConfig[auction.approval_status].classes}`}>
                             {approvalStatusConfig[auction.approval_status].label}
                         </span>
