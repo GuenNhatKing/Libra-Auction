@@ -30,20 +30,20 @@ export const AuctionDetail = ({ data }: AuctionDetailProps) => {
   const attributeCount = data.attributes?.length ?? 0;
 
   const auctionInfoItems = [
-    { label: "Mã phiên", value: `#${data.auction_id}` },
-    { label: "Thời gian bắt đầu", value: DateFormat(data.start_time) },
-    { label: "Thời lượng", value: `${data.duration} phút` },
-    { label: "Giá khởi điểm", value: CurrencyFormat(data.starting_price) },
-    { label: "Tiền cọc", value: CurrencyFormat(data.tien_coc) },
-    { label: "Bước giá tối thiểu", value: CurrencyFormat(data.min_bid_increment) },
+    { label: "Auction ID", value: `#${data.auction_id}` },
+    { label: "Start time", value: DateFormat(data.start_time) },
+    { label: "Duration", value: `${data.duration} minutes` },
+    { label: "Starting price", value: CurrencyFormat(data.starting_price) },
+    { label: "Deposit", value: CurrencyFormat(data.tien_coc) },
+    { label: "Minimum bid increment", value: CurrencyFormat(data.min_bid_increment) },
   ];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 bg-white p-6 md:p-10 rounded-3xl border border-gray-100 shadow-sm">
-        {/* Cột trái: Gallery */}
+        {/* Left column: gallery */}
         <ImageGallery images={hasImages ? data.images : ["/placeholder-product.png"]} />
 
-        {/* Cột phải: Thông tin */}
+        {/* Right column: information */}
         <div className="flex flex-col">
           <nav className="text-xs font-bold text-(--primary-color) uppercase tracking-widest mb-2">
             {data.category_name}
@@ -53,7 +53,7 @@ export const AuctionDetail = ({ data }: AuctionDetailProps) => {
 
             <div className="flex flex-wrap items-center gap-2 mb-6 pb-6 border-b border-gray-50">
             <span>
-              Trạng thái: {" "}
+              Status: {" "}
               {data.approval_status === "DA_DUYET" && (
                 <span className={`${isLive ? "text-green-600" : data.auction_status === "CHUA_BAT_DAU" ? "text-blue-500" : data.auction_status === "DA_KET_THUC" ? "text-gray-500" : "text-red-500"}`}>
                   {data.auction_status}
@@ -71,26 +71,26 @@ export const AuctionDetail = ({ data }: AuctionDetailProps) => {
           </div>
 
             <div className="mb-8">
-              <h3 className="text-sm font-bold text-gray-800 mb-2">Mô tả phiên đấu giá</h3>
+              <h3 className="text-sm font-bold text-gray-800 mb-2">Auction description</h3>
               <p className="text-gray-600 text-sm leading-relaxed">{data.description}</p>
             </div>
 
             <div className="mb-4">
-              <h3 className="text-sm font-bold text-gray-800 mb-3">Thông tin sản phẩm</h3>
+              <h3 className="text-sm font-bold text-gray-800 mb-3">Product information</h3>
               <div className="flex items-center gap-6 mb-6 pb-6 border-b border-gray-50">
                 <div>
-                  <p className="text-[10px] text-gray-400 uppercase font-bold">Số lượng kho</p>
-                  <p className="text-xl font-bold text-gray-800">{data.quantity} chiếc</p>
+                  <p className="text-[10px] text-gray-400 uppercase font-bold">Stock quantity</p>
+                  <p className="text-xl font-bold text-gray-800">{data.quantity} units</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-400 uppercase font-bold">Mã tài sản</p>
+                  <p className="text-[10px] text-gray-400 uppercase font-bold">Product ID</p>
                   <p className="text-sm font-mono mt-1">#{data.product_id}</p>
                 </div>
               </div>
             </div>
 
             <div className="mb-6">
-              <h3 className="text-sm font-bold text-gray-800 mb-3">Thuộc tính sản phẩm</h3>
+              <h3 className="text-sm font-bold text-gray-800 mb-3">Product attributes</h3>
               <div className={`grid grid-cols-1 gap-3 ${attributeCount > 1 ? "sm:grid-cols-2" : ""}`}>
                 {data.attributes && data.attributes.length > 0 ? (
                   data.attributes.map((attr, idx) => (
@@ -101,14 +101,14 @@ export const AuctionDetail = ({ data }: AuctionDetailProps) => {
                   ))
                 ) : (
                   <div className="text-gray-400 text-sm col-span-full">
-                    Không có thuộc tính.
+                    No attributes available.
                   </div>
                 )}
               </div>
             </div>
 
             <div className="mb-8">
-              <h3 className="text-sm font-bold text-gray-800 mb-3">Thông tin phiên đấu giá</h3>
+              <h3 className="text-sm font-bold text-gray-800 mb-3">Auction details</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {auctionInfoItems.map((item) => (
                   <div key={item.label} className="flex justify-between p-3 bg-(--background-color) rounded-xl border border-gray-50 gap-4">
@@ -121,18 +121,18 @@ export const AuctionDetail = ({ data }: AuctionDetailProps) => {
 
             {isLive && (
               <div className="mb-8">
-                <h3 className="text-sm font-bold text-gray-800 mb-3">Số liệu khi đấu giá đang diễn ra</h3>
+                <h3 className="text-sm font-bold text-gray-800 mb-3">Live auction stats</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="rounded-xl bg-(--background-color) border border-gray-50 p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Giá hiện tại</p>
+                    <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Current price</p>
                     <p className="mt-1 text-lg font-bold text-(--secondary-color)">{CurrencyFormat(data.current_price)}</p>
                   </div>
                   <div className="rounded-xl bg-(--background-color) border border-gray-50 p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Tổng số bid</p>
+                    <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Total bids</p>
                     <p className="mt-1 text-lg font-bold text-gray-800">{data.total_bids}</p>
                   </div>
                   <div className="rounded-xl bg-(--background-color) border border-gray-50 p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Người tham gia</p>
+                    <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Participants</p>
                     <p className="mt-1 text-lg font-bold text-gray-800">{data.total_participants}</p>
                   </div>
                 </div>
@@ -147,7 +147,7 @@ export const AuctionDetail = ({ data }: AuctionDetailProps) => {
                 className="flex-1 flex justify-center items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-all active:scale-95"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 3l14 9-14 9V3z" /></svg>
-                Xem trực tiếp
+                View live
               </Link>
             ) : (
               <>
@@ -156,13 +156,14 @@ export const AuctionDetail = ({ data }: AuctionDetailProps) => {
                   className="flex-1 flex justify-center items-center gap-2 bg-(--primary-color) hover:bg-(--secondary-color) text-white font-bold py-3 rounded-xl transition-all active:scale-95"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" /></svg>
-                  Chỉnh sửa
+                  Edit
                 </Link>
                 <Link
                   href={`/seller-dashboard/auctions/${data.auction_id}/delete`}
-                  className="px-6 flex justify-center items-center bg-red-50 text-red-600 hover:bg-red-100 font-bold rounded-xl transition-all active:scale-95 border border-red-100"
+                  className="px-6 flex justify-center items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 font-bold rounded-xl transition-all active:scale-95 border border-red-100"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
+                  Delete
                 </Link>
               </>
             )}

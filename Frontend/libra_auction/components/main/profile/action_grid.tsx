@@ -1,4 +1,4 @@
-// Định nghĩa các SVG Icon cục bộ để bạn dễ chỉnh sửa
+// Local SVG icons
 const AuctionIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 5 4 4"/><path d="M13 7 14.5 8.5"/><path d="M9 11 10.5 12.5"/><path d="m5 15 4 4"/><path d="m3 21 3-3"/><path d="M20.5 7.5 18 5l-5 5 2.5 2.5z"/></svg>
 );
@@ -18,30 +18,30 @@ const UserEditIcon = () => (
 export const ActionGrid = () => {
   const actions = [
     { 
-      title: "Lịch sử đấu giá", 
+      title: "Auction history", 
       icon: <AuctionIcon />, 
-      desc: "Xem các sản phẩm đã tham gia", 
+      desc: "Review auctions you have joined", 
       color: "text-blue-600 bg-blue-50",
       hover: "hover:border-blue-200"
     },
     { 
-      title: "Chỉnh sửa thông tin", 
+      title: "Edit profile", 
       icon: <UserEditIcon />, 
-      desc: "Cập nhật hồ sơ cá nhân", 
+      desc: "Update your personal details", 
       color: "text-indigo-600 bg-indigo-50",
       hover: "hover:border-indigo-200"
     },
     { 
-      title: "Ví tiền & Giao dịch", 
+      title: "Wallet & transactions", 
       icon: <WalletIcon />, 
-      desc: "Quản lý số dư và nạp tiền", 
+      desc: "Manage balance and deposits", 
       color: "text-emerald-600 bg-emerald-50",
       hover: "hover:border-emerald-200"
     },
     { 
-      title: "Lịch sử hoạt động", 
+      title: "Activity history", 
       icon: <HistoryIcon />, 
-      desc: "Nhật ký đăng nhập và bảo mật", 
+      desc: "Login and security log", 
       color: "text-amber-600 bg-amber-50",
       hover: "hover:border-amber-200"
     },

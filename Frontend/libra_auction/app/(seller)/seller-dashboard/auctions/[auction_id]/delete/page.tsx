@@ -41,7 +41,7 @@ export default function DeleteAuctionPage() {
     };
 
     loadAuction();
-  }, [auctionId, router]);
+  }, [auctionId, router, params.auction_id]);
 
   // =========================
   // DELETE AUCTION
@@ -58,7 +58,7 @@ export default function DeleteAuctionPage() {
       router.refresh();
     } catch (error) {
       console.error("Delete error:", error);
-      alert("Đã xảy ra lỗi khi xóa phiên đấu giá.");
+      alert("An error occurred while deleting the auction.");
     }
   };
 
@@ -68,7 +68,7 @@ export default function DeleteAuctionPage() {
   if (loading) {
     return (
       <div className="p-10 text-center italic text-gray-400">
-        Đang kiểm tra dữ liệu...
+        Checking data...
       </div>
     );
   }
@@ -76,7 +76,7 @@ export default function DeleteAuctionPage() {
   if (!auction) {
     return (
       <div className="p-10 text-center text-red-500">
-        Không tìm thấy phiên đấu giá
+        Auction not found
       </div>
     );
   }

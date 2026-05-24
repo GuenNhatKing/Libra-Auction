@@ -12,18 +12,18 @@ export const ProductSearchBar = ({ onSearch, onAddClick }: ProductSearchBarProps
         </span>
         <input
           type="text"
-          placeholder="Tìm kiếm tài sản..."
+          placeholder="Search products..."
           onChange={(e) => onSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] bg-white transition-all text-sm"
+          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-(--primary-color) bg-white transition-all text-sm"
         />
       </div>
       
       <button
         onClick={onAddClick}
-        className="flex items-center gap-2 bg-[var(--primary-color)] hover:bg-[var(--secondary-color)] text-white px-5 py-2.5 rounded-xl transition-all font-medium shadow-sm active:scale-95 w-full md:w-auto justify-center"
+        className="flex items-center gap-2 bg-(--primary-color) hover:bg-(--secondary-color) text-white px-5 py-2.5 rounded-xl transition-all font-medium shadow-sm active:scale-95 w-full md:w-auto justify-center"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-        Thêm tài sản
+        Add Product
       </button>
     </div>
   );

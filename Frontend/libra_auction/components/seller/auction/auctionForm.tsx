@@ -93,7 +93,7 @@ export default function AuctionForm({ products }: { products: Product[] }) {
               onClick={() => setStep(2)}
               className="w-full bg-[#146C94] text-white py-3 rounded disabled:opacity-50"
             >
-              Tiếp tục
+              Continue
             </button>
           </div>
         )}

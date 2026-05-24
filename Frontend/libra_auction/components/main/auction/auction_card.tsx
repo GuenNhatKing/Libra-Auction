@@ -33,7 +33,7 @@ export default function AuctionCard({ auctionCard }: { auctionCard: Auction }) {
                     className="object-cover"
                 />
 
-                {/* Overlay Badge - Loại đấu giá */}
+                {/* Overlay badges */}
                 <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
                     <span className="px-2.5 py-1 bg-black/70 text-white text-[10px] font-bold uppercase rounded-lg">
                         {auctionCard.category_name}
@@ -43,11 +43,11 @@ export default function AuctionCard({ auctionCard }: { auctionCard: Auction }) {
                     </span>
                 </div>
 
-                {/* Thời gian còn lại - Tối giản */}
+                {/* Countdown */}
                 <div className="absolute bottom-3 left-3 right-3 bg-white/95 py-2 px-3 rounded-xl shadow flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <span className="rounded-full h-2 w-2 bg-red-500"></span>
-                        <span className="text-[11px] font-bold text-gray-700 uppercase tracking-tight">Kết thúc sau</span>
+                        <span className="text-[11px] font-bold text-gray-700 uppercase tracking-tight">Ends in</span>
                     </div>
                     <span className="text-xs font-mono font-bold text-red-600">02:45:10</span>
                 </div>
@@ -55,30 +55,30 @@ export default function AuctionCard({ auctionCard }: { auctionCard: Auction }) {
 
             {/* Content Area */}
             <div className="p-4 flex flex-col grow">
-                {/* Tên sản phẩm */}
+                {/* Product name */}
                 <h3 className="font-bold text-gray-800 line-clamp-2 leading-tight mb-3">
                     {auctionCard.product_name}
                 </h3>
 
-                {/* Section: Pricing & Stats */}
+                {/* Pricing & stats */}
                 <div className="mt-auto pt-3 border-t border-gray-50">
-                    {/* Dòng giá chính */}
+                    {/* Main price row */}
                     <div className="flex justify-between items-end mb-3">
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">Giá hiện tại</span>
+                            <span className="text-[10px] font-bold text-gray-400 uppercase leading-none mb-1">Current price</span>
                             <span className="text-xl font-black text-[#19A7CE] leading-none tracking-tight">
                                 {formatCurrency(auctionCard.current_price)}
                             </span>
                         </div>
                         <div className="text-right">
-                            <span className="block text-[9px] text-gray-400 uppercase leading-none mb-1">Khởi điểm</span>
+                            <span className="block text-[9px] text-gray-400 uppercase leading-none mb-1">Starting</span>
                             <span className="text-xs font-bold text-gray-600 leading-none">
                                 {formatCurrency(auctionCard.starting_price)}
                             </span>
                         </div>
                     </div>
 
-                    {/* Dòng thông số & Nút */}
+                    {/* Stats and action */}
                     <div className="flex items-center gap-3">
                         {/* Stats */}
                         <div className="flex items-center gap-3 shrink-0 bg-gray-50 px-3 py-2 rounded-lg">
@@ -93,10 +93,10 @@ export default function AuctionCard({ auctionCard }: { auctionCard: Auction }) {
                             </div>
                         </div>
 
-                        {/* Nút bấm */}
+                        {/* Action button */}
                         <button className="grow bg-[#19A7CE] hover:opacity-90 text-white text-xs font-bold py-2 rounded-lg transition-opacity"
                         onClick={() => router.push(`/auctions/${auctionCard.category_id}/${auctionCard.auction_id}`)}>
-                            Tham gia ngay
+                            Join now
                         </button>
                     </div>
                 </div>

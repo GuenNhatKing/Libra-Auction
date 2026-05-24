@@ -6,17 +6,17 @@ import { AnswerForm } from "./answer_form";
 
 interface QuestionItemProps {
   question: Question;
-  onRefreshData?: () => void; // Dùng để fetch lại dữ liệu sau khi trả lời
+  onRefreshData?: () => void; // Used to refresh data after replying
 }
 
 export const QuestionItem = ({ question, onRefreshData }: QuestionItemProps) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
 
   const handleAnswerSubmit = async (qId: string, answerText: string) => {
-    // Logic gọi API thực tế sẽ nằm ở đây
-    console.log(`Gửi API trả lời cho câu hỏi ${qId}: ${answerText}`);
+    // Real API call logic will go here
+    console.log(`Send answer API for question ${qId}: ${answerText}`);
     
-    // Giả lập thành công
+    // Simulate success
     return new Promise<void>((resolve) => {
       setTimeout(() => {
         setShowReplyForm(false);
@@ -28,7 +28,7 @@ export const QuestionItem = ({ question, onRefreshData }: QuestionItemProps) => 
 
   return (
     <div className="space-y-3">
-      {/* Câu hỏi từ người dùng */}
+      {/* User question */}
       <div className="bg-[var(--background-color)] p-4 rounded-xl border border-gray-100">
         <div className="flex justify-between items-start mb-2">
           <div className="flex items-center gap-2">
@@ -46,13 +46,13 @@ export const QuestionItem = ({ question, onRefreshData }: QuestionItemProps) => 
               onClick={() => setShowReplyForm(!showReplyForm)}
               className="text-xs font-semibold text-[var(--primary-color)] hover:text-[var(--secondary-color)] transition-colors"
             >
-              {showReplyForm ? "Hủy" : "Trả lời"}
+              {showReplyForm ? "Cancel" : "Reply"}
             </button>
           )}
         </div>
         <p className="text-sm text-gray-700 leading-relaxed">{question.content}</p>
 
-        {/* Tích hợp Form trả lời ngay bên trong câu hỏi */}
+        {/* Inline reply form */}
         {showReplyForm && !question.answer && (
           <AnswerForm 
             questionId={question.id} 
@@ -61,7 +61,7 @@ export const QuestionItem = ({ question, onRefreshData }: QuestionItemProps) => 
         )}
       </div>
 
-      {/* Câu trả lời hiện có (nếu có) */}
+      {/* Existing answer, if any */}
       {question.answer && (
         <div className="ml-8 border-l-2 border-[var(--accent-color)] pl-4 py-1">
           <div className="bg-white p-3 rounded-xl border border-blue-50">

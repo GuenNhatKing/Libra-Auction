@@ -88,16 +88,16 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
     newProduct.imageUrls = existingImages.filter((url): url is string => !!url).concat(uploadedUrls.filter((url): url is string => !!url));
 
     if (newProduct.imageUrls.length === 0 && newImageFiles.length + existingImages.length > 0) {
-      alert("Không thể upload ảnh. Vui lòng thử lại!");
+      alert("Unable to upload images. Please try again.");
       return;
     }
 
     const res = await updateProduct(initialData.product_id, newProduct);
     if (res) {
-      alert("Chúc mừng! Sản phẩm đã được cập nhật thành công.");
+      alert("Success! The product was updated successfully.");
       window.location.replace("/seller-dashboard/products/" + initialData.product_id);
     } else {
-      throw new Error("Backend trả về lỗi");
+      throw new Error("Backend returned an error");
     }
   };
   return (
@@ -106,14 +106,14 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
       className="bg-white p-8 rounded-2xl border border-[#AFD3E2] space-y-8 shadow-sm"
     >
       <header className="border-b border-[#F6F1F1] pb-4">
-        <h2 className="text-2xl font-bold text-[#146C94]">Chỉnh sửa tài sản</h2>
-        <p className="text-sm text-gray-400 mt-1">Cập nhật thông tin chi tiết và thuộc tính tài sản.</p>
+        <h2 className="text-2xl font-bold text-[#146C94]">Edit Product</h2>
+        <p className="text-sm text-gray-400 mt-1">Update the product details and attributes.</p>
       </header>
 
       {/* Thông tin chính */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-bold text-[#146C94]">Tên tài sản</label>
+          <label className="text-sm font-bold text-[#146C94]">Product name</label>
           <input
             name="tenTaiSan"
             defaultValue={initialData.product_name}
@@ -122,7 +122,7 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
           />
         </div>
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-bold text-[#146C94]">Số lượng</label>
+          <label className="text-sm font-bold text-[#146C94]">Quantity</label>
           <input
             type="number"
             name="soLuong"
@@ -133,7 +133,7 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
         </div>
       </div>
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-bold text-[#146C94]">Danh mục</label>
+        <label className="text-sm font-bold text-[#146C94]">Category</label>
         <select
           name="danhMucId"
           value={selectedCategory}
@@ -141,7 +141,7 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
           required
           className="border border-[#AFD3E2] p-3 rounded-xl focus:ring-2 focus:ring-[#19A7CE]"
         >
-          <option value="">-- Chọn danh mục --</option>
+          <option value="">-- Select a category --</option>
 
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
@@ -152,7 +152,7 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-bold text-[#146C94]">Mô tả chi tiết</label>
+        <label className="text-sm font-bold text-[#146C94]">Detailed description</label>
         <textarea
           name="moTa"
           defaultValue={initialData.description}
@@ -162,9 +162,9 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
 
       {/* Quản lý Ảnh */}
       <div className="space-y-4">
-        <label className="text-sm font-bold text-[#146C94] block">Hình ảnh tài sản</label>
+        <label className="text-sm font-bold text-[#146C94] block">Product images</label>
         <div className="flex flex-wrap gap-4">
-          {/* Ảnh cũ */}
+          {/* Existing images */}
           {existingImages.map((url, index) => (
             <div key={`old-${index}`} className="relative w-28 h-28 group animate-in fade-in zoom-in">
               <Image src={url} width={96} height={96} className="w-full h-full object-cover rounded-xl border-2 border-[#19A7CE]" alt="old" />
@@ -172,11 +172,13 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
                 type="button"
                 onClick={() => removeExistingImage(url)}
                 className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-[10px] shadow-lg hover:scale-110 transition-transform"
-              >✕</button>
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+              </button>
             </div>
           ))}
 
-          {/* Ảnh mới chuẩn bị upload */}
+          {/* New images pending upload */}
           {newPreviews.map((src, index) => (
             <div key={`new-${index}`} className="relative w-28 h-28 group animate-in fade-in slide-in-from-bottom-2">
               <Image src={src} width={96} height={96} className="w-full h-full object-cover rounded-xl border-2 border-dashed border-green-500" alt="new" />
@@ -184,19 +186,21 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
                 type="button"
                 onClick={() => removeNewImage(index)}
                 className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-[10px] shadow-lg"
-              >✕</button>
-              <span className="absolute bottom-1 left-1 bg-green-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow-sm">ẢNH MỚI</span>
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+              </button>
+              <span className="absolute bottom-1 left-1 bg-green-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow-sm">NEW</span>
             </div>
           ))}
 
-          {/* Nút thêm ảnh */}
+          {/* Add image button */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
             className="w-28 h-28 border-2 border-dashed border-[#AFD3E2] rounded-xl flex flex-col items-center justify-center text-[#19A7CE] hover:bg-[#F6F1F1] transition-all"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14" /></svg>
-            <span className="text-[10px] font-bold mt-1">UPLOAD</span>
+            <span className="text-[10px] font-bold mt-1">ADD IMAGE</span>
           </button>
           <input type="file" ref={fileInputRef} onChange={handleFileChange} multiple className="hidden" accept="image/*" />
         </div>
@@ -205,10 +209,10 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
       {/* Quản lý Thuộc tính */}
       <div className="space-y-4 pt-6 border-t border-[#F6F1F1]">
         <div className="flex justify-between items-center">
-          <h3 className="font-bold text-[#146C94]">Thông số kỹ thuật</h3>
+          <h3 className="font-bold text-[#146C94]">Specifications</h3>
           <div className="flex gap-2">
-            <button type="button" onClick={() => addAttribute(true)} className="text-[10px] font-black bg-[#19A7CE] text-white px-3 py-2 rounded-lg shadow-sm active:scale-95 transition-all">HỆ THỐNG</button>
-            <button type="button" onClick={() => addAttribute(false)} className="text-[10px] font-black bg-[#AFD3E2] text-[#146C94] px-3 py-2 rounded-lg shadow-sm active:scale-95 transition-all">TỰ NHẬP</button>
+            <button type="button" onClick={() => addAttribute(true)} className="text-[10px] font-black bg-[#19A7CE] text-white px-3 py-2 rounded-lg shadow-sm active:scale-95 transition-all">SYSTEM</button>
+            <button type="button" onClick={() => addAttribute(false)} className="text-[10px] font-black bg-[#AFD3E2] text-[#146C94] px-3 py-2 rounded-lg shadow-sm active:scale-95 transition-all">CUSTOM</button>
           </div>
         </div>
 
@@ -216,14 +220,14 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
           {attributes.map((attr, index) => (
             <div key={index} className="flex gap-3 items-center group">
               <input
-                placeholder={attr.isSystem ? "Tên thuộc tính (Hệ thống)" : "Tên thuộc tính (Tự nhập)"}
+                placeholder={attr.isSystem ? "Attribute name (System)" : "Attribute name (Custom)"}
                 className={`flex-1 border p-2.5 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#19A7CE] transition-all ${attr.isSystem ? 'border-[#19A7CE] bg-blue-50/20' : 'border-gray-200'
                   }`}
                 value={attr.key}
                 onChange={(e) => updateAttribute(index, 'key', e.target.value)}
               />
               <input
-                placeholder="Giá trị"
+                placeholder="Value"
                 className="flex-1 border border-gray-200 p-2.5 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#19A7CE] transition-all"
                 value={attr.value}
                 onChange={(e) => updateAttribute(index, 'value', e.target.value)}
@@ -242,7 +246,7 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
 
       <footer className="pt-6">
         <button className="w-full bg-[#146C94] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#19A7CE] shadow-lg shadow-blue-100 transition-all active:scale-[0.99]">
-          CẬP NHẬT TÀI SẢN
+          UPDATE PRODUCT
         </button>
       </footer>
     </form>
