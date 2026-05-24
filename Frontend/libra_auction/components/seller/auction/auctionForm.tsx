@@ -4,27 +4,28 @@ import { NewAuction } from "@/types/auction/new-auction";
 import { Product } from "@/types/product/product";
 import { useState } from "react";
 
-export enum AuctionType {
-  DAU_GIA_LEN = "DAU_GIA_LEN",
-  DAU_GIA_XUONG = "DAU_GIA_XUONG",
-  DAU_GIA_KIN = "DAU_GIA_KIN",
-  DAU_GIA_NGUOC = "DAU_GIA_NGUOC"
-}
+type AuctionFormData = {
+  productId: string;
+  thoiGianBatDau: string;
+  thoiLuong: number;
+  giaKhoiDiem: number;
+  buocGiaNhoNhat: number;
+  tienCoc: number;
+};
 
 export default function AuctionForm({ products }: { products: Product[] }) {
   const [step, setStep] = useState(1);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AuctionFormData>({
     productId: "",
     thoiGianBatDau: "",
     thoiLuong: 60,
     giaKhoiDiem: 0,
     buocGiaNhoNhat: 0,
-    tienCoc: 0,
-    loaiDauGia: AuctionType.DAU_GIA_LEN
+    tienCoc: 0
   });
 
-  const handleChange = (field: string, value: string | number) => {
+  const handleChange = <K extends keyof AuctionFormData>(field: K, value: AuctionFormData[K]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -39,9 +40,8 @@ export default function AuctionForm({ products }: { products: Product[] }) {
         thoiLuong: Number(formData.thoiLuong),
         giaKhoiDiem: Number(formData.giaKhoiDiem),
         buocGiaNhoNhat: Number(formData.buocGiaNhoNhat),
-        loaiDauGia: formData.loaiDauGia,
         tienCoc: Number(formData.tienCoc)
-      }
+      };
 
       const res = await createAuction(auction);
       if (res) {
@@ -147,20 +147,6 @@ export default function AuctionForm({ products }: { products: Product[] }) {
                   onChange={(e) => handleChange("tienCoc", Number(e.target.value))}
                   className="border p-2 rounded"
                 />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium">Auction type</label>
-                <select
-                  value={formData.loaiDauGia}
-                  onChange={(e) => handleChange("loaiDauGia", e.target.value)}
-                  className="border p-2 rounded"
-                >
-                  <option value={AuctionType.DAU_GIA_LEN}>Ascending auction</option>
-                  <option value={AuctionType.DAU_GIA_XUONG}>Descending auction</option>
-                  <option value={AuctionType.DAU_GIA_KIN}>Sealed-bid auction</option>
-                  <option value={AuctionType.DAU_GIA_NGUOC}>Reverse auction</option>
-                </select>
               </div>
             </div>
 

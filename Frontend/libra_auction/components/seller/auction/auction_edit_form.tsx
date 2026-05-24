@@ -2,7 +2,6 @@
 
 import { NewAuction } from "@/types/auction/new-auction";
 import { useState, useEffect } from "react";
-import { AuctionType } from "@/components/seller/auction/auctionForm";
 
 interface AuctionFormProps {
   initialData?: NewAuction;
@@ -17,7 +16,6 @@ export const AuctionEditForm = ({ initialData, onSubmit, isUpdating }: AuctionFo
     thoiLuong: 60,
     giaKhoiDiem: 0,
     buocGiaNhoNhat: 0,
-    loaiDauGia: AuctionType.DAU_GIA_LEN,
     tienCoc: 0
   });
 
@@ -120,20 +118,6 @@ export const AuctionEditForm = ({ initialData, onSubmit, isUpdating }: AuctionFo
             required
             className="p-2.5 border rounded-xl"
           />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Auction type</label>
-          <select
-            value={formData.loaiDauGia}
-            onChange={(e) => handleChange("loaiDauGia", e.target.value)}
-            className="p-2.5 border rounded-xl bg-white"
-          >
-            <option value={AuctionType.DAU_GIA_LEN}>Ascending auction</option>
-            <option value={AuctionType.DAU_GIA_XUONG}>Descending auction</option>
-            <option value={AuctionType.DAU_GIA_KIN}>Sealed-bid auction</option>
-            <option value={AuctionType.DAU_GIA_NGUOC}>Reverse auction</option>
-          </select>
         </div>
 
       </div>

@@ -1,5 +1,3 @@
-import { AuctionType } from "../status";
-
 export interface NewAuction {
   taiSanId: string;
   thoiGianBatDau: string | Date;
@@ -7,5 +5,4 @@ export interface NewAuction {
   tienCoc: number;
   giaKhoiDiem: number;
   buocGiaNhoNhat: number;
-  loaiDauGia: AuctionType;
 }

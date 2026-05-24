@@ -29,7 +29,6 @@ export default function EditAuctionPage() {
                     taiSanId: data.product_id,
                     buocGiaNhoNhat: data.min_bid_increment,
                     giaKhoiDiem: data.starting_price,
-                    loaiDauGia: data.auction_type,
                     thoiGianBatDau: data.start_time,
                     thoiLuong: data.duration,
                     tienCoc: 0
@@ -75,7 +74,6 @@ export default function EditAuctionPage() {
                         taiSanId: formData.taiSanId,
                         buocGiaNhoNhat: formData.buocGiaNhoNhat,
                         giaKhoiDiem: formData.giaKhoiDiem,
-                        loaiDauGia: formData.loaiDauGia,
                         thoiGianBatDau: formData.thoiGianBatDau,
                         thoiLuong: formData.thoiLuong,
                         tienCoc: formData.tienCoc
