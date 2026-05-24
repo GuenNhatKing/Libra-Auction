@@ -19,7 +19,6 @@ public interface ProductResponseMapper {
     @Mapping(source = "danhMuc.tenDanhMuc", target = "category_name")
     @Mapping(source = "hinhAnhTaiSanList", target = "images")
     @Mapping(source = "thuocTinhTaiSanList", target = "attributes")
-    @Mapping(source = "trangThaiKiemDuyet", target = "approval_status")
     ProductResponse toProductResponse(Product product);
 
     List<ProductResponse> toProductResponseList(List<Product> products);

@@ -1,4 +1,3 @@
-import { ApprovalStatus } from "../status";
 import { Attribute } from "./attribute";
 
 export interface Product {
@@ -10,5 +9,4 @@ export interface Product {
   description: string;
   images: string[];
   attributes: Attribute[];
-  approval_status: ApprovalStatus;
 }

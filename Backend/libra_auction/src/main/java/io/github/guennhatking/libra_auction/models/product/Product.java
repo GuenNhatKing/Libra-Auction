@@ -2,8 +2,7 @@ package io.github.guennhatking.libra_auction.models.product;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,7 +11,6 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.OneToMany;
 import java.util.List;
 
-import io.github.guennhatking.libra_auction.enums.auction.ApprovalStatus;
 import io.github.guennhatking.libra_auction.models.auction.Auction;
 import io.github.guennhatking.libra_auction.models.person.Customer;
 
@@ -25,7 +23,7 @@ public class Product {
     @ManyToOne
     private Customer nguoiTao;
 
-    @OneToOne(mappedBy = "taiSan")
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "taiSan")
     private Auction phienDauGia;
 
     @ManyToOne
@@ -53,9 +51,6 @@ public class Product {
     
     @Column(columnDefinition = "TEXT")
     private String moTa;
-
-    @Enumerated(EnumType.STRING)
-    private ApprovalStatus trangThaiKiemDuyet;
 
     // CONSTRUCTOR
     public Product() {
@@ -97,10 +92,6 @@ public class Product {
         return moTa;
     }
 
-    public ApprovalStatus getTrangThaiKiemDuyet() {
-        return trangThaiKiemDuyet;
-    }
-
     public List<ProductImage> getHinhAnhTaiSanList() {
         return hinhAnhTaiSanList;
     }
@@ -136,10 +127,6 @@ public class Product {
 
     public void setMoTa(String moTa) {
         this.moTa = moTa;
-    }
-
-    public void setTrangThaiKiemDuyet(ApprovalStatus trangThaiKiemDuyet) {
-        this.trangThaiKiemDuyet = trangThaiKiemDuyet;
     }
 
     public void setHinhAnhTaiSanList(List<ProductImage> hinhAnhTaiSanList) {

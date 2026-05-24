@@ -1,20 +1,5 @@
 import { Product } from "@/types/product/product";
 
-const approvalStatusConfig = {
-  DA_DUYET: {
-    label: "Approved",
-    classes: "text-emerald-700 bg-emerald-50 border-emerald-100",
-  },
-  BI_TU_CHOI: {
-    label: "Rejected",
-    classes: "text-red-700 bg-red-50 border-red-100",
-  },
-  CHUA_DUYET: {
-    label: "Processing",
-    classes: "text-amber-700 bg-amber-50 border-amber-100",
-  },
-} as const;
-
 interface ProductItemProps {
   product: Product;
   onView: (id: string) => void;
@@ -36,10 +21,6 @@ export const ProductItem = ({ product, onView, onEdit, onDelete }: ProductItemPr
           <div className="flex flex-wrap items-center gap-2 mt-1">
             <span className="text-xs font-medium text-(--secondary-color) bg-(--accent-color) bg-opacity-30 px-2 py-0.5 rounded-lg">
               {product.category_name}
-            </span>
-
-            <span className={`text-xs font-medium border px-2 py-0.5 rounded-lg ${approvalStatusConfig[product.approval_status].classes}`}>
-              {approvalStatusConfig[product.approval_status].label}
             </span>
 
             <span className="text-sm text-gray-500 ml-1">

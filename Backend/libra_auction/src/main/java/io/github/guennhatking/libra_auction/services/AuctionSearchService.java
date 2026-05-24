@@ -111,7 +111,6 @@ public class AuctionSearchService {
                 .filter(session -> filterByStatus(session, criteria.status()))
                 .filter(session -> filterByOwner(session, criteria.chuSoHuuId()))
                 .filter(session -> filterByApprovalStatus(session, criteria.trangThaiKiemDuyet(), criteria.chuSoHuuId()))
-                .filter(session -> filterByProductApprovalStatus(session, criteria.trangThaiKiemDuyet(), criteria.chuSoHuuId()))
                 .filter(session -> filterByAttributes(session, criteria.attributes()))
                 .collect(Collectors.toList());
     }
@@ -238,25 +237,6 @@ public class AuctionSearchService {
         // For public/unauthenticated users, only show approved auctions
         return session.getTrangThaiKiemDuyet() != null && 
                session.getTrangThaiKiemDuyet().equals(ApprovalStatus.DA_DUYET);
-    }
-
-    private boolean filterByProductApprovalStatus(Auction session, String trangThaiKiemDuyet, String chuSoHuuId) {
-        // If a specific approval status filter is specified (admin viewing), don't check product approval
-        if (trangThaiKiemDuyet != null && !trangThaiKiemDuyet.isBlank()) {
-            return true;
-        }
-        
-        // If seller is viewing their own auctions, allow any product approval status
-        if (chuSoHuuId != null && !chuSoHuuId.isBlank()) {
-            return session.getTaiSan() != null;
-        }
-        
-        // For public viewing, product must also be approved
-        if (session.getTaiSan() == null) {
-            return false;
-        }
-        return session.getTaiSan().getTrangThaiKiemDuyet() != null &&
-               session.getTaiSan().getTrangThaiKiemDuyet().equals(ApprovalStatus.DA_DUYET);
     }
 
     private List<Auction> applySort(List<Auction> sessions, AuctionSearchRequest criteria) {

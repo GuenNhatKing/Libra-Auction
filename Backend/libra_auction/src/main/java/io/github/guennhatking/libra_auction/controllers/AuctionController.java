@@ -224,7 +224,7 @@ public class AuctionController {
                     .body(ServerAPIResponse.error("Admin role required"));
         }
 
-        AuctionResponse response = auctionService.approveAuctionWithProduct(id, userDetails.getUserId());
+        AuctionResponse response = auctionService.approveAuction(id, userDetails.getUserId());
         return ResponseEntity.ok(ServerAPIResponse.success(response));
     }
 
@@ -245,7 +245,7 @@ public class AuctionController {
         }
 
         String reason = request != null ? request.get("reason") : null;
-        AuctionResponse response = auctionService.rejectAuctionWithProduct(id, userDetails.getUserId(), reason);
+        AuctionResponse response = auctionService.rejectAuction(id, userDetails.getUserId(), reason);
         return ResponseEntity.ok(ServerAPIResponse.success(response));
     }
 

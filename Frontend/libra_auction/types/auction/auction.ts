@@ -1,5 +1,5 @@
 import { Attribute } from "../product/attribute";
-import { AuctionStatus } from "../status";
+import { ApprovalStatus, AuctionStatus } from "../status";
 
 export interface Auction {
         category_id: string,
@@ -7,6 +7,7 @@ export interface Auction {
         auction_id: string,
         auction_name: string,
         auction_status: AuctionStatus,
+        approval_status: ApprovalStatus,
         start_time: Date,
         duration: number,
 

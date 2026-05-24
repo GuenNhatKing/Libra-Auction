@@ -61,11 +61,6 @@ public class AuctionService {
                 if (session.getTrangThaiKiemDuyet() != ApprovalStatus.DA_DUYET) {
                         throw new IllegalArgumentException("Auction session not found");
                 }
-                // Also check if the product is approved
-                if (session.getTaiSan() == null || 
-                    session.getTaiSan().getTrangThaiKiemDuyet() != ApprovalStatus.DA_DUYET) {
-                        throw new IllegalArgumentException("Auction session not found");
-                }
                 return auctionMapper.toAuctionResponse(session);
         }
 
@@ -77,11 +72,6 @@ public class AuctionService {
                                                 "Auction not found in this category"));
                 // For public endpoint, only return approved auctions
                 if (session.getTrangThaiKiemDuyet() != ApprovalStatus.DA_DUYET) {
-                        throw new IllegalArgumentException("Auction not found in this category");
-                }
-                // Also check if the product is approved
-                if (session.getTaiSan() == null || 
-                    session.getTaiSan().getTrangThaiKiemDuyet() != ApprovalStatus.DA_DUYET) {
                         throw new IllegalArgumentException("Auction not found in this category");
                 }
                 return auctionMapper.toAuctionResponse(session);
@@ -229,47 +219,6 @@ public class AuctionService {
                 return count;
         }
 
-        // ========== MERGED ADMIN APPROVAL METHODS ==========
-        // Approves both auction and its related product
-
-        @Transactional
-        public AuctionResponse approveAuctionWithProduct(String id, String adminId) {
-                Auction session = phienDauGiaRepository.findById(id)
-                                .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
-
-                // Approve the auction
-                session.setTrangThaiKiemDuyet(ApprovalStatus.DA_DUYET);
-                Auction saved = phienDauGiaRepository.save(session);
-
-                // Also approve the related product
-                Product product = saved.getTaiSan();
-                if (product != null) {
-                        product.setTrangThaiKiemDuyet(ApprovalStatus.DA_DUYET);
-                        taiSanRepository.save(product);
-                }
-
-                return auctionMapper.toAuctionResponse(saved);
-        }
-
-        @Transactional
-        public AuctionResponse rejectAuctionWithProduct(String id, String adminId, String reason) {
-                Auction session = phienDauGiaRepository.findById(id)
-                                .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
-
-                // Reject the auction
-                session.setTrangThaiKiemDuyet(ApprovalStatus.BI_TU_CHOI);
-                Auction saved = phienDauGiaRepository.save(session);
-
-                // Also reject the related product
-                Product product = saved.getTaiSan();
-                if (product != null) {
-                        product.setTrangThaiKiemDuyet(ApprovalStatus.BI_TU_CHOI);
-                        taiSanRepository.save(product);
-                }
-
-                return auctionMapper.toAuctionResponse(saved);
-        }
-
         // ========== PUBLIC PRODUCT RETRIEVAL METHODS ==========
         // Get product from an approved auction to ensure security
 
@@ -292,11 +241,6 @@ public class AuctionService {
                 // Verify it's the correct product
                 if (!product.getId().equals(productId)) {
                         throw new IllegalArgumentException("Product does not belong to this auction");
-                }
-
-                // Verify product is also approved
-                if (product.getTrangThaiKiemDuyet() != ApprovalStatus.DA_DUYET) {
-                        throw new IllegalArgumentException("Product is not approved");
                 }
 
                 // Return product response

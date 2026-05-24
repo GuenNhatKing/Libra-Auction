@@ -20,25 +20,14 @@ public record ProductSearchRequest(
         String sortOrder,
         
         // Creator/Owner id – optional, null when not filtering by creator
-        String nguoiTaoId,
-        
-        // Approval status filter
-        String trangThaiKiemDuyet) {
+            String nguoiTaoId) {
 
-    // Secondary constructor for standard calls (without creator id and approval status)
+        // Secondary constructor for standard calls (without creator id)
     public ProductSearchRequest(String name, String categoryId,
                                 List<Map<String, String>> attributes,
                                 Integer page, Integer pageSize,
                                 String sortBy, String sortOrder) {
-        this(name, categoryId, attributes, page, pageSize, sortBy, sortOrder, null, null);
-    }
-    
-    // Method to add approval status filter
-    public ProductSearchRequest withApprovalStatus(String status) {
-        return new ProductSearchRequest(
-                this.name, this.categoryId, this.attributes, 
-                this.page, this.pageSize, this.sortBy, this.sortOrder, 
-                this.nguoiTaoId, status);
+            this(name, categoryId, attributes, page, pageSize, sortBy, sortOrder, null);
     }
     
     // Method to add page
@@ -46,7 +35,7 @@ public record ProductSearchRequest(
         return new ProductSearchRequest(
                 this.name, this.categoryId, this.attributes, 
                 page, this.pageSize, this.sortBy, this.sortOrder, 
-                this.nguoiTaoId, this.trangThaiKiemDuyet);
+                    this.nguoiTaoId);
     }
     
     // Method to add page size
@@ -54,6 +43,6 @@ public record ProductSearchRequest(
         return new ProductSearchRequest(
                 this.name, this.categoryId, this.attributes, 
                 this.page, pageSize, this.sortBy, this.sortOrder, 
-                this.nguoiTaoId, this.trangThaiKiemDuyet);
+                    this.nguoiTaoId);
     }
 }
