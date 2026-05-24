@@ -57,11 +57,28 @@ public class ProductController {
                    .anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()));
     }
 
-    @GetMapping("/public/products")
-    public ResponseEntity<ServerAPIResponse<PageResponse<ProductResponse>>> searchProducts(
-            ProductSearchRequest request) {
-        PageResponse<ProductResponse> response = productSearchService.searchProducts(request);
-        return ResponseEntity.ok(ServerAPIResponse.success(response));
+    @GetMapping("/products/{id}")
+    public ResponseEntity<ServerAPIResponse<ProductResponse>> getProductById(
+            @AuthenticationPrincipal JwtUserDetails userDetails,
+            @PathVariable String id) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error("Authentication required"));
+        }
+        try {
+            // get product by id, only if the product belongs to the user or the user is admin
+            ProductSearchRequest request = new ProductSearchRequest(
+                    null, null, null, null, null, null, null, userDetails.getUserId(), null);
+            PageResponse<ProductResponse> response = productSearchService.searchProducts(request);
+            if (response.content().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ServerAPIResponse.error("Product not found"));
+            }
+            return ResponseEntity.ok(ServerAPIResponse.success(response.content().get(0)));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        }
     }
 
     @GetMapping("/products")

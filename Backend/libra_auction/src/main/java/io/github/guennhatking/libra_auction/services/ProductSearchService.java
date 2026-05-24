@@ -19,7 +19,7 @@ public class ProductSearchService {
     private final ProductResponseMapper productResponseMapper;
 
     public ProductSearchService(ProductRepository taiSanRepository,
-                                ProductResponseMapper productResponseMapper) {
+            ProductResponseMapper productResponseMapper) {
         this.taiSanRepository = taiSanRepository;
         this.productResponseMapper = productResponseMapper;
     }
@@ -40,11 +40,16 @@ public class ProductSearchService {
 
     private List<Product> applyFilters(List<Product> products, ProductSearchRequest criteria) {
         return products.stream()
-                .filter(product -> filterByName(product, criteria.name()))
-                .filter(product -> filterByCategory(product, criteria.categoryId()))
-                .filter(product -> filterByAttributes(product, criteria.attributes()))
-                .filter(product -> filterByCreator(product, criteria.nguoiTaoId()))
-                .filter(product -> filterByApprovalStatus(product, criteria.trangThaiKiemDuyet()))
+                .filter(product -> criteria.name() == null
+                        || filterByName(product, criteria.name()))
+                .filter(product -> criteria.categoryId() == null
+                        || filterByCategory(product, criteria.categoryId()))
+                .filter(product -> criteria.attributes() == null
+                        || filterByAttributes(product, criteria.attributes()))
+                .filter(product -> criteria.nguoiTaoId() == null
+                        || filterByCreator(product, criteria.nguoiTaoId()))
+                .filter(product -> criteria.trangThaiKiemDuyet() == null
+                        || filterByApprovalStatus(product, criteria.trangThaiKiemDuyet()))
                 .collect(Collectors.toList());
     }
 
@@ -100,8 +105,8 @@ public class ProductSearchService {
     private boolean filterByApprovalStatus(Product product, String trangThaiKiemDuyet) {
         if (trangThaiKiemDuyet == null || trangThaiKiemDuyet.isBlank()) {
             // If no approval filter is specified, only show approved products by default
-            return product.getTrangThaiKiemDuyet() != null && 
-                   product.getTrangThaiKiemDuyet().equals(ApprovalStatus.DA_DUYET);
+            return product.getTrangThaiKiemDuyet() != null &&
+                    product.getTrangThaiKiemDuyet().equals(ApprovalStatus.DA_DUYET);
         }
         if (product.getTrangThaiKiemDuyet() == null) {
             return false;
@@ -130,7 +135,7 @@ public class ProductSearchService {
     }
 
     private PageResponse<ProductResponse> applyPagination(List<Product> products,
-                                                          ProductSearchRequest criteria) {
+            ProductSearchRequest criteria) {
         int page = criteria.page() != null ? criteria.page() : 0;
         int pageSize = criteria.pageSize() != null ? criteria.pageSize() : 20;
 
