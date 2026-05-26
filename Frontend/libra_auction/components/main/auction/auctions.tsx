@@ -25,10 +25,15 @@ export default async function Auctions({
         fetchCategories(),
     ]);
 
+    const visibleCards = cards.filter((card) =>
+        card.approval_status === "DA_DUYET" &&
+        (card.auction_status === "CHUA_BAT_DAU" || card.auction_status === "DANG_DIEN_RA")
+    );
+
     const pageTitle = categoryName || "Online Auction Marketplace";
     const pageDescription = categoryName
-        ? `Found ${cards.length} auctions in this category`
-        : `Found ${cards.length} live auctions`;
+        ? `Found ${visibleCards.length} auctions in this category`
+        : `Found ${visibleCards.length} live auctions`;
 
     return (
         <div className="flex min-h-screen bg-(--background-color)">
@@ -63,13 +68,13 @@ export default async function Auctions({
 
                 {/* Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {cards.map((card) => (
+                    {visibleCards.map((card) => (
                         <AuctionCard key={card.auction_id} auctionCard={card} />
                     ))}
                 </div>
 
                 {/* Empty state */}
-                {cards.length === 0 && (
+                {visibleCards.length === 0 && (
                     <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100">
                         <p className="text-gray-400">No matching auctions found.</p>
                         {backHref && (

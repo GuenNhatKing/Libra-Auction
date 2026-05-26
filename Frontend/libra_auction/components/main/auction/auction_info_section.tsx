@@ -1,11 +1,11 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Image from "next/image";
+import Link from "next/link";
 import { Auction } from "@/types/auction/auction";
 import { CurrencyFormat } from '@/utils/currency_format';
 import { TimeFormat } from '@/utils/time_format';
 import { DurationFormat } from '@/utils/duration_format';
-import { DateFormat } from '@/utils/date_format';
 import countdown from '@/public/countdown.png';
 import startFlag from '@/public/start_flag.png';
 import increment from '@/public/increment.png';
@@ -21,6 +21,24 @@ export default function AuctionInfoSection({
   const [activeImage, setActiveImage] = useState(autionInfos.images[0]);
   const [isRegistering, setIsRegistering] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const isLive = autionInfos.auction_status === "DANG_DIEN_RA";
+  const startDate = new Date(autionInfos.start_time);
+
+  const formatDateOnly = (date: Date) => {
+    return new Intl.DateTimeFormat('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(date);
+  };
+
+  const formatTimeOnly = (date: Date) => {
+    return new Intl.DateTimeFormat('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(date);
+  };
 
   // Countdown Timer Logic
   useEffect(() => {
@@ -103,7 +121,7 @@ export default function AuctionInfoSection({
                 <div className="bg-(--primary-color)/15 border border-(--primary-color)/5 rounded-2xl p-6 relative overflow-hidden">
                   <h3 className="text-(--secondary-color) font-semibold mb-4 flex items-center gap-2">
                     <Image src={countdown} width={20} height={20} alt='' />
-                    Auction Starts In
+                    {isLive ? 'Auction Live Now' : 'Auction Starts In'}
                   </h3>
                   <div className="flex gap-4 md:gap-6 text-center relative justify-center">
                     {Object.entries(timeLeft).map(([unit, value]) => (
@@ -155,7 +173,7 @@ export default function AuctionInfoSection({
                       Start Date
                     </div>
                     <div className="text-2xl font-bold text-gray-900">
-                      {/* {DateFormat(autionInfos.start_time)} */}
+                      {formatDateOnly(startDate)}
                     </div>
                   </div>
 
@@ -165,7 +183,7 @@ export default function AuctionInfoSection({
                       Start Time
                     </div>
                     <div className="text-2xl font-bold text-gray-900">
-                      {/* {TimeFormat(autionInfos.start_time)} */}
+                      {formatTimeOnly(startDate)}
                     </div>
                   </div>
 
@@ -181,22 +199,31 @@ export default function AuctionInfoSection({
                 </div>
               </div>
               <div className="pt-4 mt-4 border-t border-gray-100">
-                <button
-                  onClick={handleRegister}
-                  disabled={isRegistering}
-                  className="w-full flex items-center justify-center gap-3 bg-(--secondary-color)/90 hover:bg-(--secondary-color)/80 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed text-white text-lg font-bold py-5 px-8 rounded-2xl shadow-lg transition-all duration-200 group"
-                >
-                  {isRegistering ? (
-                    <div className="animate-pulse">Loading...</div>
-                  ) : (
-                    <>
-                      Register to Join Auction
-                    </>
-                  )}
-                </button>
-                <p className="text-center text-sm text-gray-400 mt-4">
-                  Registration is required to participate. No charges apply until you win.
-                </p>
+                {isLive ? (
+                  <Link
+                    href={`/auctions/${autionInfos.category_id}/${autionInfos.auction_id}/live`}
+                    className="w-full flex items-center justify-center gap-3 bg-green-600 hover:bg-green-700 active:scale-[0.98] text-white text-lg font-bold py-5 px-8 rounded-2xl shadow-lg transition-all duration-200 group"
+                  >
+                    View live
+                  </Link>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleRegister}
+                      disabled={isRegistering}
+                      className="w-full flex items-center justify-center gap-3 bg-(--secondary-color)/90 hover:bg-(--secondary-color)/80 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed text-white text-lg font-bold py-5 px-8 rounded-2xl shadow-lg transition-all duration-200 group"
+                    >
+                      {isRegistering ? (
+                        <div className="animate-pulse">Loading...</div>
+                      ) : (
+                        <>Register to Join Auction</>
+                      )}
+                    </button>
+                    <p className="text-center text-sm text-gray-400 mt-4">
+                      Registration is required to participate. No charges apply until you win.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </div>

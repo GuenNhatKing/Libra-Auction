@@ -1,4 +1,5 @@
 import AuctionInfoDetailsSection from "@/components/main/auction/auction_info_details_section";
+import AuctionQuestionsSection from "@/components/main/auction/auction_questions_section";
 import BreadCrumb from "@/components/main/auction/breadcrumb";
 import { fetchPublicAuction } from "@/services/fetch_public_auction";
 import { Auction } from "@/types/auction/auction";
@@ -30,6 +31,7 @@ export default async function page(props: {
       <BreadCrumb breadcrumbItems={breadcrumb_items} />
       <AuctionInfoSection autionInfos={auction_info} />
       <AuctionInfoDetailsSection autionInfos={auction_info} />
+      <AuctionQuestionsSection auctionId={auction_info.auction_id} />
     </>
   );
 }

@@ -11,7 +11,7 @@ export default async function LiveAuctionsSection() {
         <h2 className="font-bold text-4xl">Live Auctions</h2>
         <p>Join Live Auctions Happening Right Now</p>
       </div>
-      <div className="flex gap-9 justify-center pt-6 px-18">
+      <div className="grid grid-cols-1 gap-9 pt-6 px-18 md:grid-cols-2 xl:grid-cols-3 items-stretch">
         {cards.map((card) => {
           return <LiveAuctionCard key={card.id} card={card}/>;
         })}

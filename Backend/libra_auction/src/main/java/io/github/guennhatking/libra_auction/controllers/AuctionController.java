@@ -3,12 +3,17 @@ package io.github.guennhatking.libra_auction.controllers;
 import io.github.guennhatking.libra_auction.services.AuctionSearchService;
 import io.github.guennhatking.libra_auction.services.AuctionService;
 import io.github.guennhatking.libra_auction.services.CustomerService;
+import io.github.guennhatking.libra_auction.models.qa.Question;
+import io.github.guennhatking.libra_auction.repositories.qa.QuestionRepository;
+import io.github.guennhatking.libra_auction.enums.qa.QuestionStatus;
 import io.github.guennhatking.libra_auction.utils.ParseDateTime;
 import io.github.guennhatking.libra_auction.viewmodels.request.AuctionCreateRequest;
 import io.github.guennhatking.libra_auction.security.JwtUserDetails;
 import io.github.guennhatking.libra_auction.viewmodels.request.AuctionSearchRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.AuctionSearchRequestWrapper;
 import io.github.guennhatking.libra_auction.viewmodels.request.AuctionUpdateRequest;
+import io.github.guennhatking.libra_auction.viewmodels.response.AuctionQuestionAnswerResponse;
+import io.github.guennhatking.libra_auction.viewmodels.response.AuctionQuestionResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.AuctionResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.PageResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.ServerAPIResponse;
@@ -28,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -36,13 +42,16 @@ public class AuctionController {
     private final AuctionService auctionService;
     private final AuctionSearchService searchService;
     private final CustomerService userService;
+    private final QuestionRepository questionRepository;
 
     public AuctionController(AuctionService auctionService,
             AuctionSearchService searchService,
-            CustomerService userService) {
+            CustomerService userService,
+            QuestionRepository questionRepository) {
         this.auctionService = auctionService;
         this.searchService = searchService;
         this.userService = userService;
+        this.questionRepository = questionRepository;
     }
 
     // Helper method to check if user is admin
@@ -151,6 +160,19 @@ public class AuctionController {
         return ResponseEntity.ok(ServerAPIResponse.success(response));
     }
 
+    @GetMapping("/public/auctions/{id}/questions")
+    public ResponseEntity<ServerAPIResponse<List<AuctionQuestionResponse>>> getPublicAuctionQuestions(
+            @PathVariable String id) {
+
+        List<AuctionQuestionResponse> questions = questionRepository
+                .findByPhienDauGiaIdOrderByThoiGianHoiAsc(id)
+                .stream()
+                .map(this::toQuestionResponse)
+                .toList();
+
+        return ResponseEntity.ok(ServerAPIResponse.success(questions));
+    }
+
     @GetMapping("/auctions/{id}")
     public ResponseEntity<ServerAPIResponse<AuctionResponse>> getAuctionById(
             @AuthenticationPrincipal JwtUserDetails userDetails,
@@ -166,6 +188,26 @@ public class AuctionController {
 
         return ResponseEntity.ok(ServerAPIResponse.success(response));
 
+    }
+
+    private AuctionQuestionResponse toQuestionResponse(Question question) {
+    String userName = question.getNguoiHoi() != null && question.getNguoiHoi().getHoVaTen() != null
+        && !question.getNguoiHoi().getHoVaTen().isBlank()
+        ? question.getNguoiHoi().getHoVaTen()
+        : "Anonymous";
+
+    AuctionQuestionAnswerResponse answer = question.getTinhTrangCauHoi() == QuestionStatus.DA_TRA_LOI
+        && question.getNoiDungTraLoi() != null
+        && !question.getNoiDungTraLoi().isBlank()
+            ? new AuctionQuestionAnswerResponse(question.getNoiDungTraLoi(), question.getThoiGianTraLoi())
+            : null;
+
+    return new AuctionQuestionResponse(
+        question.getId(),
+        userName,
+        question.getNoiDungHoi(),
+        question.getThoiGianHoi(),
+        answer);
     }
 
     @PostMapping("/auctions")
