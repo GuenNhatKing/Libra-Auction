@@ -193,8 +193,8 @@ export default function AuctionInfoSection({
                       Duration
                     </div>
                     <div className="text-2xl font-bold text-gray-900">
-                      {DurationFormat(autionInfos.duration)}
-                    </div>
+                        {DurationFormat(autionInfos.duration * 60 * 1000)}
+                      </div>
                   </div>
                 </div>
               </div>
