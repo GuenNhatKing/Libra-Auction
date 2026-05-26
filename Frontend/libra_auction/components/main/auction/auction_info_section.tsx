@@ -12,7 +12,6 @@ import increment from '@/public/increment.png';
 import calendar from '@/public/calendar.png';
 import hourGlass from '@/public/hourglass.png';
 import clock from '@/public/clock.png';
-import typeIcon from '@/public/type.png';
 
 export default function AuctionInfoSection({
   autionInfos
@@ -67,7 +66,7 @@ export default function AuctionInfoSection({
               <div className="relative aspect-square w-full rounded-2xl bg-gray-50 border border-gray-100 overflow-hidden shadow-sm group flex items-center justify-center">
                 <Image
                   src={activeImage}
-                  alt={autionInfos.auction_name}
+                  alt={autionInfos.product_name}
                   fill
                   className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
                 />
@@ -83,7 +82,7 @@ export default function AuctionInfoSection({
                     <Image
                       src={img}
                       fill
-                      alt={`${autionInfos.auction_name} thumbnail ${index + 1}`}
+                      alt={`${autionInfos.product_name} thumbnail ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
                   </button>
@@ -98,7 +97,7 @@ export default function AuctionInfoSection({
                     <span>#{autionInfos.product_id}</span>
                   </div>
                   <h1 className="text-4xl font-bold text-gray-900 leading-tight line-clamp-2">
-                    {autionInfos.auction_name}
+                    {autionInfos.product_name}
                   </h1>
                 </div>
                 <div className="bg-(--primary-color)/15 border border-(--primary-color)/5 rounded-2xl p-6 relative overflow-hidden">
@@ -177,15 +176,6 @@ export default function AuctionInfoSection({
                     </div>
                     <div className="text-2xl font-bold text-gray-900">
                       {DurationFormat(autionInfos.duration)}
-                    </div>
-                  </div>
-                  <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
-                    <div className="flex items-center gap-2 text-gray-500 mb-2">
-                      <Image src={typeIcon} width={16} height={16} alt='' />
-                      Auction Type
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900">
-                      {autionInfos.auction_type}
                     </div>
                   </div>
                 </div>

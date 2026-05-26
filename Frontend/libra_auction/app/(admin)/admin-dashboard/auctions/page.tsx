@@ -47,7 +47,7 @@ function mapAuction(auction: AdminAuction): AuctionRow {
     ...auction,
     id: auction.auction_id,
     image: auction.images?.[0] || "/default-avatar.png",
-    name: auction.auction_name,
+    name: auction.product_name,
     category: auction.category_name || "-",
     startingPrice: auction.starting_price,
     startTime: DateFormat(startDate),
@@ -223,7 +223,7 @@ export default function AuctionsApprovalPage() {
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Image</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Auction Name</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Product Name</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Product</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Category</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Starting Price</th>
@@ -303,7 +303,6 @@ export default function AuctionsApprovalPage() {
           isOpen={selectedAuction.isOpen}
           onClose={() => setSelectedAuction({ isOpen: false, data: null })}
           auctionData={{
-            name: selectedAuction.data.name,
             productName: selectedAuction.data.productName,
             description: selectedAuction.data.description,
             startTime: selectedAuction.data.startTime,

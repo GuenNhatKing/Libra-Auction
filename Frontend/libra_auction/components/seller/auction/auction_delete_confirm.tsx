@@ -35,8 +35,8 @@ export const AuctionDeleteConfirm = ({ auction, onDelete, onCancel }: AuctionDel
 
         {/* Auction details for final verification */}
         <div className="w-full bg-(--background-color) p-4 rounded-xl text-left border border-gray-100 my-2">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Auction name</p>
-          <p className="text-base font-semibold text-gray-800">{auction.auction_name}</p>
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Product name</p>
+          <p className="text-base font-semibold text-gray-800">{auction.product_name}</p>
           
           <div className="flex justify-between mt-3 pt-3 border-t border-gray-200 gap-4">
             <div>

@@ -92,11 +92,9 @@ public interface AuctionMapper {
             return "Vật phẩm không tên";
         }
 
-        String tenTaiSan = session.getTaiSan().getTenTaiSan();
-        if (tenTaiSan != null && !tenTaiSan.trim().isEmpty()) {
-            return tenTaiSan;
-        }
-
-        return "Vật phẩm không tên";
+        String productName = session.getTaiSan().getTenTaiSan();
+        return productName != null && !productName.trim().isEmpty()
+                ? productName
+                : "Vật phẩm không tên";
     }
 }

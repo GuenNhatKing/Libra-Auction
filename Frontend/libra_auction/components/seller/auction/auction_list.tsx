@@ -14,7 +14,7 @@ export const AuctionList = ({ auctions }: AuctionListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredAuctions = auctions.filter((auction) =>
-    auction.auction_name.toLowerCase().includes(searchTerm.toLowerCase())
+    auction.product_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
   const router = useRouter();
 

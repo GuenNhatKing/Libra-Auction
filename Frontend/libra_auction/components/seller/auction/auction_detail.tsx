@@ -49,7 +49,7 @@ export const AuctionDetail = ({ data }: AuctionDetailProps) => {
             {data.category_name}
           </nav>
 
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">{data.auction_name}</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">{data.product_name}</h1>
 
             <div className="flex flex-wrap items-center gap-2 mb-6 pb-6 border-b border-gray-50">
             <span>

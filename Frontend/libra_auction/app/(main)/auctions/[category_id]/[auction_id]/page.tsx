@@ -22,7 +22,7 @@ export default async function page(props: {
   });
   breadcrumb_items.push({
     id: auction_info.auction_id,
-    value: auction_info.auction_name,
+    value: auction_info.product_name,
     href: `/auctions/${auction_info.category_id}/${auction_info.auction_id}`,
   });
   return (

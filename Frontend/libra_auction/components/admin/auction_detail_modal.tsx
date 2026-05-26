@@ -7,7 +7,6 @@ interface AuctionDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   auctionData: {
-    name: string;
     productName: string;
     description: string;
     startTime: string;
@@ -38,7 +37,7 @@ export default function AuctionDetailModal({
     <AdminModal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Auction Details - ${auctionData.name}`}
+      title={`Auction Details - ${auctionData.productName}`}
       size="large"
       footer={
         <div className="flex justify-end gap-3">
@@ -54,12 +53,6 @@ export default function AuctionDetailModal({
       <div className="space-y-6">
         {/* Basic Info */}
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-              Auction Name
-            </p>
-            <p className="text-lg font-bold text-gray-800 mt-1">{auctionData.name}</p>
-          </div>
           <div>
             <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
               Product Name
