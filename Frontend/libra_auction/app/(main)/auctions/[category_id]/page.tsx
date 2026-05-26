@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 
 export default async function page(props: {
     params: Promise<{ category_id: string }>;
-    searchParams?: { name?: string; status?: string };
+    searchParams?: { name?: string; status?: string; priceFrom?: string; priceTo?: string };
 }) {
     const params = await props.params;
     const categories = await fetchCategories();
@@ -21,6 +21,8 @@ export default async function page(props: {
             categoryName={category.title}
             searchTerm={props.searchParams?.name}
             searchStatus={props.searchParams?.status}
+            priceFrom={props.searchParams?.priceFrom}
+            priceTo={props.searchParams?.priceTo}
             backHref="/auctions"
         />
     );

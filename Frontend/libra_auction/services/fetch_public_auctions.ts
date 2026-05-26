@@ -3,7 +3,13 @@ import { ServerAPICall } from "@/lib/server_API_call";
 import { Auction } from "@/types/auction/auction";
 import { PageResponse } from "@/types/page_response";
 
-export async function fetchPublicAuctions(categoryId?: string, name?: string, status?: string): Promise<Auction[]> {
+export async function fetchPublicAuctions(
+    categoryId?: string,
+    name?: string,
+    status?: string,
+    priceFrom?: string,
+    priceTo?: string,
+): Promise<Auction[]> {
     const request: RequestInit = {
         method: "GET",
     }
@@ -15,6 +21,14 @@ export async function fetchPublicAuctions(categoryId?: string, name?: string, st
 
     if (status) {
         query.set("status", status);
+    }
+
+    if (priceFrom) {
+        query.set("priceFrom", priceFrom);
+    }
+
+    if (priceTo) {
+        query.set("priceTo", priceTo);
     }
 
     const queryString = query.toString();

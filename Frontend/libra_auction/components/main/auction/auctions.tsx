@@ -8,16 +8,20 @@ export default async function Auctions({
     categoryName,
     searchTerm,
     searchStatus,
+    priceFrom,
+    priceTo,
     backHref,
 }: {
     categoryId?: string;
     categoryName?: string;
     searchTerm?: string;
     searchStatus?: string;
+    priceFrom?: string;
+    priceTo?: string;
     backHref?: string;
 }) {
     const [cards, categories] = await Promise.all([
-        fetchPublicAuctions(categoryId, searchTerm, searchStatus),
+        fetchPublicAuctions(categoryId, searchTerm, searchStatus, priceFrom, priceTo),
         fetchCategories(),
     ]);
 
@@ -35,6 +39,8 @@ export default async function Auctions({
                     activeCategoryId={categoryId}
                     initialSearchTerm={searchTerm}
                     initialStatus={searchStatus}
+                    initialPriceFrom={priceFrom}
+                    initialPriceTo={priceTo}
                 />
             </aside>
 

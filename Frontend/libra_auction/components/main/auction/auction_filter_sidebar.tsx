@@ -16,11 +16,15 @@ export const AuctionFilterSidebar = ({
     activeCategoryId = "",
     initialSearchTerm = "",
     initialStatus = "",
+    initialPriceFrom = "",
+    initialPriceTo = "",
 }: {
     categories: Category[];
     activeCategoryId?: string;
     initialSearchTerm?: string;
     initialStatus?: string;
+    initialPriceFrom?: string;
+    initialPriceTo?: string;
 }) => {
     const router = useRouter();
     const pathname = usePathname();
@@ -28,8 +32,10 @@ export const AuctionFilterSidebar = ({
     const [selectedCategoryId, setSelectedCategoryId] = useState(activeCategoryId);
     const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
     const [selectedStatus, setSelectedStatus] = useState(initialStatus);
+    const [priceFrom, setPriceFrom] = useState(initialPriceFrom);
+    const [priceTo, setPriceTo] = useState(initialPriceTo);
 
-    const handleConfirmCategory = () => {
+    const buildQuery = () => {
         const query = new URLSearchParams(searchParams.toString());
 
         if (searchTerm.trim()) {
@@ -44,6 +50,23 @@ export const AuctionFilterSidebar = ({
             query.delete("status");
         }
 
+        if (priceFrom.trim()) {
+            query.set("priceFrom", priceFrom.trim());
+        } else {
+            query.delete("priceFrom");
+        }
+
+        if (priceTo.trim()) {
+            query.set("priceTo", priceTo.trim());
+        } else {
+            query.delete("priceTo");
+        }
+
+        return query;
+    };
+
+    const handleConfirmCategory = () => {
+        const query = buildQuery();
         const queryString = query.toString();
         const targetPath = selectedCategoryId ? `/auctions/${selectedCategoryId}` : "/auctions";
         router.push(queryString ? `${targetPath}?${queryString}` : targetPath);
@@ -62,21 +85,27 @@ export const AuctionFilterSidebar = ({
         router.push(queryString ? `${pathname}?${queryString}` : pathname);
     };
 
-    const handleApplyFilters = () => {
+    const handleConfirmPrice = () => {
         const query = new URLSearchParams(searchParams.toString());
 
-        if (searchTerm.trim()) {
-            query.set("name", searchTerm.trim());
+        if (priceFrom.trim()) {
+            query.set("priceFrom", priceFrom.trim());
         } else {
-            query.delete("name");
+            query.delete("priceFrom");
         }
 
-        if (selectedStatus) {
-            query.set("status", selectedStatus);
+        if (priceTo.trim()) {
+            query.set("priceTo", priceTo.trim());
         } else {
-            query.delete("status");
+            query.delete("priceTo");
         }
 
+        const queryString = query.toString();
+        router.push(queryString ? `${pathname}?${queryString}` : pathname);
+    };
+
+    const handleApplyFilters = () => {
+        const query = buildQuery();
         const queryString = query.toString();
         router.push(queryString ? `${pathname}?${queryString}` : pathname);
     };
@@ -131,9 +160,30 @@ export const AuctionFilterSidebar = ({
 
             <div>
                 <h3 className="font-bold text-[#146C94] mb-4 uppercase text-xs tracking-widest">Price range (VND)</h3>
-                <div className="grid grid-cols-2 gap-2">
-                    <input type="number" placeholder="From" className="w-full p-2 bg-gray-50 border border-gray-100 rounded-lg text-xs outline-none" />
-                    <input type="number" placeholder="To" className="w-full p-2 bg-gray-50 border border-gray-100 rounded-lg text-xs outline-none" />
+                <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-2">
+                        <input
+                            type="number"
+                            placeholder="From"
+                            value={priceFrom}
+                            onChange={(event) => setPriceFrom(event.target.value)}
+                            className="w-full rounded-lg border border-gray-100 bg-gray-50 p-2 text-xs outline-none"
+                        />
+                        <input
+                            type="number"
+                            placeholder="To"
+                            value={priceTo}
+                            onChange={(event) => setPriceTo(event.target.value)}
+                            className="w-full rounded-lg border border-gray-100 bg-gray-50 p-2 text-xs outline-none"
+                        />
+                    </div>
+                    <button
+                        type="button"
+                        onClick={handleConfirmPrice}
+                        className="w-full rounded-xl bg-(--secondary-color) py-2 text-xs font-semibold uppercase tracking-wider text-white shadow-lg shadow-blue-100 transition-all hover:bg-[#1598bc] active:scale-[0.98] active:bg-[#117f9c]"
+                    >
+                        CONFIRM PRICE
+                    </button>
                 </div>
             </div>
 
