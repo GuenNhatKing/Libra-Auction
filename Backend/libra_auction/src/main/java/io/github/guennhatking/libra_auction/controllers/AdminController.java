@@ -5,7 +5,7 @@ import io.github.guennhatking.libra_auction.services.CustomerService;
 import io.github.guennhatking.libra_auction.services.ProductSearchService;
 import io.github.guennhatking.libra_auction.viewmodels.response.PageResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.ProductResponse;
-import io.github.guennhatking.libra_auction.viewmodels.response.CustomerResponse;
+import io.github.guennhatking.libra_auction.viewmodels.response.AdminPendingUserResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.ServerAPIResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +36,7 @@ public class AdminController {
     }
 
     @GetMapping("/users/pending")
-    public ResponseEntity<ServerAPIResponse<PageResponse<CustomerResponse>>> getPendingUsers(
+    public ResponseEntity<ServerAPIResponse<PageResponse<AdminPendingUserResponse>>> getPendingUsers(
             @AuthenticationPrincipal JwtUserDetails userDetails,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "20") Integer pageSize) {
@@ -51,7 +51,7 @@ public class AdminController {
                     .body(ServerAPIResponse.error("Admin role required"));
         }
 
-        PageResponse<CustomerResponse> result = customerService.searchPendingUsers(page, pageSize);
+        PageResponse<AdminPendingUserResponse> result = customerService.searchPendingUsers(page, pageSize);
         return ResponseEntity.ok(ServerAPIResponse.success(result));
     }
 

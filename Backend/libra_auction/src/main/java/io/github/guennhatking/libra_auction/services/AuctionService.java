@@ -175,6 +175,10 @@ public class AuctionService {
                 Auction session = phienDauGiaRepository.findById(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
 
+                if (session.getTrangThaiKiemDuyet() != ApprovalStatus.CHUA_DUYET) {
+                        throw new IllegalStateException("Auction is not pending approval");
+                }
+
                 session.setTrangThaiKiemDuyet(ApprovalStatus.DA_DUYET);
                 Auction saved = phienDauGiaRepository.save(session);
 
@@ -193,6 +197,10 @@ public class AuctionService {
         public AuctionResponse rejectAuction(String id, String adminId, String reason) {
                 Auction session = phienDauGiaRepository.findById(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
+
+                if (session.getTrangThaiKiemDuyet() != ApprovalStatus.CHUA_DUYET) {
+                        throw new IllegalStateException("Auction is not pending approval");
+                }
 
                 session.setTrangThaiKiemDuyet(ApprovalStatus.BI_TU_CHOI);
                 Auction saved = phienDauGiaRepository.save(session);

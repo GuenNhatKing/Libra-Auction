@@ -1,270 +1,103 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import AdminTable from "@/components/admin/admin_table";
-import CCCDModal from "@/components/admin/cccd_modal";
+import { fetchPendingUsers } from "@/services/fetch_pending_users";
+import { PendingUser } from "@/types/admin/pending_user";
 
-interface UserData {
-  id: string;
+type UserRow = PendingUser & {
   avatar: string;
-  name: string;
-  email: string;
-  phone: string;
-  cccd: string;
-  cccdFront: string;
-  cccdBack: string;
-  status: "PENDING" | "APPROVED" | "REJECTED";
-  createdAt: string;
+  accountStatus: string;
+  emailStatus: string;
+};
+
+type UserFilter = "ALL" | "CHO_XAC_NHAN" | "HOAT_DONG" | "KHOA";
+
+function getStatusBadge(status: string) {
+  const statusStyles: Record<string, string> = {
+    CHO_XAC_NHAN: "bg-amber-100 text-amber-800 border border-amber-300",
+    HOAT_DONG: "bg-green-100 text-green-800 border border-green-300",
+    KHOA: "bg-red-100 text-red-800 border border-red-300",
+    DA_XAC_THUC: "bg-green-100 text-green-800 border border-green-300",
+    CHUA_XAC_THUC: "bg-amber-100 text-amber-800 border border-amber-300",
+    CHO_XAC_THUC: "bg-blue-100 text-blue-800 border border-blue-300",
+  };
+
+  const labels: Record<string, string> = {
+    CHO_XAC_NHAN: "Pending",
+    HOAT_DONG: "Active",
+    KHOA: "Locked",
+    DA_XAC_THUC: "Verified",
+    CHUA_XAC_THUC: "Unverified",
+    CHO_XAC_THUC: "Awaiting Verification",
+  };
+
+  return (
+    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusStyles[status] || "bg-gray-100 text-gray-700 border border-gray-200"}`}>
+      {labels[status] || status}
+    </span>
+  );
 }
 
-// Mock Users Data
-const mockUsers: UserData[] = [
-  {
-    id: "1",
-    avatar: "/default-avatar.png",
-    name: "Nguyễn Văn A",
-    email: "nguyenvana@example.com",
-    phone: "0901234567",
-    cccd: "123456789",
-    cccdFront: "/default-avatar.png",
-    cccdBack: "/default-avatar.png",
-    status: "PENDING",
-    createdAt: "2026-05-10",
-  },
-  {
-    id: "2",
-    avatar: "/default-avatar.png",
-    name: "Trần Thị B",
-    email: "tranthib@example.com",
-    phone: "0912345678",
-    cccd: "987654321",
-    cccdFront: "/default-avatar.png",
-    cccdBack: "/default-avatar.png",
-    status: "PENDING",
-    createdAt: "2026-05-12",
-  },
-  {
-    id: "3",
-    avatar: "/default-avatar.png",
-    name: "Lê Minh C",
-    email: "leminch@example.com",
-    phone: "0923456789",
-    cccd: "456123789",
-    cccdFront: "/default-avatar.png",
-    cccdBack: "/default-avatar.png",
-    status: "APPROVED",
-    createdAt: "2026-05-08",
-  },
-  {
-    id: "4",
-    avatar: "/default-avatar.png",
-    name: "Phạm Văn D",
-    email: "phamvand@example.com",
-    phone: "0934567890",
-    cccd: "789456123",
-    cccdFront: "/default-avatar.png",
-    cccdBack: "/default-avatar.png",
-    status: "REJECTED",
-    createdAt: "2026-05-05",
-  },
-];
-
 export default function UsersApprovalPage() {
-  // Store list of users awaiting approval
-  const [users, setUsers] = useState<UserData[]>(mockUsers);
-  // Store CCCD document info for modal display
-  const [selectedCCCD, setSelectedCCCD] = useState<{
-    isOpen: boolean;
-    front: string;
-    back: string;
-    name: string;
-  }>({ isOpen: false, front: "", back: "", name: "" });
-  // Store selected status filter
-  const [statusFilter, setStatusFilter] = useState<"ALL" | "PENDING" | "APPROVED" | "REJECTED">("ALL");
+  const [users, setUsers] = useState<UserRow[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<UserFilter>("ALL");
 
-  // Fetch pending users from backend on component mount
   useEffect(() => {
-    const fetchPendingUsers = async () => {
+    const loadUsers = async () => {
       try {
-        // const response = await fetch('/api/admin/users/pending');
-        // if (response.ok) {
-        //   const data = await response.json();
-        //   setUsers(data);
-        // } else {
-        //   console.error('Failed to fetch pending users:', response.statusText);
-        // }
-      } catch (error) {
-        console.error('Error fetching pending users:', error);
+        setLoading(true);
+        setError(null);
+        const response = await fetchPendingUsers(0, 100);
+        setTotalUsers(response.totalElements);
+        setUsers(
+          response.content.map((user) => ({
+            ...user,
+            avatar: user.anhDaiDien || "/default-avatar.png",
+            accountStatus: user.trangThaiTaiKhoan,
+            emailStatus: user.trangThaiEmail,
+          })),
+        );
+      } catch (loadError) {
+        setError(loadError instanceof Error ? loadError.message : "Failed to load pending users");
+      } finally {
+        setLoading(false);
       }
     };
-    fetchPendingUsers();
+
+    loadUsers();
   }, []);
 
-  // Send approval request to backend and update local state
-  const handleApprove = async (user: UserData) => {
-    try {
-      const response = await fetch(`/api/admin/users/${user.id}/approve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (response.ok) {
-        // Update user status to APPROVED in UI
-        setUsers(
-          users.map((u) =>
-            u.id === user.id ? { ...u, status: "APPROVED" } : u
-          )
-        );
-        console.log("User approved:", user.id);
-      } else {
-        console.error('Failed to approve user:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Error approving user:', error);
-    }
-  };
+  const pendingCount = useMemo(() => users.filter((user) => user.accountStatus === "CHO_XAC_NHAN").length, [users]);
+  const activeCount = useMemo(() => users.filter((user) => user.accountStatus === "HOAT_DONG").length, [users]);
+  const lockedCount = useMemo(() => users.filter((user) => user.accountStatus === "KHOA").length, [users]);
 
-  // Send rejection request to backend and update local state
-  const handleReject = async (user: UserData) => {
-    try {
-      const response = await fetch(`/api/admin/users/${user.id}/reject`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (response.ok) {
-        // Update user status to REJECTED in UI
-        setUsers(
-          users.map((u) =>
-            u.id === user.id ? { ...u, status: "REJECTED" } : u
-          )
-        );
-        console.log("User rejected:", user.id);
-      } else {
-        console.error('Failed to reject user:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Error rejecting user:', error);
-    }
-  };
-
-  const handleViewCCCD = (user: UserData) => {
-    setSelectedCCCD({
-      isOpen: true,
-      front: user.cccdFront,
-      back: user.cccdBack,
-      name: user.name,
-    });
-  };
-
-  const getStatusBadge = (status: string) => {
-    const statusStyles = {
-      PENDING: "bg-amber-100 text-amber-800 border border-amber-300",
-      APPROVED: "bg-green-100 text-green-800 border border-green-300",
-      REJECTED: "bg-red-100 text-red-800 border border-red-300",
-    };
-    const labels = {
-      PENDING: "Pending",
-      APPROVED: "Approved",
-      REJECTED: "Rejected",
-    };
-    return (
-      <span
-        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-          statusStyles[status as keyof typeof statusStyles]
-        }`}
-      >
-        {labels[status as keyof typeof labels]}
-      </span>
-    );
-  };
-
-  const pendingCount = users.filter((u) => u.status === "PENDING").length;
-  const approvedCount = users.filter((u) => u.status === "APPROVED").length;
-  const rejectedCount = users.filter((u) => u.status === "REJECTED").length;
-
-  // Filter users based on selected status
-  const filteredUsers = statusFilter === "ALL" 
-    ? users 
-    : users.filter((u) => u.status === statusFilter);
-
-  const tableColumns = [
-    {
-      key: "avatar" as const,
-      label: "Avatar",
-      render: (value: string, row: UserData) => (
-        <Image
-          src={row.avatar}
-          alt={row.name}
-          width={40}
-          height={40}
-          className="w-10 h-10 rounded-full"
-          onError={(e) => {
-            e.currentTarget.src = '/default-avatar.png';
-          }}
-        />
-      ),
-      width: "w-16",
-    },
-    {
-      key: "name" as const,
-      label: "Full Name",
-      render: (value: string) => <span className="font-medium">{value}</span>,
-    },
-    {
-      key: "email" as const,
-      label: "Email",
-      render: (value: string) => <span className="text-sm">{value}</span>,
-    },
-    {
-      key: "phone" as const,
-      label: "Phone",
-      render: (value: string) => <span className="text-sm">{value}</span>,
-    },
-    {
-      key: "cccd" as const,
-      label: "CCCD",
-      render: (value: string, row: UserData) => (
-        <button
-          onClick={() => handleViewCCCD(row)}
-          className="text-[#19A7CE] font-semibold hover:underline"
-        >
-          {value}
-        </button>
-      ),
-    },
-    {
-      key: "status" as const,
-      label: "Status",
-      render: (value: string) => getStatusBadge(value),
-    },
-    {
-      key: "createdAt" as const,
-      label: "Created At",
-      render: (value: string) => <span className="text-sm">{value}</span>,
-    },
-  ];
+  const filteredUsers = statusFilter === "ALL"
+    ? users
+    : users.filter((user) => user.accountStatus === statusFilter);
 
   return (
     <div className="space-y-6">
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <p className="text-xs font-semibold text-gray-600 uppercase">Pending</p>
-          <p className="text-2xl font-bold text-amber-600 mt-1">{pendingCount}</p>
+          <p className="text-xs font-semibold text-gray-600 uppercase">Pending Users</p>
+          <p className="text-2xl font-bold text-amber-600 mt-1">{totalUsers}</p>
         </div>
         <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <p className="text-xs font-semibold text-gray-600 uppercase">Approved</p>
-          <p className="text-2xl font-bold text-green-600 mt-1">{approvedCount}</p>
+          <p className="text-xs font-semibold text-gray-600 uppercase">Active Accounts</p>
+          <p className="text-2xl font-bold text-green-600 mt-1">{activeCount}</p>
         </div>
         <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <p className="text-xs font-semibold text-gray-600 uppercase">Rejected</p>
-          <p className="text-2xl font-bold text-red-600 mt-1">{rejectedCount}</p>
+          <p className="text-xs font-semibold text-gray-600 uppercase">Locked Accounts</p>
+          <p className="text-2xl font-bold text-red-600 mt-1">{lockedCount}</p>
         </div>
       </div>
 
-      {/* Filter by Status */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-lg font-bold text-[#146C94] mb-4">Filter by Status</h3>
+        <h3 className="text-lg font-bold text-[#146C94] mb-4">Filter by Account Status</h3>
         <div className="flex gap-3 flex-wrap">
           <button
             onClick={() => setStatusFilter("ALL")}
@@ -277,9 +110,9 @@ export default function UsersApprovalPage() {
             All
           </button>
           <button
-            onClick={() => setStatusFilter("PENDING")}
+            onClick={() => setStatusFilter("CHO_XAC_NHAN")}
             className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
-              statusFilter === "PENDING"
+              statusFilter === "CHO_XAC_NHAN"
                 ? "bg-amber-500 text-white"
                 : "bg-amber-100 text-amber-800 hover:bg-amber-200"
             }`}
@@ -287,86 +120,89 @@ export default function UsersApprovalPage() {
             Pending ({pendingCount})
           </button>
           <button
-            onClick={() => setStatusFilter("APPROVED")}
+            onClick={() => setStatusFilter("HOAT_DONG")}
             className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
-              statusFilter === "APPROVED"
+              statusFilter === "HOAT_DONG"
                 ? "bg-green-600 text-white"
                 : "bg-green-100 text-green-800 hover:bg-green-200"
             }`}
           >
-            Approved ({approvedCount})
+            Active ({activeCount})
           </button>
           <button
-            onClick={() => setStatusFilter("REJECTED")}
+            onClick={() => setStatusFilter("KHOA")}
             className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
-              statusFilter === "REJECTED"
+              statusFilter === "KHOA"
                 ? "bg-red-600 text-white"
                 : "bg-red-100 text-red-800 hover:bg-red-200"
             }`}
           >
-            Rejected ({rejectedCount})
+            Locked ({lockedCount})
           </button>
         </div>
       </div>
 
-      {/* Table */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 text-sm">
+          {error}
+        </div>
+      )}
+
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
-                {tableColumns.map((col) => (
-                  <th
-                    key={String(col.key)}
-                    className="px-6 py-4 text-left text-sm font-semibold text-gray-700"
-                  >
-                    {col.label}
-                  </th>
-                ))}
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
-                  Actions
-                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Avatar</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Full Name</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Email</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Phone</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">CCCD</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Email Status</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Account Status</th>
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((row, rowIndex) => (
-                <tr key={rowIndex} className="border-b border-gray-100 hover:bg-gray-50">
-                  {tableColumns.map((col) => (
-                    <td key={String(col.key)} className="px-6 py-4 text-sm text-gray-700">
-                      {col.render ? col.render(row[col.key], row) : String(row[col.key])}
-                    </td>
-                  ))}
-                  <td className="px-6 py-4 text-sm">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleApprove(row)}
-                        className="px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 text-xs font-semibold"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleReject(row)}
-                        className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 text-xs font-semibold"
-                      >
-                        Reject
-                      </button>
-                    </div>
+              {loading ? (
+                <tr>
+                  <td className="px-6 py-8 text-center text-gray-500" colSpan={7}>
+                    Loading...
                   </td>
                 </tr>
-              ))}
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td className="px-6 py-8 text-center text-gray-500" colSpan={7}>
+                    No pending users available
+                  </td>
+                </tr>
+              ) : (
+                filteredUsers.map((row) => (
+                  <tr key={row.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <Image
+                        src={row.avatar}
+                        alt={row.hoVaTen}
+                        width={60}
+                        height={60}
+                        className="w-16 h-16 rounded-lg object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "/default-avatar.png";
+                        }}
+                      />
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-700">{row.hoVaTen}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700">{row.email}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700">{row.soDienThoai || "-"}</td>
+                    <td className="px-6 py-4 text-sm font-semibold text-[#19A7CE]">{row.CCCD || "-"}</td>
+                    <td className="px-6 py-4 text-sm">{getStatusBadge(row.emailStatus)}</td>
+                    <td className="px-6 py-4 text-sm">{getStatusBadge(row.accountStatus)}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
-
-      {/* CCCD Modal */}
-      <CCCDModal
-        isOpen={selectedCCCD.isOpen}
-        onClose={() => setSelectedCCCD({ ...selectedCCCD, isOpen: false })}
-        cccdFront={selectedCCCD.front}
-        cccdBack={selectedCCCD.back}
-        userName={selectedCCCD.name}
-      />
     </div>
   );
 }

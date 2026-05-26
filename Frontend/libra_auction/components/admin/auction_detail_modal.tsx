@@ -8,13 +8,17 @@ interface AuctionDetailModalProps {
   onClose: () => void;
   auctionData: {
     name: string;
+    productName: string;
     description: string;
     startTime: string;
     endTime: string;
     images: string[];
     startingPrice: number;
+    currentPrice: number;
     category: string;
-    seller: string;
+    status: string;
+    totalBids: number;
+    totalParticipants: number;
   };
 }
 
@@ -52,9 +56,15 @@ export default function AuctionDetailModal({
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-              Product Name
+              Auction Name
             </p>
             <p className="text-lg font-bold text-gray-800 mt-1">{auctionData.name}</p>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              Product Name
+            </p>
+            <p className="text-lg font-bold text-gray-800 mt-1">{auctionData.productName}</p>
           </div>
           <div>
             <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -64,17 +74,25 @@ export default function AuctionDetailModal({
           </div>
           <div>
             <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-              Seller
-            </p>
-            <p className="text-lg font-bold text-gray-800 mt-1">{auctionData.seller}</p>
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
               Starting Price
             </p>
             <p className="text-lg font-bold text-[#19A7CE] mt-1">
               {formatPrice(auctionData.startingPrice)}
             </p>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              Current Price
+            </p>
+            <p className="text-lg font-bold text-gray-800 mt-1">
+              {formatPrice(auctionData.currentPrice)}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              Approval Status
+            </p>
+            <p className="text-lg font-bold text-gray-800 mt-1">{auctionData.status}</p>
           </div>
         </div>
 
@@ -91,6 +109,22 @@ export default function AuctionDetailModal({
               End Time
             </p>
             <p className="text-sm text-gray-800 mt-1">{auctionData.endTime}</p>
+          </div>
+        </div>
+
+        {/* Metrics */}
+        <div className="grid grid-cols-2 gap-4 bg-blue-50 p-4 rounded-lg">
+          <div>
+            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              Total Bids
+            </p>
+            <p className="text-sm text-gray-800 mt-1">{auctionData.totalBids}</p>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              Total Participants
+            </p>
+            <p className="text-sm text-gray-800 mt-1">{auctionData.totalParticipants}</p>
           </div>
         </div>
 

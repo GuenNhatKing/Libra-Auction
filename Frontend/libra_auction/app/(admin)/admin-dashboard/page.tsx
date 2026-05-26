@@ -1,24 +1,9 @@
 'use client';
 
 import { useState, useEffect } from "react";
-
-// Mock Chart Data
-const mockChartData = [
-  { date: "May 1", revenue: 2500 },
-  { date: "May 2", revenue: 3200 },
-  { date: "May 3", revenue: 2800 },
-  { date: "May 4", revenue: 3900 },
-  { date: "May 5", revenue: 4200 },
-  { date: "May 6", revenue: 3800 },
-  { date: "May 7", revenue: 4500 },
-  { date: "May 8", revenue: 5200 },
-  { date: "May 9", revenue: 4800 },
-  { date: "May 10", revenue: 5600 },
-  { date: "May 11", revenue: 6200 },
-  { date: "May 12", revenue: 5900 },
-  { date: "May 13", revenue: 6500 },
-  { date: "May 14", revenue: 7100 },
-];
+import { fetchPendingUsers } from "@/services/fetch_pending_users";
+import { fetchPendingAuctions } from "@/services/fetch_pending_auctions";
+import { fetchPendingProducts } from "@/services/fetch_pending_products";
 
 interface PendingData {
   pendingUsers: number;
@@ -27,55 +12,25 @@ interface PendingData {
 }
 
 export default function AdminDashboardPage() {
-  const [timeRange, setTimeRange] = useState<"day" | "month" | "year">("month");
   const [pendingData, setPendingData] = useState<PendingData>({
     pendingUsers: 0,
     pendingAuctions: 0,
     pendingProducts: 0,
   });
 
-  // Fetch pending data from backend on component mount
   useEffect(() => {
     const fetchPendingData = async () => {
       try {
-        // Fetch pending users
-        const usersResponse = await fetch('/api/admin/users/pending');
-        let pendingUsersCount = 0;
-        if (usersResponse.ok) {
-          const usersData = await usersResponse.json();
-          // backend returns { success: true, data: { content: [...] } }
-          const content = usersData?.data?.content ?? (Array.isArray(usersData) ? usersData : null);
-          pendingUsersCount = Array.isArray(content) ? content.length : 0;
-        } else {
-          console.warn('Failed to fetch pending users', usersResponse.status);
-        }
-
-        // Fetch pending auctions
-        const auctionsResponse = await fetch('/api/admin/auctions/pending');
-        let pendingAuctionsCount = 0;
-        if (auctionsResponse.ok) {
-          const auctionsData = await auctionsResponse.json();
-          const content = auctionsData?.data?.content ?? (Array.isArray(auctionsData) ? auctionsData : null);
-          pendingAuctionsCount = Array.isArray(content) ? content.length : 0;
-        } else {
-          console.warn('Failed to fetch pending auctions', auctionsResponse.status);
-        }
-
-        // Fetch pending products
-        const productsResponse = await fetch('/api/admin/products/pending');
-        let pendingProductsCount = 0;
-        if (productsResponse.ok) {
-          const productsData = await productsResponse.json();
-          const content = productsData?.data?.content ?? (Array.isArray(productsData) ? productsData : null);
-          pendingProductsCount = Array.isArray(content) ? content.length : 0;
-        } else {
-          console.warn('Failed to fetch pending products', productsResponse.status);
-        }
+        const [usersResponse, auctionsResponse, productsResponse] = await Promise.all([
+          fetchPendingUsers(0, 1),
+          fetchPendingAuctions(0, 1),
+          fetchPendingProducts(0, 1),
+        ]);
 
         setPendingData({
-          pendingUsers: pendingUsersCount,
-          pendingAuctions: pendingAuctionsCount,
-          pendingProducts: pendingProductsCount,
+          pendingUsers: usersResponse.totalElements,
+          pendingAuctions: auctionsResponse.totalElements,
+          pendingProducts: productsResponse.totalElements,
         });
       } catch (error) {
         console.error('Error fetching pending data:', error);
@@ -84,9 +39,6 @@ export default function AdminDashboardPage() {
 
     fetchPendingData();
   }, []);
-
-  // Calculate max revenue for scaling
-  const maxRevenue = Math.max(...mockChartData.map((d) => d.revenue));
 
   return (
     <div className="space-y-8">
@@ -138,105 +90,11 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Revenue Chart */}
-        <div className="lg:col-span-2 bg-white rounded-lg border border-[#AFD3E2] p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-[#146C94]">Revenue Over Time</h3>
-            <div className="flex gap-2">
-              {(["day", "month", "year"] as const).map((range) => (
-                <button
-                  key={range}
-                  onClick={() => setTimeRange(range)}
-                  className={`px-3 py-1 rounded text-xs font-semibold transition ${
-                    timeRange === range
-                      ? "bg-[#19A7CE] text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
-                >
-                  {range.charAt(0).toUpperCase() + range.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Simple Bar Chart using divs */}
-          <div className="space-y-3">
-            <div className="flex items-end justify-between gap-1 h-48">
-              {mockChartData.map((data, idx) => (
-                <div key={idx} className="flex-1 flex flex-col items-center">
-                  <div
-                    className="w-full bg-gradient-to-t from-[#19A7CE] to-[#0f7a99] rounded-t hover:from-[#1589ab] transition-colors group"
-                    style={{
-                      height: `${(data.revenue / maxRevenue) * 100}%`,
-                      minHeight: "4px",
-                    }}
-                    title={`${data.date}: ${data.revenue.toLocaleString()}`}
-                  >
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity text-xs font-semibold text-white text-center mt-1 absolute translate-y-8 pointer-events-none">
-                      {data.revenue}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* X-axis Labels */}
-            <div className="flex justify-between text-xs text-gray-500 mt-2">
-              {mockChartData.map((data, idx) => (
-                <span key={idx}>{data.date}</span>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Top Metrics */}
-        <div className="bg-white rounded-lg border border-[#AFD3E2] p-6 space-y-4">
-          <h3 className="text-lg font-bold text-[#146C94] mb-4">Top Metrics</h3>
-
-          <div className="space-y-4">
-            {[
-              { label: "Pending Approvals", value: 12, color: "text-orange-600" },
-              { label: "Active Auctions", value: 156, color: "text-green-600" },
-              { label: "Flagged Items", value: 8, color: "text-red-600" },
-              { label: "Avg Transaction Value", value: "17.8M", color: "text-blue-600" },
-            ].map((metric, idx) => (
-              <div key={idx} className="flex items-center justify-between">
-                <p className="text-sm text-gray-700">{metric.label}</p>
-                <p className={`text-lg font-bold ${metric.color}`}>{metric.value}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
       <div className="bg-white rounded-lg border border-[#AFD3E2] p-6">
-        <h3 className="text-lg font-bold text-[#146C94] mb-4">Recent Activity</h3>
-        <div className="space-y-3">
-          {[
-            { event: "New user registered", time: "2 minutes ago", type: "info" },
-            { event: "Auction approved", time: "15 minutes ago", type: "success" },
-            { event: "User flagged for review", time: "45 minutes ago", type: "warning" },
-            { event: "Transaction completed", time: "1 hour ago", type: "success" },
-          ].map((activity, idx) => {
-            const typeColors = {
-              info: "bg-blue-100 text-blue-800",
-              success: "bg-green-100 text-green-800",
-              warning: "bg-orange-100 text-orange-800",
-            };
-            return (
-              <div key={idx} className="flex items-center gap-4 pb-3 border-b border-gray-100 last:border-0">
-                <div className={`w-3 h-3 rounded-full ${typeColors[activity.type as keyof typeof typeColors]}`} />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">{activity.event}</p>
-                  <p className="text-xs text-gray-500">{activity.time}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <h3 className="text-lg font-bold text-[#146C94] mb-2">Admin Overview</h3>
+        <p className="text-sm text-gray-600">
+          This overview now reflects only live backend approval queues.
+        </p>
       </div>
     </div>
   );

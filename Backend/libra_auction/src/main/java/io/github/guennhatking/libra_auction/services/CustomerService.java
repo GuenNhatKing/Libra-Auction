@@ -127,7 +127,7 @@ public class CustomerService {
     }
 
         // Search pending users (accounts awaiting confirmation)
-        public io.github.guennhatking.libra_auction.viewmodels.response.PageResponse<io.github.guennhatking.libra_auction.viewmodels.response.CustomerResponse>
+        public io.github.guennhatking.libra_auction.viewmodels.response.PageResponse<io.github.guennhatking.libra_auction.viewmodels.response.AdminPendingUserResponse>
             searchPendingUsers(Integer page, Integer pageSize) {
 
         java.util.List<Customer> all = nguoiDungRepository.findAll();
@@ -146,12 +146,16 @@ public class CustomerService {
         int end = Math.min(start + ps, totalElements);
         java.util.List<Customer> pageContent = filtered.subList(start, end);
 
-        org.mapstruct.factory.Mappers.getMapper(io.github.guennhatking.libra_auction.mappers.CustomerMapper.class);
-        io.github.guennhatking.libra_auction.mappers.CustomerMapper mapper = org.mapstruct.factory.Mappers
-            .getMapper(io.github.guennhatking.libra_auction.mappers.CustomerMapper.class);
-
-        java.util.List<io.github.guennhatking.libra_auction.viewmodels.response.CustomerResponse> content = pageContent.stream()
-            .map(mapper::toResponse)
+        java.util.List<io.github.guennhatking.libra_auction.viewmodels.response.AdminPendingUserResponse> content = pageContent.stream()
+            .map(user -> new io.github.guennhatking.libra_auction.viewmodels.response.AdminPendingUserResponse(
+                user.getId(),
+                user.getHoVaTen(),
+                user.getSoDienThoai(),
+                user.getCccd(),
+                user.getEmail(),
+                user.getAnhDaiDien(),
+                user.getTrangThaiEmail(),
+                user.getTrangThaiTaiKhoan()))
             .collect(java.util.stream.Collectors.toList());
 
         return new io.github.guennhatking.libra_auction.viewmodels.response.PageResponse<>(
