@@ -69,16 +69,16 @@ class AuctionSocket {
     this.connecting = false;
   }
 
-  subscribe(destination: string, callback: Callback) {
+  subscribe<T = unknown>(destination: string, callback: (message: T) => void) {
     const existing = this.subscriptions.get(destination);
     if (existing) {
-      existing.callback = callback;
+      existing.callback = callback as Callback;
       return;
     }
 
     const entry: SubscriptionEntry = {
       destination,
-      callback,
+      callback: callback as Callback,
       id: String(this.nextSubscriptionId++),
     };
     this.subscriptions.set(destination, entry);
