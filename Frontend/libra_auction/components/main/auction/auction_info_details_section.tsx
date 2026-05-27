@@ -33,7 +33,7 @@ export default function AuctionInfoDetailsSection({
                 className="flex justify-between items-center bg-gray-50 border border-gray-100 rounded-xl px-4 py-3"
               >
                 <span className="text-gray-500 text-sm">
-                  {attr.name}
+                  {attr.key}
                 </span>
                 <span className="font-semibold text-gray-800 text-sm text-right ml-4 wrap-break-word">
                   {attr.value}
