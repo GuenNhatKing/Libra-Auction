@@ -15,9 +15,6 @@ import io.github.guennhatking.libra_auction.viewmodels.request.VerifyEmailOtpReq
 import io.github.guennhatking.libra_auction.viewmodels.response.JwtResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.ServerAPIResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.TokenResponse;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
-@Tag(name = "Authentication", description = "User authentication and authorization endpoints")
 public class AuthController {
     private static final String OTP_PURPOSE_EMAIL = "email-verify";
     private static final String OTP_PURPOSE_PASSWORD = "password-reset";

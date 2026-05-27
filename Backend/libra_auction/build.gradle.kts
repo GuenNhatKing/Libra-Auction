@@ -54,9 +54,6 @@ dependencies {
     implementation("org.mapstruct:mapstruct:${mapstructVersion}")
     annotationProcessor("org.mapstruct:mapstruct-processor:${mapstructVersion}")
 
-    // SWAGGER/OPENAPI
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2")
-
     // TEST
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
