@@ -15,6 +15,8 @@ import io.github.guennhatking.libra_auction.viewmodels.request.VerifyEmailOtpReq
 import io.github.guennhatking.libra_auction.viewmodels.response.JwtResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.ServerAPIResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.TokenResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,8 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-    private static final String OTP_PURPOSE_EMAIL = "email-verify";
-    private static final String OTP_PURPOSE_PASSWORD = "password-reset";
 
     private final AuthenticationService authenticationService;
     private final CustomerService customerService;
@@ -85,9 +85,7 @@ public class AuthController {
     @ApiResponse(responseCode = "400", description = "Email not found or invalid")
     public ResponseEntity<ServerAPIResponse<String>> sendEmailVerification(
             @Valid @RequestBody SendEmailVerificationRequest request) {
-        customerService.findByEmail(request.email())
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản với email này."));
-        String otp = otpService.generateAndStore(OTP_PURPOSE_EMAIL, request.email());
+        String otp = otpService.generateAndStore(request.email());
         emailNotificationService.sendEmailVerificationOtp(request.email(), otp);
         return ResponseEntity.ok(ServerAPIResponse.success("OTP đã được gửi đến email " + request.email()));
     }
@@ -98,7 +96,7 @@ public class AuthController {
     @ApiResponse(responseCode = "400", description = "Invalid or expired OTP")
     public ResponseEntity<ServerAPIResponse<String>> verifyEmail(
             @Valid @RequestBody VerifyEmailOtpRequest request) {
-        if (!otpService.verify(OTP_PURPOSE_EMAIL, request.email(), request.otp())) {
+        if (!otpService.verify(request.email(), request.otp())) {
             throw new IllegalArgumentException("OTP không hợp lệ hoặc đã hết hạn.");
         }
         customerService.markEmailVerified(request.email());
@@ -111,9 +109,7 @@ public class AuthController {
     @ApiResponse(responseCode = "400", description = "Email not found")
     public ResponseEntity<ServerAPIResponse<String>> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequest request) {
-        customerService.findByEmail(request.email())
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản với email này."));
-        String otp = otpService.generateAndStore(OTP_PURPOSE_PASSWORD, request.email());
+        String otp = otpService.generateAndStore(request.email());
         emailNotificationService.sendPasswordResetOtp(request.email(), otp);
         return ResponseEntity.ok(ServerAPIResponse.success("OTP đặt lại mật khẩu đã được gửi đến email " + request.email()));
     }
