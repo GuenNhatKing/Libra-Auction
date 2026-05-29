@@ -1,7 +1,13 @@
 # Libra Auction
-## Backend: 
+
+## Backend
+
 - Spring Boot
-## Frontend:
+
+## Frontend
+
 - Nextjs
-## Database:
+
+## Database
+
 - Postgresql
