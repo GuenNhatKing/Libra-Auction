@@ -7,7 +7,7 @@ import java.util.List;
 import io.github.guennhatking.libra_auction.enums.account.EmailStatus;
 import io.github.guennhatking.libra_auction.enums.account.AccountStatus;
 import io.github.guennhatking.libra_auction.models.account.Role;
-import io.github.guennhatking.libra_auction.models.account.TaiKhoan;
+import io.github.guennhatking.libra_auction.models.account.Account;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -27,34 +27,34 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "nguoiDung")
-    protected List<TaiKhoan> taiKhoanLienKet;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "customer")
+    protected List<Account> linkedAccounts;
 
-    protected String hoVaTen;
-    protected String soDienThoai;
-    protected String cccd;
-    protected String anhDaiDien;
+    protected String fullName;
+    protected String phoneNumber;
+    protected String identityNumber;
+    protected String avatarUrl;
     protected String email;
 
     @ManyToMany
     private List<Role> roles;
 
     @Enumerated(EnumType.STRING)
-    protected EmailStatus trangThaiEmail;
+    protected EmailStatus emailStatus;
 
     @Enumerated(EnumType.STRING)
-    protected AccountStatus trangThaiTaiKhoan;
+    protected AccountStatus accountStatus;
 
-    protected OffsetDateTime thoiGianTao;
+    protected OffsetDateTime createdAt;
 
     // CONSTRUCTOR
     public Customer() {
     }
 
-    public Customer(String hoVaTen, String email) {
-        this.hoVaTen = hoVaTen;
+    public Customer(String fullName, String email) {
+        this.fullName = fullName;
         this.email = email;
-        this.thoiGianTao = OffsetDateTime.now(ZoneOffset.ofHours(7));
+        this.createdAt = OffsetDateTime.now(ZoneOffset.ofHours(7));
     }
 
     // GETTER
@@ -62,24 +62,24 @@ public class Customer {
         return id;
     }
 
-    public List<TaiKhoan> getTaiKhoanLienKet() {
-        return taiKhoanLienKet;
+    public List<Account> getLinkedAccounts() {
+        return linkedAccounts;
     }
 
-    public String getHoVaTen() {
-        return hoVaTen;
+    public String getFullName() {
+        return fullName;
     }
 
-    public String getSoDienThoai() {
-        return soDienThoai;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public String getCccd() {
-        return cccd;
+    public String getIdentityNumber() {
+        return identityNumber;
     }
 
-    public String getAnhDaiDien() {
-        return anhDaiDien;
+    public String getAvatarUrl() {
+        return avatarUrl;
     }
 
     public String getEmail() {
@@ -90,16 +90,16 @@ public class Customer {
         return roles;
     }
 
-    public EmailStatus getTrangThaiEmail() {
-        return trangThaiEmail;
+    public EmailStatus getEmailStatus() {
+        return emailStatus;
     }
 
-    public AccountStatus getTrangThaiTaiKhoan() {
-        return trangThaiTaiKhoan;
+    public AccountStatus getAccountStatus() {
+        return accountStatus;
     }
 
-    public OffsetDateTime getThoiGianTao() {
-        return thoiGianTao;
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
     }
 
     // SETTER
@@ -107,24 +107,24 @@ public class Customer {
         this.id = id;
     }
 
-    public void setTaiKhoanLienKet(List<TaiKhoan> taiKhoanLienKet) {
-        this.taiKhoanLienKet = taiKhoanLienKet;
+    public void setLinkedAccounts(List<Account> linkedAccounts) {
+        this.linkedAccounts = linkedAccounts;
     }
 
-    public void setHoVaTen(String hoVaTen) {
-        this.hoVaTen = hoVaTen;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
-    public void setSoDienThoai(String soDienThoai) {
-        this.soDienThoai = soDienThoai;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
-    public void setCccd(String cccd) {
-        this.cccd = cccd;
+    public void setIdentityNumber(String identityNumber) {
+        this.identityNumber = identityNumber;
     }
 
-    public void setAnhDaiDien(String anhDaiDien) {
-        this.anhDaiDien = anhDaiDien;
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 
     public void setEmail(String email) {
@@ -135,15 +135,15 @@ public class Customer {
         this.roles = roles;
     }
 
-    public void setTrangThaiEmail(EmailStatus trangThaiEmail) {
-        this.trangThaiEmail = trangThaiEmail;
+    public void setEmailStatus(EmailStatus emailStatus) {
+        this.emailStatus = emailStatus;
     }
 
-    public void setTrangThaiTaiKhoan(AccountStatus trangThaiTaiKhoan) {
-        this.trangThaiTaiKhoan = trangThaiTaiKhoan;
+    public void setAccountStatus(AccountStatus accountStatus) {
+        this.accountStatus = accountStatus;
     }
 
-    public void setThoiGianTao(OffsetDateTime thoiGianTao) {
-        this.thoiGianTao = thoiGianTao;
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

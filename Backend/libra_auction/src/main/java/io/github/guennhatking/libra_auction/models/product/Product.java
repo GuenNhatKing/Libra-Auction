@@ -21,46 +21,46 @@ public class Product {
     private String id;
 
     @ManyToOne
-    private Customer nguoiTao;
+    private Customer creator;
 
-    @OneToOne(fetch = FetchType.LAZY, mappedBy = "taiSan")
-    private Auction phienDauGia;
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "product")
+    private Auction auction;
 
     @ManyToOne
-    private Category danhMuc;
+    private Category category;
 
-    @OneToMany(mappedBy = "taiSan")
-    private List<ProductImage> hinhAnhTaiSanList;
+    @OneToMany(mappedBy = "product")
+    private List<ProductImage> images;
 
-    @OneToMany(mappedBy = "taiSan")
-    private List<ProductAttribute> thuocTinhTaiSanList;
+    @OneToMany(mappedBy = "product")
+    private List<ProductAttribute> attributes;
 
-    @OneToMany(mappedBy = "taiSan")
-    private List<AttributeCombination> ketHopThuocTinhs;
+    @OneToMany(mappedBy = "product")
+    private List<AttributeCombination> attributeCombinations;
 
-    public List<AttributeCombination> getKetHopThuocTinhs() {
-        return ketHopThuocTinhs;
+    public List<AttributeCombination> getAttributeCombinations() {
+        return attributeCombinations;
     }
 
-    public void setKetHopThuocTinhs(List<AttributeCombination> ketHopThuocTinhs) {
-        this.ketHopThuocTinhs = ketHopThuocTinhs;
+    public void setAttributeCombinations(List<AttributeCombination> attributeCombinations) {
+        this.attributeCombinations = attributeCombinations;
     }
 
-    private String tenTaiSan;
-    private Integer soLuong;
-    
+    private String name;
+    private Integer quantity;
+
     @Column(columnDefinition = "TEXT")
-    private String moTa;
+    private String description;
 
     // CONSTRUCTOR
     public Product() {
     }
 
-    public Product(String tenTaiSan, int soLuong, String moTa, Category danhMuc) {
-        this.tenTaiSan = tenTaiSan;
-        this.soLuong = soLuong;
-        this.moTa = moTa;
-        this.danhMuc = danhMuc;
+    public Product(String name, int quantity, String description, Category category) {
+        this.name = name;
+        this.quantity = quantity;
+        this.description = description;
+        this.category = category;
     }
 
     // GETTER
@@ -68,36 +68,36 @@ public class Product {
         return id;
     }
 
-    public Customer getNguoiTao() {
-        return nguoiTao;
+    public Customer getCreator() {
+        return creator;
     }
 
-    public Auction getPhienDauGia() {
-        return phienDauGia;
+    public Auction getAuction() {
+        return auction;
     }
 
-    public Category getDanhMuc() {
-        return danhMuc;
+    public Category getCategory() {
+        return category;
     }
 
-    public String getTenTaiSan() {
-        return tenTaiSan;
+    public String getName() {
+        return name;
     }
 
-    public int getSoLuong() {
-        return soLuong;
+    public int getQuantity() {
+        return quantity;
     }
 
-    public String getMoTa() {
-        return moTa;
+    public String getDescription() {
+        return description;
     }
 
-    public List<ProductImage> getHinhAnhTaiSanList() {
-        return hinhAnhTaiSanList;
+    public List<ProductImage> getImages() {
+        return images;
     }
 
-    public List<ProductAttribute> getThuocTinhTaiSanList() {
-        return thuocTinhTaiSanList;
+    public List<ProductAttribute> getAttributes() {
+        return attributes;
     }
 
     // SETTER
@@ -105,35 +105,35 @@ public class Product {
         this.id = id;
     }
 
-    public void setNguoiTao(Customer nguoiTao) {
-        this.nguoiTao = nguoiTao;
+    public void setCreator(Customer creator) {
+        this.creator = creator;
     }
 
-    public void setPhienDauGia(Auction phienDauGia) {
-        this.phienDauGia = phienDauGia;
+    public void setAuction(Auction auction) {
+        this.auction = auction;
     }
 
-    public void setDanhMuc(Category danhMuc) {
-        this.danhMuc = danhMuc;
+    public void setCategory(Category category) {
+        this.category = category;
     }
 
-    public void setTenTaiSan(String tenTaiSan) {
-        this.tenTaiSan = tenTaiSan;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public void setSoLuong(int soLuong) {
-        this.soLuong = soLuong;
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 
-    public void setMoTa(String moTa) {
-        this.moTa = moTa;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
-    public void setHinhAnhTaiSanList(List<ProductImage> hinhAnhTaiSanList) {
-        this.hinhAnhTaiSanList = hinhAnhTaiSanList;
+    public void setImages(List<ProductImage> images) {
+        this.images = images;
     }
 
-    public void setThuocTinhTaiSanList(List<ProductAttribute> thuocTinhTaiSanList) {
-        this.thuocTinhTaiSanList = thuocTinhTaiSanList;
+    public void setAttributes(List<ProductAttribute> attributes) {
+        this.attributes = attributes;
     }
 }

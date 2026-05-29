@@ -16,18 +16,18 @@ import java.util.stream.Collectors;
 
 @Service
 public class AuctionSearchService {
-    private final AuctionRepository phienDauGiaRepository;
+    private final AuctionRepository auctionRepository;
     private final AuctionMapper auctionMapper;
 
-    public AuctionSearchService(AuctionRepository phienDauGiaRepository,
+    public AuctionSearchService(AuctionRepository auctionRepository,
             AuctionMapper auctionMapper) {
-        this.phienDauGiaRepository = phienDauGiaRepository;
+        this.auctionRepository = auctionRepository;
         this.auctionMapper = auctionMapper;
     }
 
     public PageResponse<AuctionResponse> searchAuctions(AuctionSearchRequest criteria) {
         // Get all sessions
-        List<Auction> allSessions = phienDauGiaRepository.findAll();
+        List<Auction> allSessions = auctionRepository.findAll();
 
         // Apply filters
         List<Auction> filtered = applyFilters(allSessions, criteria);
@@ -55,7 +55,7 @@ public class AuctionSearchService {
      * Search only approved auctions for public viewing
      */
     public PageResponse<AuctionResponse> searchPublicAuctions(AuctionSearchRequest baseCriteria) {
-        // Force approval status to DA_DUYET for public
+        // Force approval status to APPROVED for public
         AuctionSearchRequest criteria = new AuctionSearchRequest(
                 baseCriteria.name(),
                 baseCriteria.categoryId(),
@@ -66,21 +66,21 @@ public class AuctionSearchService {
                 baseCriteria.timeEnd(),
                 baseCriteria.attributes(),
                 baseCriteria.status(),
-                ApprovalStatus.DA_DUYET.toString(),
+                ApprovalStatus.APPROVED.toString(),
                 baseCriteria.page(),
                 baseCriteria.pageSize(),
                 baseCriteria.sortBy(),
                 baseCriteria.sortOrder(),
                 null);
-        
+
         return searchAuctions(criteria);
     }
 
     /**
-     * Search pending auctions (CHUA_DUYET) for admin
+     * Search pending auctions (PENDING_APPROVAL) for admin
      */
     public PageResponse<AuctionResponse> searchPendingAuctions(AuctionSearchRequest baseCriteria) {
-        // Force approval status to CHUA_DUYET for admin pending view
+        // Force approval status to PENDING_APPROVAL for admin pending view
         AuctionSearchRequest criteria = new AuctionSearchRequest(
                 baseCriteria.name(),
                 baseCriteria.categoryId(),
@@ -91,13 +91,13 @@ public class AuctionSearchService {
                 baseCriteria.timeEnd(),
                 baseCriteria.attributes(),
                 baseCriteria.status(),
-                ApprovalStatus.CHUA_DUYET.toString(),
+                ApprovalStatus.PENDING_APPROVAL.toString(),
                 baseCriteria.page(),
                 baseCriteria.pageSize(),
                 baseCriteria.sortBy(),
                 baseCriteria.sortOrder(),
                 null);
-        
+
         return searchAuctions(criteria);
     }
 
@@ -109,8 +109,8 @@ public class AuctionSearchService {
                 .filter(session -> filterByStartingPrice(session, criteria.startingPrice()))
                 .filter(session -> filterByTimeRange(session, criteria.timeStart(), criteria.timeEnd()))
                 .filter(session -> filterByStatus(session, criteria.status()))
-                .filter(session -> filterByOwner(session, criteria.chuSoHuuId()))
-                .filter(session -> filterByApprovalStatus(session, criteria.trangThaiKiemDuyet(), criteria.chuSoHuuId()))
+                .filter(session -> filterByOwner(session, criteria.ownerId()))
+                .filter(session -> filterByApprovalStatus(session, criteria.approvalStatus(), criteria.ownerId()))
                 .filter(session -> filterByAttributes(session, criteria.attributes()))
                 .collect(Collectors.toList());
     }
@@ -120,18 +120,18 @@ public class AuctionSearchService {
         if (name == null || name.isBlank()) {
             return true;
         }
-        return session.getTaiSan() != null &&
-                session.getTaiSan().getTenTaiSan() != null &&
-                session.getTaiSan().getTenTaiSan().toLowerCase().contains(name.toLowerCase());
+        return session.getProduct() != null &&
+                session.getProduct().getName() != null &&
+                session.getProduct().getName().toLowerCase().contains(name.toLowerCase());
     }
 
     private boolean filterByCategory(Auction session, String categoryId) {
         if (categoryId == null || categoryId.isBlank()) {
             return true;
         }
-        return session.getTaiSan() != null &&
-                session.getTaiSan().getDanhMuc() != null &&
-                session.getTaiSan().getDanhMuc().getId().equals(categoryId);
+        return session.getProduct() != null &&
+                session.getProduct().getCategory() != null &&
+                session.getProduct().getCategory().getId().equals(categoryId);
     }
 
     private boolean filterByPriceRange(Auction session, Long priceFrom, Long priceTo) {
@@ -139,7 +139,7 @@ public class AuctionSearchService {
             return true;
         }
 
-        long currentPrice = session.getGiaHienTai() != 0 ? session.getGiaHienTai() : session.getGiaKhoiDiem();
+        long currentPrice = session.getCurrentPrice() != 0 ? session.getCurrentPrice() : session.getStartingPrice();
 
         if (priceFrom != null && currentPrice < priceFrom) {
             return false;
@@ -155,7 +155,7 @@ public class AuctionSearchService {
         if (startingPrice == null) {
             return true;
         }
-        return session.getGiaKhoiDiem() == startingPrice;
+        return session.getStartingPrice() == startingPrice;
     }
 
     private boolean filterByTimeRange(Auction session, OffsetDateTime timeStart, OffsetDateTime timeEnd) {
@@ -163,7 +163,7 @@ public class AuctionSearchService {
             return true;
         }
 
-        OffsetDateTime sessionTime = session.getThoiGianBatDau();
+        OffsetDateTime sessionTime = session.getStartTime();
 
         if (timeStart != null && sessionTime.isBefore(timeStart)) {
             return false;
@@ -179,8 +179,8 @@ public class AuctionSearchService {
         if (status == null || status.isBlank()) {
             return true;
         }
-        return session.getTrangThaiPhien() != null &&
-                session.getTrangThaiPhien().toString().equals(status);
+        return session.getAuctionStatus() != null &&
+                session.getAuctionStatus().toString().equals(status);
     }
 
     private boolean filterByAttributes(Auction session, List<java.util.Map<String, String>> attributes) {
@@ -189,10 +189,10 @@ public class AuctionSearchService {
             return true;
         }
 
-        // Nếu session không có tài sản hoặc không có thuộc tính thì bỏ qua
-        if (session.getTaiSan() == null ||
-                session.getTaiSan().getThuocTinhTaiSanList() == null ||
-                session.getTaiSan().getThuocTinhTaiSanList().isEmpty()) {
+        // Neu session khong co tai san hoac khong co thuoc tinh thi bo qua
+        if (session.getProduct() == null ||
+                session.getProduct().getAttributes() == null ||
+                session.getProduct().getAttributes().isEmpty()) {
             return false;
         }
 
@@ -201,11 +201,11 @@ public class AuctionSearchService {
             String attrName = filterAttr.get("attribute_name");
             String attrValue = filterAttr.get("attribute_value");
 
-            return session.getTaiSan().getThuocTinhTaiSanList().stream()
-                    .anyMatch(taiSanAttr -> taiSanAttr.getTenThuocTinh() != null &&
-                            taiSanAttr.getTenThuocTinh().equals(attrName) &&
-                            taiSanAttr.getGiaTri() != null &&
-                            taiSanAttr.getGiaTri().equals(attrValue));
+            return session.getProduct().getAttributes().stream()
+                    .anyMatch(productAttr -> productAttr.getAttributeName() != null &&
+                            productAttr.getAttributeName().equals(attrName) &&
+                            productAttr.getAttributeValue() != null &&
+                            productAttr.getAttributeValue().equals(attrValue));
         });
     }
 
@@ -213,41 +213,41 @@ public class AuctionSearchService {
         if (ownerId == null || ownerId.isBlank()) {
             return true; // no owner filter
         }
-        if (session.getNguoiTao() == null) {
+        if (session.getCreator() == null) {
             return false;
         }
-        return ownerId.equals(session.getNguoiTao().getId());
+        return ownerId.equals(session.getCreator().getId());
     }
 
-    private boolean filterByApprovalStatus(Auction session, String trangThaiKiemDuyet, String chuSoHuuId) {
+    private boolean filterByApprovalStatus(Auction session, String approvalStatusFilter, String ownerId) {
         // If a specific approval status filter is specified (e.g., admin filtering), apply it
-        if (trangThaiKiemDuyet != null && !trangThaiKiemDuyet.isBlank()) {
-            if (session.getTrangThaiKiemDuyet() == null) {
+        if (approvalStatusFilter != null && !approvalStatusFilter.isBlank()) {
+            if (session.getApprovalStatus() == null) {
                 return false;
             }
-            return session.getTrangThaiKiemDuyet().toString().equals(trangThaiKiemDuyet);
+            return session.getApprovalStatus().toString().equals(approvalStatusFilter);
         }
-        
-        // If seller is viewing their own auctions (chuSoHuuId is set), show all their auctions
+
+        // If seller is viewing their own auctions (ownerId is set), show all their auctions
         // regardless of approval status
-        if (chuSoHuuId != null && !chuSoHuuId.isBlank()) {
+        if (ownerId != null && !ownerId.isBlank()) {
             return true;
         }
-        
+
         // For public/unauthenticated users, only show approved auctions
-        return session.getTrangThaiKiemDuyet() != null && 
-               session.getTrangThaiKiemDuyet().equals(ApprovalStatus.DA_DUYET);
+        return session.getApprovalStatus() != null &&
+               session.getApprovalStatus().equals(ApprovalStatus.APPROVED);
     }
 
     private List<Auction> applySort(List<Auction> sessions, AuctionSearchRequest criteria) {
-        String sortBy = criteria.sortBy() != null ? criteria.sortBy() : "thoiGianBatDau";
+        String sortBy = criteria.sortBy() != null ? criteria.sortBy() : "startTime";
         boolean isAsc = "ASC".equalsIgnoreCase(criteria.sortOrder());
 
         Comparator<Auction> comparator = switch (sortBy) {
-            case "giaKhoiDiem" -> Comparator.comparing(Auction::getGiaKhoiDiem);
-            case "giaHienTai" -> Comparator.comparing(Auction::getGiaHienTai);
-            case "thoiGianBatDau" -> Comparator.comparing(Auction::getThoiGianBatDau);
-            default -> Comparator.comparing(Auction::getThoiGianBatDau);
+            case "startingPrice" -> Comparator.comparing(Auction::getStartingPrice);
+            case "currentPrice" -> Comparator.comparing(Auction::getCurrentPrice);
+            case "startTime" -> Comparator.comparing(Auction::getStartTime);
+            default -> Comparator.comparing(Auction::getStartTime);
         };
 
         if (!isAsc) {

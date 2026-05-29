@@ -1,8 +1,8 @@
 export interface NewAuction {
-  taiSanId: string;
-  thoiGianBatDau: string | Date;
-  thoiLuong: number;
-  tienCoc: number;
-  giaKhoiDiem: number;
-  buocGiaNhoNhat: number;
+  productId: string;
+  startTime: string | Date;
+  duration: number;
+  depositAmount: number;
+  startingPrice: number;
+  minimumBidIncrement: number;
 }

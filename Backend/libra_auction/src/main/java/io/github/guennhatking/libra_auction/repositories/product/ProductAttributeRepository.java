@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import io.github.guennhatking.libra_auction.models.product.ProductAttribute;
 
 public interface ProductAttributeRepository extends JpaRepository<ProductAttribute, String> {
-    public void deleteByTaiSanId(String taiSanId);
+    public void deleteByProductId(String productId);
 }

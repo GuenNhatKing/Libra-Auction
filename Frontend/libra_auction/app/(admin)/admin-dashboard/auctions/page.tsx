@@ -27,8 +27,8 @@ type AuctionRow = AdminAuction & {
 type AuctionFilter = "ALL" | "PENDING" | "APPROVED" | "REJECTED";
 
 function resolveAuctionStatus(status: string): "PENDING" | "APPROVED" | "REJECTED" {
-  if (status === "DA_DUYET") return "APPROVED";
-  if (status === "BI_TU_CHOI") return "REJECTED";
+  if (status === "APPROVED") return "APPROVED";
+  if (status === "REJECTED") return "REJECTED";
   return "PENDING";
 }
 

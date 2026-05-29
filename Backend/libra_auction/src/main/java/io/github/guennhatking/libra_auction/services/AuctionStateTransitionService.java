@@ -18,34 +18,34 @@ import java.util.Optional;
 
 /**
  * Service to handle auction state transitions
- * Manages transitions from CHUA_BAT_DAU -> DANG_DIEN_RA -> DA_KET_THUC
+ * Manages transitions from NOT_STARTED -> IN_PROGRESS -> ENDED
  */
 @Service
 public class AuctionStateTransitionService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(AuctionStateTransitionService.class);
-    
-    private final AuctionRepository phienDauGiaRepository;
-    private final AuctionResultRepository ketQuaDauGiaRepository;
+
+    private final AuctionRepository auctionRepository;
+    private final AuctionResultRepository auctionResultRepository;
     private final BidHistoryService bidHistoryService;
     private final SimpMessagingTemplate messagingTemplate;
     private final EmailNotificationService emailNotificationService;
-    
+
     public AuctionStateTransitionService(
-            AuctionRepository phienDauGiaRepository,
-            AuctionResultRepository ketQuaDauGiaRepository,
+            AuctionRepository auctionRepository,
+            AuctionResultRepository auctionResultRepository,
             BidHistoryService bidHistoryService,
             SimpMessagingTemplate messagingTemplate,
             EmailNotificationService emailNotificationService) {
-        this.phienDauGiaRepository = phienDauGiaRepository;
-        this.ketQuaDauGiaRepository = ketQuaDauGiaRepository;
+        this.auctionRepository = auctionRepository;
+        this.auctionResultRepository = auctionResultRepository;
         this.bidHistoryService = bidHistoryService;
         this.messagingTemplate = messagingTemplate;
         this.emailNotificationService = emailNotificationService;
     }
-    
+
     /**
-     * Transition an auction to STARTED state (DANG_DIEN_RA)
+     * Transition an auction to STARTED state (IN_PROGRESS)
      * - Send start notifications to participants
      * - Change status in database
      * @param auctionId The auction ID
@@ -53,46 +53,46 @@ public class AuctionStateTransitionService {
     @Transactional
     public void startAuction(String auctionId) {
         try {
-            Optional<Auction> auctionOpt = phienDauGiaRepository.findById(auctionId);
+            Optional<Auction> auctionOpt = auctionRepository.findById(auctionId);
             if (auctionOpt.isEmpty()) {
                 logger.warn("Auction not found: {}", auctionId);
                 return;
             }
-            
+
             Auction auction = auctionOpt.get();
-            
-            // Only transition if currently in CHUA_BAT_DAU state
-            if (auction.getTrangThaiPhien() != AuctionStatus.CHUA_BAT_DAU) {
-                logger.warn("Auction {} is not in CHUA_BAT_DAU state, current: {}", 
-                    auctionId, auction.getTrangThaiPhien());
+
+            // Only transition if currently in NOT_STARTED state
+            if (auction.getAuctionStatus() != AuctionStatus.NOT_STARTED) {
+                logger.warn("Auction {} is not in NOT_STARTED state, current: {}",
+                    auctionId, auction.getAuctionStatus());
                 return;
             }
-            
-            // Change status to DANG_DIEN_RA
-            auction.setTrangThaiPhien(AuctionStatus.DANG_DIEN_RA);
-            phienDauGiaRepository.save(auction);
-            
+
+            // Change status to IN_PROGRESS
+            auction.setAuctionStatus(AuctionStatus.IN_PROGRESS);
+            auctionRepository.save(auction);
+
             logger.info("Auction {} started", auctionId);
-            
+
             // Send email notification
             try {
                 emailNotificationService.sendAuctionStartedNotification(auction);
             } catch (Exception e) {
                 logger.error("Failed to send auction start email notification", e);
             }
-            
+
             // Send WebSocket notification
-            sendAuctionStatusUpdate(auctionId, AuctionStatus.DANG_DIEN_RA.toString());
-            
+            sendAuctionStatusUpdate(auctionId, AuctionStatus.IN_PROGRESS.toString());
+
         } catch (Exception e) {
             logger.error("Error starting auction {}: {}", auctionId, e.getMessage(), e);
         }
     }
-    
+
     /**
-     * Transition an auction to ENDED state (DA_KET_THUC)
+     * Transition an auction to ENDED state (ENDED)
      * - Find the winner
-     * - Create KetQuaDauGia (auction result)
+     * - Create AuctionResult (auction result)
      * - Send notification emails to winner and auction creator
      * - Change status in database
      * @param auctionId The auction ID
@@ -100,49 +100,49 @@ public class AuctionStateTransitionService {
     @Transactional
     public void endAuction(String auctionId) {
         try {
-            Optional<Auction> auctionOpt = phienDauGiaRepository.findById(auctionId);
+            Optional<Auction> auctionOpt = auctionRepository.findById(auctionId);
             if (auctionOpt.isEmpty()) {
                 logger.warn("Auction not found: {}", auctionId);
                 return;
             }
-            
+
             Auction auction = auctionOpt.get();
-            
-            // Only transition if currently in DANG_DIEN_RA state
-            if (auction.getTrangThaiPhien() != AuctionStatus.DANG_DIEN_RA) {
-                logger.warn("Auction {} is not in DANG_DIEN_RA state, current: {}", 
-                    auctionId, auction.getTrangThaiPhien());
+
+            // Only transition if currently in IN_PROGRESS state
+            if (auction.getAuctionStatus() != AuctionStatus.IN_PROGRESS) {
+                logger.warn("Auction {} is not in IN_PROGRESS state, current: {}",
+                    auctionId, auction.getAuctionStatus());
                 return;
             }
-            
+
             // Find the winner (latest bid from history)
             BidResponse latestBidResponse = bidHistoryService.getLatestBid(auctionId);
-            
-            // Create KetQuaDauGia (Auction Result)
+
+            // Create AuctionResult (Auction Result)
             AuctionResult result = new AuctionResult();
-            result.setPhienDauGia(auction);
-            result.setThoiGianKetThuc(OffsetDateTime.now(ZoneOffset.ofHours(7)));
-            
+            result.setAuction(auction);
+            result.setEndTime(OffsetDateTime.now(ZoneOffset.ofHours(7)));
+
             if (latestBidResponse != null) {
                 // There is a winner - set the winner and price
                 // Note: We're using the BidResponse, not database record
-                // In production, you should query NguoiDung by email from latestBidResponse.bidderId
-                result.setGiaTrungDauGia(latestBidResponse.bidAmount());
-                
-                logger.info("Auction {} ended with winner bid: {} VND", 
+                // In production, you should query Customer by email from latestBidResponse.bidderId
+                result.setWinningPrice(latestBidResponse.bidAmount());
+
+                logger.info("Auction {} ended with winner bid: {} VND",
                     auctionId, latestBidResponse.bidAmount());
             } else {
                 // No bids placed - auction ends with no winner
                 logger.info("Auction {} ended with no bids", auctionId);
             }
-            
-            AuctionResult savedResult = ketQuaDauGiaRepository.save(result);
-            auction.setKetQuaDauGia(savedResult);
-            
-            // Change status to DA_KET_THUC
-            auction.setTrangThaiPhien(AuctionStatus.DA_KET_THUC);
-            phienDauGiaRepository.save(auction);
-            
+
+            AuctionResult savedResult = auctionResultRepository.save(result);
+            auction.setAuctionResult(savedResult);
+
+            // Change status to ENDED
+            auction.setAuctionStatus(AuctionStatus.ENDED);
+            auctionRepository.save(auction);
+
             // Send email notifications
             try {
                 if (latestBidResponse != null) {
@@ -153,15 +153,15 @@ public class AuctionStateTransitionService {
             } catch (Exception e) {
                 logger.error("Failed to send auction end email notifications", e);
             }
-            
+
             // Send WebSocket notification
-            sendAuctionStatusUpdate(auctionId, AuctionStatus.DA_KET_THUC.toString());
-            
+            sendAuctionStatusUpdate(auctionId, AuctionStatus.ENDED.toString());
+
         } catch (Exception e) {
             logger.error("Error ending auction {}: {}", auctionId, e.getMessage(), e);
         }
     }
-    
+
     /**
      * Send auction status update via WebSocket
      * @param auctionId The auction ID

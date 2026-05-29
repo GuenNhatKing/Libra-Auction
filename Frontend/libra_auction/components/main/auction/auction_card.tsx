@@ -6,17 +6,17 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const auctionStatusConfig: Record<AuctionStatus, { label: string; classes: string }> = {
-    CHUA_BAT_DAU: { label: "Upcoming", classes: "bg-blue-600/90 text-white" },
-    DANG_DIEN_RA: { label: "Live", classes: "bg-emerald-500/90 text-white" },
-    DA_KET_THUC: { label: "Ended", classes: "bg-gray-600/90 text-white" },
-    BI_HUY: { label: "Cancelled", classes: "bg-red-500/90 text-white" },
+    NOT_STARTED: { label: "Upcoming", classes: "bg-blue-600/90 text-white" },
+    IN_PROGRESS: { label: "Live", classes: "bg-emerald-500/90 text-white" },
+    ENDED: { label: "Ended", classes: "bg-gray-600/90 text-white" },
+    CANCELLED: { label: "Cancelled", classes: "bg-red-500/90 text-white" },
 };
 
 export default function AuctionCard({ auctionCard }: { auctionCard: Auction }) {
     const router = useRouter();
     const [now, setNow] = useState(() => Date.now());
 
-    const isLive = auctionCard.auction_status === "DANG_DIEN_RA";
+    const isLive = auctionCard.auction_status === "IN_PROGRESS";
     const status = auctionStatusConfig[auctionCard.auction_status];
 
     useEffect(() => {

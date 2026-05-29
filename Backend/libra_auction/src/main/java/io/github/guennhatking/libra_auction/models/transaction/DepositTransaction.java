@@ -12,47 +12,47 @@ import io.github.guennhatking.libra_auction.models.person.Customer;
 @Entity
 public class DepositTransaction extends Transaction {
     @ManyToOne
-    private Customer nguoiDatCoc;
+    private Customer depositor;
 
     @ManyToOne
-    private AuctionParticipationInfo thongTinThamGia;
+    private AuctionParticipationInfo participationInfo;
 
-    private OffsetDateTime thoiGianTraCoc;
+    private OffsetDateTime refundTime;
 
     // CONSTRUCTOR
     protected DepositTransaction() {
     }
 
-    public DepositTransaction(long soTien, Customer nguoiDatCoc, AuctionParticipationInfo thongTinThamGia) {
-        super(TransactionType.DAT_COC, soTien);
-        this.nguoiDatCoc = nguoiDatCoc;
-        this.thongTinThamGia = thongTinThamGia;
-        this.thoiGianTraCoc = null;
+    public DepositTransaction(long amount, Customer depositor, AuctionParticipationInfo participationInfo) {
+        super(TransactionType.DEPOSIT, amount);
+        this.depositor = depositor;
+        this.participationInfo = participationInfo;
+        this.refundTime = null;
     }
 
     // GETTER
-    public Customer getNguoiDatCoc() {
-        return nguoiDatCoc;
+    public Customer getDepositor() {
+        return depositor;
     }
 
-    public AuctionParticipationInfo getThongTinThamGia() {
-        return thongTinThamGia;
+    public AuctionParticipationInfo getParticipationInfo() {
+        return participationInfo;
     }
 
-    public OffsetDateTime getThoiGianTraCoc() {
-        return thoiGianTraCoc;
+    public OffsetDateTime getRefundTime() {
+        return refundTime;
     }
 
     // SETTER
-    public void setNguoiDatCoc(Customer nguoiDatCoc) {
-        this.nguoiDatCoc = nguoiDatCoc;
+    public void setDepositor(Customer depositor) {
+        this.depositor = depositor;
     }
 
-    public void setThongTinThamGia(AuctionParticipationInfo thongTinThamGia) {
-        this.thongTinThamGia = thongTinThamGia;
+    public void setParticipationInfo(AuctionParticipationInfo participationInfo) {
+        this.participationInfo = participationInfo;
     }
 
-    public void setThoiGianTraCoc(OffsetDateTime thoiGianTraCoc) {
-        this.thoiGianTraCoc = thoiGianTraCoc;
+    public void setRefundTime(OffsetDateTime refundTime) {
+        this.refundTime = refundTime;
     }
 }

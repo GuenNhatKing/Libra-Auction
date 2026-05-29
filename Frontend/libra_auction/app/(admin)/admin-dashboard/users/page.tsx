@@ -11,25 +11,25 @@ type UserRow = PendingUser & {
   emailStatus: string;
 };
 
-type UserFilter = "ALL" | "CHO_XAC_NHAN" | "HOAT_DONG" | "KHOA";
+type UserFilter = "ALL" | "PENDING" | "ACTIVE" | "LOCKED";
 
 function getStatusBadge(status: string) {
   const statusStyles: Record<string, string> = {
-    CHO_XAC_NHAN: "bg-amber-100 text-amber-800 border border-amber-300",
-    HOAT_DONG: "bg-green-100 text-green-800 border border-green-300",
-    KHOA: "bg-red-100 text-red-800 border border-red-300",
-    DA_XAC_THUC: "bg-green-100 text-green-800 border border-green-300",
-    CHUA_XAC_THUC: "bg-amber-100 text-amber-800 border border-amber-300",
-    CHO_XAC_THUC: "bg-blue-100 text-blue-800 border border-blue-300",
+    PENDING: "bg-amber-100 text-amber-800 border border-amber-300",
+    ACTIVE: "bg-green-100 text-green-800 border border-green-300",
+    LOCKED: "bg-red-100 text-red-800 border border-red-300",
+    VERIFIED: "bg-green-100 text-green-800 border border-green-300",
+    UNVERIFIED: "bg-amber-100 text-amber-800 border border-amber-300",
+    PENDING_VERIFICATION: "bg-blue-100 text-blue-800 border border-blue-300",
   };
 
   const labels: Record<string, string> = {
-    CHO_XAC_NHAN: "Pending",
-    HOAT_DONG: "Active",
-    KHOA: "Locked",
-    DA_XAC_THUC: "Verified",
-    CHUA_XAC_THUC: "Unverified",
-    CHO_XAC_THUC: "Awaiting Verification",
+    PENDING: "Pending",
+    ACTIVE: "Active",
+    LOCKED: "Locked",
+    VERIFIED: "Verified",
+    UNVERIFIED: "Unverified",
+    PENDING_VERIFICATION: "Awaiting Verification",
   };
 
   return (
@@ -56,9 +56,9 @@ export default function UsersApprovalPage() {
         setUsers(
           response.content.map((user) => ({
             ...user,
-            avatar: user.anhDaiDien || "/default-avatar.png",
-            accountStatus: user.trangThaiTaiKhoan,
-            emailStatus: user.trangThaiEmail,
+            avatar: user.avatarUrl || "/default-avatar.png",
+            accountStatus: user.accountStatus,
+            emailStatus: user.emailStatus,
           })),
         );
       } catch (loadError) {
@@ -71,9 +71,9 @@ export default function UsersApprovalPage() {
     loadUsers();
   }, []);
 
-  const pendingCount = useMemo(() => users.filter((user) => user.accountStatus === "CHO_XAC_NHAN").length, [users]);
-  const activeCount = useMemo(() => users.filter((user) => user.accountStatus === "HOAT_DONG").length, [users]);
-  const lockedCount = useMemo(() => users.filter((user) => user.accountStatus === "KHOA").length, [users]);
+  const pendingCount = useMemo(() => users.filter((user) => user.accountStatus === "PENDING").length, [users]);
+  const activeCount = useMemo(() => users.filter((user) => user.accountStatus === "ACTIVE").length, [users]);
+  const lockedCount = useMemo(() => users.filter((user) => user.accountStatus === "LOCKED").length, [users]);
 
   const filteredUsers = statusFilter === "ALL"
     ? users
@@ -110,9 +110,9 @@ export default function UsersApprovalPage() {
             All
           </button>
           <button
-            onClick={() => setStatusFilter("CHO_XAC_NHAN")}
+            onClick={() => setStatusFilter("PENDING")}
             className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
-              statusFilter === "CHO_XAC_NHAN"
+              statusFilter === "PENDING"
                 ? "bg-amber-500 text-white"
                 : "bg-amber-50 text-amber-800 hover:bg-amber-100"
             }`}
@@ -120,9 +120,9 @@ export default function UsersApprovalPage() {
             Pending ({pendingCount})
           </button>
           <button
-            onClick={() => setStatusFilter("HOAT_DONG")}
+            onClick={() => setStatusFilter("ACTIVE")}
             className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
-              statusFilter === "HOAT_DONG"
+              statusFilter === "ACTIVE"
                 ? "bg-green-600 text-white"
                 : "bg-green-50 text-green-800 hover:bg-green-100"
             }`}
@@ -130,9 +130,9 @@ export default function UsersApprovalPage() {
             Active ({activeCount})
           </button>
           <button
-            onClick={() => setStatusFilter("KHOA")}
+            onClick={() => setStatusFilter("LOCKED")}
             className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
-              statusFilter === "KHOA"
+              statusFilter === "LOCKED"
                 ? "bg-red-600 text-white"
                 : "bg-red-50 text-red-800 hover:bg-red-100"
             }`}
@@ -157,7 +157,7 @@ export default function UsersApprovalPage() {
                 <th className="px-6 py-4 text-left text-sm font-semibold text-[#146C94]">Full Name</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-[#146C94]">Email</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-[#146C94]">Phone</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-[#146C94]">CCCD</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-[#146C94]">Identity Number</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-[#146C94]">Email Status</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-[#146C94]">Account Status</th>
               </tr>
@@ -181,7 +181,7 @@ export default function UsersApprovalPage() {
                     <td className="px-6 py-4">
                       <Image
                         src={row.avatar}
-                        alt={row.hoVaTen}
+                        alt={row.fullName}
                         width={60}
                         height={60}
                         className="w-16 h-16 rounded-lg object-cover"
@@ -190,10 +190,10 @@ export default function UsersApprovalPage() {
                         }}
                       />
                     </td>
-                    <td className="px-6 py-4 text-sm font-medium text-[#5A7184]">{row.hoVaTen}</td>
+                    <td className="px-6 py-4 text-sm font-medium text-[#5A7184]">{row.fullName}</td>
                     <td className="px-6 py-4 text-sm text-[#5A7184]">{row.email}</td>
-                    <td className="px-6 py-4 text-sm text-[#5A7184]">{row.soDienThoai || "-"}</td>
-                    <td className="px-6 py-4 text-sm font-semibold text-[#19A7CE]">{row.CCCD || "-"}</td>
+                    <td className="px-6 py-4 text-sm text-[#5A7184]">{row.phoneNumber || "-"}</td>
+                    <td className="px-6 py-4 text-sm font-semibold text-[#19A7CE]">{row.identityNumber || "-"}</td>
                     <td className="px-6 py-4 text-sm">{getStatusBadge(row.emailStatus)}</td>
                     <td className="px-6 py-4 text-sm">{getStatusBadge(row.accountStatus)}</td>
                   </tr>

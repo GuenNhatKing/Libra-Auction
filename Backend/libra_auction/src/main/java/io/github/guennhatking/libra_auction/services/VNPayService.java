@@ -40,63 +40,63 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Service xử lý thanh toán VNPay
+ * Service xu ly thanh toan VNPay
  */
 @Service
 public class VNPayService {
     private final VNPayProperties vnPayProperties;
-    private final DepositTransactionRepository giaoDichDatCocRepository;
-    private final AuctionParticipationInfoRepository thongTinThamGiaDauGiaRepository;
-    private final CustomerRepository nguoiDungRepository;
-    private final AuctionRepository phienDauGiaRepository;
-    private final PaymentTransactionRepository giaoDichThanhToanRepository;
+    private final DepositTransactionRepository depositTransactionRepository;
+    private final AuctionParticipationInfoRepository participationInfoRepository;
+    private final CustomerRepository customerRepository;
+    private final AuctionRepository auctionRepository;
+    private final PaymentTransactionRepository paymentTransactionRepository;
 
     public VNPayService(VNPayProperties vnPayProperties,
-            TransactionRepository giaoDichRepository,
-            PaymentTransactionRepository giaoDichThanhToanRepository,
-            CustomerRepository nguoiDungRepository,
-            DepositTransactionRepository giaoDichDatCocRepository,
-            AuctionParticipationInfoRepository thongTinThamGiaDauGiaRepository,
-            AuctionRepository phienDauGiaRepository) {
+            TransactionRepository transactionRepository,
+            PaymentTransactionRepository paymentTransactionRepository,
+            CustomerRepository customerRepository,
+            DepositTransactionRepository depositTransactionRepository,
+            AuctionParticipationInfoRepository participationInfoRepository,
+            AuctionRepository auctionRepository) {
         this.vnPayProperties = vnPayProperties;
-        this.nguoiDungRepository = nguoiDungRepository;
-        this.giaoDichDatCocRepository = giaoDichDatCocRepository;
-        this.thongTinThamGiaDauGiaRepository = thongTinThamGiaDauGiaRepository;
-        this.phienDauGiaRepository = phienDauGiaRepository;
-        this.giaoDichThanhToanRepository = giaoDichThanhToanRepository;
+        this.customerRepository = customerRepository;
+        this.depositTransactionRepository = depositTransactionRepository;
+        this.participationInfoRepository = participationInfoRepository;
+        this.auctionRepository = auctionRepository;
+        this.paymentTransactionRepository = paymentTransactionRepository;
     }
 
     @Transactional
     public VNPayPaymentResponse createDeposit(VNPayDepositRequest request, String userId,
             HttpServletRequest servletRequest) {
 
-        Customer user = nguoiDungRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+        Customer user = customerRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Nguoi dung khong ton tai"));
 
-        AuctionParticipationInfo thongTinThamGiaDauGia = thongTinThamGiaDauGiaRepository
-                .findByNguoiThamGiaIdAndPhienDauGiaId(userId, request.phienDauGiaId())
-                .orElseThrow(() -> new RuntimeException("Thông tin tham gia không tồn tại"));
+        AuctionParticipationInfo participationInfo = participationInfoRepository
+                .findByParticipantIdAndAuctionId(userId, request.auctionId())
+                .orElseThrow(() -> new RuntimeException("Thong tin tham gia khong ton tai"));
 
-        Auction phienDauGia = phienDauGiaRepository.findById(request.phienDauGiaId())
-                .orElseThrow(() -> new RuntimeException("Phiên đấu giá không tồn tại"));
+        Auction auction = auctionRepository.findById(request.auctionId())
+                .orElseThrow(() -> new RuntimeException("Phien dau gia khong ton tai"));
 
-        DepositTransaction deposit = new DepositTransaction(phienDauGia.getTienCoc(),
-                user, thongTinThamGiaDauGia);
+        DepositTransaction deposit = new DepositTransaction(auction.getDepositAmount(),
+                user, participationInfo);
 
-        deposit.setNgayTao(OffsetDateTime.now(ZoneOffset.ofHours(7)));
-        deposit.setTinhTrangGiaoDich(TransactionStatus.DANG_XU_LY);
+        deposit.setCreatedAt(OffsetDateTime.now(ZoneOffset.ofHours(7)));
+        deposit.setTransactionStatus(TransactionStatus.PROCESSING);
 
-        // Lưu để có ID (mã đơn hàng)
-        deposit = giaoDichDatCocRepository.save(deposit);
+        // Luu de co ID (ma don hang)
+        deposit = depositTransactionRepository.save(deposit);
 
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
-        String vnp_OrderInfo = "Dat coc dau gia: " + request.phienDauGiaId();
+        String vnp_OrderInfo = "Dat coc dau gia: " + request.auctionId();
         String vnp_TxnRef = deposit.getId();
         String vnp_IpAddr = getClientIp(servletRequest);
         String vnp_TmnCode = vnPayProperties.getTmnCode();
 
-        long amount = phienDauGia.getTienCoc() * 100; // VNPay tính theo đơn vị xu (nhân 100)
+        long amount = auction.getDepositAmount() * 100; // VNPay tinh theo don vi xu (nhan 100)
 
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", vnp_Version);
@@ -132,50 +132,50 @@ public class VNPayService {
             }
         }
 
-        // 5. Tạo chữ ký số (Secure Hash)
+        // 5. Tao chu ky so (Secure Hash)
         String queryUrl = query.toString();
         String vnp_SecureHash = VNPayUtil.hmacSHA512(vnPayProperties.getHashSecret(), hashData.toString());
         queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
 
         String paymentUrl = vnPayProperties.getApiUrl() + "?" + queryUrl;
 
-        // 6. Trả về thông tin cho Frontend
+        // 6. Tra ve thong tin cho Frontend
         return new VNPayPaymentResponse(paymentUrl);
     }
 
     @Transactional
     public VNPayPaymentResponse createPayment(VNPayPaymentRequest request, String userId,
             HttpServletRequest servletRequest) {
-        Customer user = nguoiDungRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Người dùng không tồn tại"));
+        Customer user = customerRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Nguoi dung khong ton tai"));
 
-        Auction phienDauGia = phienDauGiaRepository.findById(request.phienDauGiaId())
-                .orElseThrow(() -> new RuntimeException("Phiên đấu giá không tồn tại"));
+        Auction auction = auctionRepository.findById(request.auctionId())
+                .orElseThrow(() -> new RuntimeException("Phien dau gia khong ton tai"));
 
-        AuctionResult ketQuaDauGia = phienDauGia.getKetQuaDauGia();
-        if (ketQuaDauGia == null || !ketQuaDauGia.getNguoiThangDauGia().getId().equals(userId)) {
-            throw new RuntimeException("Người dùng không phải là người thắng cuộc của phiên đấu giá này");
+        AuctionResult auctionResult = auction.getAuctionResult();
+        if (auctionResult == null || !auctionResult.getWinner().getId().equals(userId)) {
+            throw new RuntimeException("Nguoi dung khong phai la nguoi thang cuoc cua phien dau gia nay");
         }
 
-        Customer nguoiBan = phienDauGia.getNguoiTao();
+        Customer seller = auction.getCreator();
 
-        PaymentTransaction payment = new PaymentTransaction(phienDauGia.getGiaHienTai(),
-                user, nguoiBan, ketQuaDauGia);
+        PaymentTransaction payment = new PaymentTransaction(auction.getCurrentPrice(),
+                user, seller, auctionResult);
 
-        payment.setNgayTao(OffsetDateTime.now(ZoneOffset.ofHours(7)));
-        payment.setTinhTrangGiaoDich(TransactionStatus.DANG_XU_LY);
+        payment.setCreatedAt(OffsetDateTime.now(ZoneOffset.ofHours(7)));
+        payment.setTransactionStatus(TransactionStatus.PROCESSING);
 
-        // Lưu để có ID (mã đơn hàng)
-        payment = giaoDichThanhToanRepository.save(payment);
+        // Luu de co ID (ma don hang)
+        payment = paymentTransactionRepository.save(payment);
 
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
-        String vnp_OrderInfo = "Dat coc dau gia: " + request.phienDauGiaId();
+        String vnp_OrderInfo = "Dat coc dau gia: " + request.auctionId();
         String vnp_TxnRef = payment.getId();
         String vnp_IpAddr = getClientIp(servletRequest);
         String vnp_TmnCode = vnPayProperties.getTmnCode();
 
-        long amount = phienDauGia.getTienCoc() * 100; // VNPay tính theo đơn vị xu (nhân 100)
+        long amount = auction.getDepositAmount() * 100; // VNPay tinh theo don vi xu (nhan 100)
 
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", vnp_Version);
@@ -211,20 +211,20 @@ public class VNPayService {
             }
         }
 
-        // 5. Tạo chữ ký số (Secure Hash)
+        // 5. Tao chu ky so (Secure Hash)
         String queryUrl = query.toString();
         String vnp_SecureHash = VNPayUtil.hmacSHA512(vnPayProperties.getHashSecret(), hashData.toString());
         queryUrl += "&vnp_SecureHash=" + vnp_SecureHash;
 
         String paymentUrl = vnPayProperties.getApiUrl() + "?" + queryUrl;
 
-        // 6. Trả về thông tin cho Frontend
+        // 6. Tra ve thong tin cho Frontend
         return new VNPayPaymentResponse(paymentUrl);
     }
 
     @Transactional
     public boolean depositSuccessed(VerifyPaymentRequest request) {
-        // 1. Chuyển đổi Record sang Map để tính toán Checksum
+        // 1. Chuyen doi Record sang Map de tinh toan Checksum
         Map<String, String> fields = new HashMap<>();
         fields.put("vnp_Amount", request.vnp_Amount());
         fields.put("vnp_BankCode", request.vnp_BankCode());
@@ -238,8 +238,8 @@ public class VNPayService {
         fields.put("vnp_TransactionStatus", request.vnp_TransactionStatus());
         fields.put("vnp_TxnRef", request.vnp_TxnRef());
 
-        // 2. Kiểm tra chữ ký (Secure Hash)
-        // Sắp xếp tham số theo alphabet (giống như lúc tạo)
+        // 2. Kiem tra chu ky (Secure Hash)
+        // Sap xep tham so theo alphabet (giong luc tao)
         List<String> fieldNames = new ArrayList<>(fields.keySet());
         Collections.sort(fieldNames);
 
@@ -247,7 +247,7 @@ public class VNPayService {
         for (String fieldName : fieldNames) {
             String fieldValue = fields.get(fieldName);
             if (fieldValue != null && !fieldValue.isEmpty()) {
-                // Nếu StringBuilder đã có dữ liệu, thêm dấu & trước khi thêm tham số mới
+                // Neu StringBuilder da co du lieu, them dau & truoc khi them tham so moi
                 if (hashData.length() > 0) {
                     hashData.append('&');
                 }
@@ -258,48 +258,48 @@ public class VNPayService {
         }
 
         String signValue = VNPayUtil.hmacSHA512(vnPayProperties.getHashSecret(), hashData.toString());
-        // So sánh hash từ VNPAY và hash mình tự tính
+        // So sanh hash tu VNPAY va hash minh tu tinh
         if (!signValue.equalsIgnoreCase(request.vnp_SecureHash())) {
-            throw new RuntimeException("Chữ ký không hợp lệ (Invalid Checksum)");
+            throw new RuntimeException("Chu ky khong hop le (Invalid Checksum)");
         }
 
-        // 3. Tìm giao dịch đặt cọc trong DB
-        DepositTransaction deposit = giaoDichDatCocRepository.findById(request.vnp_TxnRef())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch đặt cọc"));
+        // 3. Tim giao dich dat coc trong DB
+        DepositTransaction deposit = depositTransactionRepository.findById(request.vnp_TxnRef())
+                .orElseThrow(() -> new RuntimeException("Khong tim thay giao dich dat coc"));
 
-        // 4. Kiểm tra số tiền
+        // 4. Kiem tra so tien
         long vnpAmount = request.getActualAmount();
-        long dbAmount = deposit.getSoTien();
+        long dbAmount = deposit.getAmount();
         if (vnpAmount != dbAmount) {
-            throw new RuntimeException("Số tiền thanh toán không khớp");
+            throw new RuntimeException("So tien thanh toan khong khop");
         }
 
-        // 5. Kiểm tra trạng thái giao dịch
-        if (deposit.getTinhTrangGiaoDich() != TransactionStatus.DANG_XU_LY) {
-            // Giao dịch này đã được cập nhật trước đó (bởi IPN hoặc lần verify trước)
-            return deposit.getTinhTrangGiaoDich() == TransactionStatus.THANH_CONG;
+        // 5. Kiem tra trang thai giao dich
+        if (deposit.getTransactionStatus() != TransactionStatus.PROCESSING) {
+            // Giao dich nay da duoc cap nhat truoc do (boi IPN hoac lan verify truoc)
+            return deposit.getTransactionStatus() == TransactionStatus.SUCCESS;
         }
 
-        // 6. Cập nhật kết quả dựa trên ResponseCode
+        // 6. Cap nhat ket qua dua tren ResponseCode
         if ("00".equals(request.vnp_ResponseCode())) {
-            // THÀNH CÔNG
-            deposit.setTinhTrangGiaoDich(TransactionStatus.THANH_CONG);
-            // Lưu mã giao dịch VNPAY để đối soát sau này
-            deposit.setMaGiaoDichCuaDoiTac(request.vnp_TransactionNo());
+            // THANH CONG
+            deposit.setTransactionStatus(TransactionStatus.SUCCESS);
+            // Luu ma giao dich VNPAY de doi soat sau nay
+            deposit.setPartnerTransactionId(request.vnp_TransactionNo());
 
-            giaoDichDatCocRepository.save(deposit);
+            depositTransactionRepository.save(deposit);
 
             return true;
         } else {
-            deposit.setTinhTrangGiaoDich(TransactionStatus.THAT_BAI);
-            giaoDichDatCocRepository.save(deposit);
+            deposit.setTransactionStatus(TransactionStatus.FAILED);
+            depositTransactionRepository.save(deposit);
             return false;
         }
     }
 
     @Transactional
     public boolean paymentSuccessed(VerifyPaymentRequest request) {
-        // 1. Chuyển đổi Record sang Map để tính toán Checksum
+        // 1. Chuyen doi Record sang Map de tinh toan Checksum
         Map<String, String> fields = new HashMap<>();
         fields.put("vnp_Amount", request.vnp_Amount());
         fields.put("vnp_BankCode", request.vnp_BankCode());
@@ -313,7 +313,7 @@ public class VNPayService {
         fields.put("vnp_TransactionStatus", request.vnp_TransactionStatus());
         fields.put("vnp_TxnRef", request.vnp_TxnRef());
 
-        // 2. Kiểm tra chữ ký (Secure Hash)
+        // 2. Kiem tra chu ky (Secure Hash)
         List<String> fieldNames = new ArrayList<>(fields.keySet());
         Collections.sort(fieldNames);
         StringBuilder hashData = new StringBuilder();
@@ -328,84 +328,84 @@ public class VNPayService {
         }
 
         String signValue = VNPayUtil.hmacSHA512(vnPayProperties.getHashSecret(), hashData.toString());
-        // So sánh hash từ VNPAY và hash mình tự tính
+        // So sanh hash tu VNPAY va hash minh tu tinh
         if (!signValue.equalsIgnoreCase(request.vnp_SecureHash())) {
-            throw new RuntimeException("Chữ ký không hợp lệ (Invalid Checksum)");
+            throw new RuntimeException("Chu ky khong hop le (Invalid Checksum)");
         }
 
-        // 3. Tìm giao dịch thanh toán trong DB
-        PaymentTransaction payment = giaoDichThanhToanRepository.findById(request.vnp_TxnRef())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch thanh toán"));
+        // 3. Tim giao dich thanh toan trong DB
+        PaymentTransaction payment = paymentTransactionRepository.findById(request.vnp_TxnRef())
+                .orElseThrow(() -> new RuntimeException("Khong tim thay giao dich thanh toan"));
 
-        // 4. Kiểm tra số tiền
+        // 4. Kiem tra so tien
         long vnpAmount = request.getActualAmount();
-        long dbAmount = payment.getSoTien();
+        long dbAmount = payment.getAmount();
         if (vnpAmount != dbAmount) {
-            throw new RuntimeException("Số tiền thanh toán không khớp");
+            throw new RuntimeException("So tien thanh toan khong khop");
         }
 
-        // 5. Kiểm tra trạng thái giao dịch
-        if (payment.getTinhTrangGiaoDich() != TransactionStatus.DANG_XU_LY) {
-            // Giao dịch này đã được cập nhật trước đó (bởi IPN hoặc lần verify trước)
-            return payment.getTinhTrangGiaoDich() == TransactionStatus.THANH_CONG;
+        // 5. Kiem tra trang thai giao dich
+        if (payment.getTransactionStatus() != TransactionStatus.PROCESSING) {
+            // Giao dich nay da duoc cap nhat truoc do (boi IPN hoac lan verify truoc)
+            return payment.getTransactionStatus() == TransactionStatus.SUCCESS;
         }
 
-        // 6. Cập nhật kết quả dựa trên ResponseCode
+        // 6. Cap nhat ket qua dua tren ResponseCode
         if ("00".equals(request.vnp_ResponseCode())) {
-            // THÀNH CÔNG
-            payment.setTinhTrangGiaoDich(TransactionStatus.THANH_CONG);
-            // Lưu mã giao dịch VNPAY để đối soát sau này
-            payment.setMaGiaoDichCuaDoiTac(request.vnp_TransactionNo());
+            // THANH CONG
+            payment.setTransactionStatus(TransactionStatus.SUCCESS);
+            // Luu ma giao dich VNPAY de doi soat sau nay
+            payment.setPartnerTransactionId(request.vnp_TransactionNo());
 
-            giaoDichThanhToanRepository.save(payment);
+            paymentTransactionRepository.save(payment);
 
             return true;
         } else {
-            payment.setTinhTrangGiaoDich(TransactionStatus.THAT_BAI);
-            giaoDichThanhToanRepository.save(payment);
+            payment.setTransactionStatus(TransactionStatus.FAILED);
+            paymentTransactionRepository.save(payment);
             return false;
         }
     }
 
     public VNPayTransactionResponse getTransactionStatus(String transactionId) {
-        Transaction giaoDich = giaoDichDatCocRepository.findById(transactionId)
-                .map(gd -> (Transaction) gd)
-                .orElseGet(() -> giaoDichThanhToanRepository.findById(transactionId)
-                        .map(gd -> (Transaction) gd)
-                        .orElseThrow(() -> new RuntimeException("Không tìm thấy giao dịch")));
+        Transaction transaction = depositTransactionRepository.findById(transactionId)
+                .map(t -> (Transaction) t)
+                .orElseGet(() -> paymentTransactionRepository.findById(transactionId)
+                        .map(t -> (Transaction) t)
+                        .orElseThrow(() -> new RuntimeException("Khong tim thay giao dich")));
 
-        String moTa = "";
-        String thongTinChiTiet = "";
+        String description = "";
+        String details = "";
 
-        if (giaoDich.getLoaiGiaoDich() == null) {
-            throw new RuntimeException("Giao dịch không hợp lệ");
-        } else if (giaoDich.getLoaiGiaoDich().equals(TransactionType.DAT_COC)) {
-            if (!(giaoDich instanceof DepositTransaction)) {
-                throw new RuntimeException("Giao dịch đặt cọc không hợp lệ");
+        if (transaction.getTransactionType() == null) {
+            throw new RuntimeException("Giao dich khong hop le");
+        } else if (transaction.getTransactionType().equals(TransactionType.DEPOSIT)) {
+            if (!(transaction instanceof DepositTransaction)) {
+                throw new RuntimeException("Giao dich dat coc khong hop le");
             }
-            moTa = "Đặt cọc đấu giá";
-            DepositTransaction datCoc = (DepositTransaction) giaoDich;
-            AuctionParticipationInfo thongTin = datCoc.getThongTinThamGia();
-            thongTinChiTiet = "Phiên đấu giá: " + thongTin.getPhienDauGia().getId() + ", Sản phẩm: "
-                    + thongTin.getPhienDauGia().getTaiSan().getTenTaiSan();
-        } else if (giaoDich.getLoaiGiaoDich().equals(TransactionType.THANH_TOAN)) {
-            if (!(giaoDich instanceof PaymentTransaction)) {
-                throw new RuntimeException("Giao dịch thanh toán không hợp lệ");
+            description = "Dat coc dau gia";
+            DepositTransaction deposit = (DepositTransaction) transaction;
+            AuctionParticipationInfo info = deposit.getParticipationInfo();
+            details = "Phien dau gia: " + info.getAuction().getId() + ", San pham: "
+                    + info.getAuction().getProduct().getName();
+        } else if (transaction.getTransactionType().equals(TransactionType.PAYMENT)) {
+            if (!(transaction instanceof PaymentTransaction)) {
+                throw new RuntimeException("Giao dich thanh toan khong hop le");
             }
-            moTa = "Thanh toán đấu giá";
-            PaymentTransaction thanhToan = (PaymentTransaction) giaoDich;
-            thongTinChiTiet = "Phiên đấu giá: " + thanhToan.getKetQuaDauGia().getPhienDauGia().getId() + ", Sản phẩm: "
-                    + thanhToan.getKetQuaDauGia().getPhienDauGia().getTaiSan().getTenTaiSan();
+            description = "Thanh toan dau gia";
+            PaymentTransaction payment = (PaymentTransaction) transaction;
+            details = "Phien dau gia: " + payment.getAuctionResult().getAuction().getId() + ", San pham: "
+                    + payment.getAuctionResult().getAuction().getProduct().getName();
         }
 
         return new VNPayTransactionResponse(
-                giaoDich.getId(),
-                giaoDich.getMaGiaoDichCuaDoiTac(),
-                giaoDich.getSoTien(),
-                moTa,
-                thongTinChiTiet,
-                giaoDich.getTinhTrangGiaoDich(),
-                giaoDich.getNgayTao().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                transaction.getId(),
+                transaction.getPartnerTransactionId(),
+                transaction.getAmount(),
+                description,
+                details,
+                transaction.getTransactionStatus(),
+                transaction.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 
     public String getClientIp(HttpServletRequest request) {

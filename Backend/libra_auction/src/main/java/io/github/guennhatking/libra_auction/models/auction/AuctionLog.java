@@ -17,23 +17,23 @@ public class AuctionLog {
     private String id;
 
     @ManyToOne
-    private Auction phienDauGia;
+    private Auction auction;
 
     @ManyToOne
-    private Customer nguoiDatGia;
+    private Customer bidder;
 
-    private OffsetDateTime thoiGian;
-    private long mucGia;
+    private OffsetDateTime timestamp;
+    private long bidAmount;
 
     // CONSTRUCTOR
     public AuctionLog() {
     }
 
-    public AuctionLog(Auction phienDauGia, Customer nguoiDatGia, long mucGia) {
-        this.phienDauGia = phienDauGia;
-        this.nguoiDatGia = nguoiDatGia;
-        this.mucGia = mucGia;
-        this.thoiGian = OffsetDateTime.now(ZoneOffset.ofHours(7));
+    public AuctionLog(Auction auction, Customer bidder, long bidAmount) {
+        this.auction = auction;
+        this.bidder = bidder;
+        this.bidAmount = bidAmount;
+        this.timestamp = OffsetDateTime.now(ZoneOffset.ofHours(7));
     }
 
     // GETTER
@@ -41,20 +41,20 @@ public class AuctionLog {
         return id;
     }
 
-    public Auction getPhienDauGia() {
-        return phienDauGia;
+    public Auction getAuction() {
+        return auction;
     }
 
-    public Customer getNguoiDatGia() {
-        return nguoiDatGia;
+    public Customer getBidder() {
+        return bidder;
     }
 
-    public OffsetDateTime getThoiGian() {
-        return thoiGian;
+    public OffsetDateTime getTimestamp() {
+        return timestamp;
     }
 
-    public long getMucGia() {
-        return mucGia;
+    public long getBidAmount() {
+        return bidAmount;
     }
 
     // SETTER
@@ -62,19 +62,19 @@ public class AuctionLog {
         this.id = id;
     }
 
-    public void setPhienDauGia(Auction phienDauGia) {
-        this.phienDauGia = phienDauGia;
+    public void setAuction(Auction auction) {
+        this.auction = auction;
     }
 
-    public void setNguoiDatGia(Customer nguoiDatGia) {
-        this.nguoiDatGia = nguoiDatGia;
+    public void setBidder(Customer bidder) {
+        this.bidder = bidder;
     }
 
-    public void setThoiGian(OffsetDateTime thoiGian) {
-        this.thoiGian = thoiGian;
+    public void setTimestamp(OffsetDateTime timestamp) {
+        this.timestamp = timestamp;
     }
 
-    public void setMucGia(long mucGia) {
-        this.mucGia = mucGia;
+    public void setBidAmount(long bidAmount) {
+        this.bidAmount = bidAmount;
     }
 }

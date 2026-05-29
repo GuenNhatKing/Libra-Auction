@@ -23,7 +23,7 @@ public record AuctionSearchRequest(
 
         // Status filters
         String status,
-        String trangThaiKiemDuyet,
+        String approvalStatus,
 
         // Pagination
         Integer page,
@@ -33,7 +33,7 @@ public record AuctionSearchRequest(
         String sortBy,
         String sortOrder,
         // Owner id – optional, null when not filtering by owner
-        String chuSoHuuId) {
+        String ownerId) {
 
     // Secondary constructor for legacy calls (13 args)
     public AuctionSearchRequest(String name, String categoryId,

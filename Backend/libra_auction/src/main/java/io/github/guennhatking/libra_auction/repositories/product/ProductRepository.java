@@ -8,5 +8,5 @@ import io.github.guennhatking.libra_auction.models.product.Category;
 import io.github.guennhatking.libra_auction.models.product.Product;
 
 public interface ProductRepository extends JpaRepository<Product, String> {
-    List<Product> findByDanhMuc(Category danhMuc);
+    List<Product> findByCategory(Category category);
 }

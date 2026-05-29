@@ -12,20 +12,20 @@ interface AuctionDetailProps {
 }
 
 const approvalStatusConfig: Record<ApprovalStatus, { label: string; classes: string }> = {
-  CHUA_DUYET: { label: "Pending", classes: "bg-amber-50 text-amber-700 border-amber-100" },
-  DA_DUYET: { label: "Approved", classes: "bg-emerald-50 text-emerald-700 border-emerald-100" },
-  BI_TU_CHOI: { label: "Rejected", classes: "bg-red-50 text-red-700 border-red-100" },
+  PENDING: { label: "Pending", classes: "bg-amber-50 text-amber-700 border-amber-100" },
+  APPROVED: { label: "Approved", classes: "bg-emerald-50 text-emerald-700 border-emerald-100" },
+  REJECTED: { label: "Rejected", classes: "bg-red-50 text-red-700 border-red-100" },
 };
 
 const auctionStatusConfig: Record<AuctionStatus, { label: string; classes: string }> = {
-  CHUA_BAT_DAU: { label: "Upcoming", classes: "bg-blue-50 text-blue-600 border-blue-100" },
-  DANG_DIEN_RA: { label: "Live", classes: "bg-green-50 text-green-600 border-green-100" },
-  DA_KET_THUC: { label: "Ended", classes: "bg-gray-50 text-gray-500 border-gray-100" },
-  BI_HUY: { label: "Cancelled", classes: "bg-red-50 text-red-600 border-red-100" },
+  NOT_STARTED: { label: "Upcoming", classes: "bg-blue-50 text-blue-600 border-blue-100" },
+  IN_PROGRESS: { label: "Live", classes: "bg-green-50 text-green-600 border-green-100" },
+  ENDED: { label: "Ended", classes: "bg-gray-50 text-gray-500 border-gray-100" },
+  CANCELLED: { label: "Cancelled", classes: "bg-red-50 text-red-600 border-red-100" },
 };
 
 export const AuctionDetail = ({ data }: AuctionDetailProps) => {
-  const isLive = data.auction_status === "DANG_DIEN_RA"
+  const isLive = data.auction_status === "IN_PROGRESS"
   const hasImages = data.images && data.images.length > 0;
   const attributeCount = data.attributes?.length ?? 0;
 
@@ -34,7 +34,7 @@ export const AuctionDetail = ({ data }: AuctionDetailProps) => {
     { label: "Start time", value: DateFormat(data.start_time) },
     { label: "Duration", value: `${data.duration} minutes` },
     { label: "Starting price", value: CurrencyFormat(data.starting_price) },
-    { label: "Deposit", value: CurrencyFormat(data.tien_coc) },
+    { label: "Deposit", value: CurrencyFormat(data.deposit_amount) },
     { label: "Minimum bid increment", value: CurrencyFormat(data.min_bid_increment) },
   ];
 
@@ -58,7 +58,7 @@ export const AuctionDetail = ({ data }: AuctionDetailProps) => {
               <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-lg border ${approvalStatusConfig[data.approval_status].classes}`}>
               {approvalStatusConfig[data.approval_status].label}
             </span>
-              {data.approval_status === "DA_DUYET" && (
+              {data.approval_status === "APPROVED" && (
                 <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-lg border ${auctionStatusConfig[data.auction_status].classes}`}>
                   {auctionStatusConfig[data.auction_status].label}
                 </span>

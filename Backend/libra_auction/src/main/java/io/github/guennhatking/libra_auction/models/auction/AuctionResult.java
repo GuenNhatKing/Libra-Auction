@@ -20,26 +20,26 @@ public class AuctionResult {
     private String id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    private Auction phienDauGia;
+    private Auction auction;
 
     @ManyToOne
-    private Customer nguoiThangDauGia;
+    private Customer winner;
 
-    @OneToOne(mappedBy = "ketQuaDauGia")
-    private PaymentTransaction giaoDichThanhToan;
+    @OneToOne(mappedBy = "auctionResult")
+    private PaymentTransaction paymentTransaction;
 
-    private OffsetDateTime thoiGianKetThuc;
-    private long giaTrungDauGia;
+    private OffsetDateTime endTime;
+    private long winningPrice;
 
     // CONSTRUCTOR
     public AuctionResult() {
     }
 
-    public AuctionResult(Auction phienDauGia, Customer nguoiThangDauGia, long giaTrungDauGia) {
-        this.phienDauGia = phienDauGia;
-        this.nguoiThangDauGia = nguoiThangDauGia;
-        this.giaTrungDauGia = giaTrungDauGia;
-        this.thoiGianKetThuc = OffsetDateTime.now(ZoneOffset.ofHours(7));
+    public AuctionResult(Auction auction, Customer winner, long winningPrice) {
+        this.auction = auction;
+        this.winner = winner;
+        this.winningPrice = winningPrice;
+        this.endTime = OffsetDateTime.now(ZoneOffset.ofHours(7));
     }
 
     // GETTER
@@ -47,24 +47,24 @@ public class AuctionResult {
         return id;
     }
 
-    public Auction getPhienDauGia() {
-        return phienDauGia;
+    public Auction getAuction() {
+        return auction;
     }
 
-    public Customer getNguoiThangDauGia() {
-        return nguoiThangDauGia;
+    public Customer getWinner() {
+        return winner;
     }
 
-    public OffsetDateTime getThoiGianKetThuc() {
-        return thoiGianKetThuc;
+    public OffsetDateTime getEndTime() {
+        return endTime;
     }
 
-    public long getGiaTrungDauGia() {
-        return giaTrungDauGia;
+    public long getWinningPrice() {
+        return winningPrice;
     }
 
-    public PaymentTransaction getGiaoDichThanhToan() {
-        return giaoDichThanhToan;
+    public PaymentTransaction getPaymentTransaction() {
+        return paymentTransaction;
     }
 
     // SETTER
@@ -72,19 +72,19 @@ public class AuctionResult {
         this.id = id;
     }
 
-    public void setPhienDauGia(Auction phienDauGia) {
-        this.phienDauGia = phienDauGia;
+    public void setAuction(Auction auction) {
+        this.auction = auction;
     }
 
-    public void setNguoiThangDauGia(Customer nguoiThangDauGia) {
-        this.nguoiThangDauGia = nguoiThangDauGia;
+    public void setWinner(Customer winner) {
+        this.winner = winner;
     }
 
-    public void setThoiGianKetThuc(OffsetDateTime thoiGianKetThuc) {
-        this.thoiGianKetThuc = thoiGianKetThuc;
+    public void setEndTime(OffsetDateTime endTime) {
+        this.endTime = endTime;
     }
 
-    public void setGiaTrungDauGia(long giaTrungDauGia) {
-        this.giaTrungDauGia = giaTrungDauGia;
+    public void setWinningPrice(long winningPrice) {
+        this.winningPrice = winningPrice;
     }
 }

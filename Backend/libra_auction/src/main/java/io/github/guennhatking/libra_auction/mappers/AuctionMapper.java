@@ -16,25 +16,25 @@ import io.github.guennhatking.libra_auction.viewmodels.response.AuctionResponse;
 @Mapper(componentModel = "spring", uses = { ProductImageMapper.class })
 public interface AuctionMapper {
 
-    @Mapping(source = "taiSan.danhMuc.id", target = "category_id", defaultValue = "uncategorized")
-    @Mapping(source = "taiSan.danhMuc.tenDanhMuc", target = "category_name")
+    @Mapping(source = "product.category.id", target = "category_id", defaultValue = "uncategorized")
+    @Mapping(source = "product.category.name", target = "category_name")
     @Mapping(source = "id", target = "auction_id")
 
-    @Mapping(source = "trangThaiPhien", target = "auction_status", defaultValue = "CHUA_BAT_DAU")
-    @Mapping(source = "trangThaiKiemDuyet", target = "approval_status")
-    @Mapping(source = "thoiGianBatDau", target = "start_time")
-    @Mapping(source = "thoiLuong", target = "duration")
-    @Mapping(source = "giaKhoiDiem", target = "starting_price")
-    @Mapping(target = "current_price", expression = "java(session.getGiaHienTai() > 0 ? session.getGiaHienTai() : session.getGiaKhoiDiem())")
-    @Mapping(source = "tienCoc", target = "tien_coc")
-    @Mapping(source = "buocGiaNhoNhat", target = "min_bid_increment")
+    @Mapping(source = "auctionStatus", target = "auction_status", defaultValue = "NOT_STARTED")
+    @Mapping(source = "approvalStatus", target = "approval_status")
+    @Mapping(source = "startTime", target = "start_time")
+    @Mapping(source = "duration", target = "duration")
+    @Mapping(source = "startingPrice", target = "starting_price")
+    @Mapping(target = "current_price", expression = "java(session.getCurrentPrice() > 0 ? session.getCurrentPrice() : session.getStartingPrice())")
+    @Mapping(source = "depositAmount", target = "deposit_amount")
+    @Mapping(source = "minimumBidIncrement", target = "min_bid_increment")
 
-    @Mapping(source = "taiSan.id", target = "product_id")
-    @Mapping(source = "taiSan.tenTaiSan", target = "product_name")
-    @Mapping(source = "taiSan.soLuong", target = "quantity")
-    @Mapping(source = "taiSan.moTa", target = "description")
+    @Mapping(source = "product.id", target = "product_id")
+    @Mapping(source = "product.name", target = "product_name")
+    @Mapping(source = "product.quantity", target = "quantity")
+    @Mapping(source = "product.description", target = "description")
 
-    @Mapping(source = "taiSan.hinhAnhTaiSanList", target = "images")
+    @Mapping(source = "product.images", target = "images")
     @Mapping(source = ".", target = "auction_name", qualifiedByName = "resolveAuctionTitle")
     @Mapping(source = ".", target = "attributes", qualifiedByName = "resolveAttributes")
     @Mapping(source = ".", target = "total_bids", qualifiedByName = "resolveTotalBids")
@@ -45,25 +45,25 @@ public interface AuctionMapper {
 
     @Named("resolveAttributes")
     default List<AttributeResponse> resolveAttributes(Auction session) {
-        if (session == null || session.getTaiSan() == null)
+        if (session == null || session.getProduct() == null)
             return Collections.emptyList();
 
         List<AttributeResponse> results = new ArrayList<>();
-        Product taiSan = session.getTaiSan();
+        Product product = session.getProduct();
 
-        // Lấy từ ThuocTinhTaiSan (isSystem = false)
-        if (taiSan.getThuocTinhTaiSanList() != null) {
-            taiSan.getThuocTinhTaiSanList().forEach(
-                    attr -> results.add(new AttributeResponse(attr.getTenThuocTinh(), attr.getGiaTri(), false)));
+        // Get from ProductAttributes (isSystem = false)
+        if (product.getAttributes() != null) {
+            product.getAttributes().forEach(
+                    attr -> results.add(new AttributeResponse(attr.getAttributeName(), attr.getAttributeValue(), false)));
         }
 
-        // Lấy từ KetHopThuocTinh -> ThuocTinhChuanHoa (isSystem = true)
-        if (taiSan.getKetHopThuocTinhs() != null) {
-            taiSan.getKetHopThuocTinhs().forEach(kh -> {
-                if (kh.getThuocTinhChuanHoa() != null) {
+        // Get from AttributeCombinations -> StandardizedAttribute (isSystem = true)
+        if (product.getAttributeCombinations() != null) {
+            product.getAttributeCombinations().forEach(kh -> {
+                if (kh.getStandardizedAttribute() != null) {
                     results.add(new AttributeResponse(
-                            kh.getThuocTinhChuanHoa().getTenThuocTinh(),
-                            kh.getThuocTinhChuanHoa().getGiaTri(),
+                            kh.getStandardizedAttribute().getAttributeName(),
+                            kh.getStandardizedAttribute().getAttributeValue(),
                             true));
                 }
             });
@@ -74,27 +74,27 @@ public interface AuctionMapper {
 
     @Named("resolveTotalBids")
     default Long resolveTotalBids(Auction session) {
-        if (session == null || session.getLichSuDatGia() == null)
+        if (session == null || session.getBidHistory() == null)
             return 0L;
-        return (long) session.getLichSuDatGia().size();
+        return (long) session.getBidHistory().size();
     }
 
     @Named("resolveTotalParticipants")
     default Long resolveTotalParticipants(Auction session) {
-        if (session == null || session.getDanhSachThamGia() == null)
+        if (session == null || session.getParticipants() == null)
             return 0L;
-        return (long) session.getDanhSachThamGia().size();
+        return (long) session.getParticipants().size();
     }
 
     @Named("resolveAuctionTitle")
     default String resolveAuctionTitle(Auction session) {
-        if (session == null || session.getTaiSan() == null) {
-            return "Vật phẩm không tên";
+        if (session == null || session.getProduct() == null) {
+            return "Untitled item";
         }
 
-        String productName = session.getTaiSan().getTenTaiSan();
+        String productName = session.getProduct().getName();
         return productName != null && !productName.trim().isEmpty()
                 ? productName
-                : "Vật phẩm không tên";
+                : "Untitled item";
     }
 }

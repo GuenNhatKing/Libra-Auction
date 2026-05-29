@@ -24,15 +24,15 @@ public class OtpService {
 
     public String generateAndStore(String email) {
         Customer customer = customerService.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản với email này."));
-        
+                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay tai khoan voi email nay."));
+
         String otp = generateOtp();
-        
+
         OtpRequest otpRequest = new OtpRequest(customer);
-        otpRequest.setMaOTPDaTao(otp);
-        otpRequest.setTrangThaiYeuCau(RequestStatus.DANG_XU_LY);
-        otpRequest.setThoiGianHetHanKichHoat(OffsetDateTime.now().plusMinutes(OTP_TTL_MINUTES));
-        
+        otpRequest.setGeneratedOtpCode(otp);
+        otpRequest.setRequestStatus(RequestStatus.PROCESSING);
+        otpRequest.setActivationExpiry(OffsetDateTime.now().plusMinutes(OTP_TTL_MINUTES));
+
         otpRequestRepository.save(otpRequest);
         return otp;
     }
@@ -40,26 +40,26 @@ public class OtpService {
     public boolean verify(String email, String otp) {
         OtpRequest otpRequest = otpRequestRepository.findLatestByEmail(email)
                 .orElse(null);
-        
+
         if (otpRequest == null) {
             return false;
         }
-        
+
         // Check if OTP has expired
-        if (OffsetDateTime.now().isAfter(otpRequest.getThoiGianHetHanKichHoat())) {
+        if (OffsetDateTime.now().isAfter(otpRequest.getActivationExpiry())) {
             return false;
         }
-        
+
         // Check if OTP matches
-        if (!otpRequest.getMaOTPDaTao().equals(otp)) {
+        if (!otpRequest.getGeneratedOtpCode().equals(otp)) {
             return false;
         }
-        
+
         // Mark as used
-        otpRequest.setTrangThaiYeuCau(RequestStatus.HOAN_THANH);
-        otpRequest.setMaOTPNguoiDungNhap(otp);
+        otpRequest.setRequestStatus(RequestStatus.COMPLETED);
+        otpRequest.setUserInputOtpCode(otp);
         otpRequestRepository.save(otpRequest);
-        
+
         return true;
     }
 

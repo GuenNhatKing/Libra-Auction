@@ -21,31 +21,31 @@ public class Question {
     private String id;
 
     @ManyToOne
-    private Auction phienDauGia;
+    private Auction auction;
 
     @ManyToOne
-    private Customer nguoiHoi;
+    private Customer questioner;
 
     @ManyToOne
-    private Customer nguoiTraLoi;
+    private Customer answerer;
 
-    private String noiDungHoi;
-    private String noiDungTraLoi;
-    private OffsetDateTime thoiGianHoi;
-    private OffsetDateTime thoiGianTraLoi;
+    private String questionContent;
+    private String answerContent;
+    private OffsetDateTime questionTime;
+    private OffsetDateTime answerTime;
 
     @Enumerated(EnumType.STRING)
-    private QuestionStatus tinhTrangCauHoi;
+    private QuestionStatus questionStatus;
 
     // CONSTRUCTOR
     public Question() {
     }
 
-    public Question(Auction phienDauGia, Customer nguoiHoi, String noiDungHoi) {
-        this.phienDauGia = phienDauGia;
-        this.nguoiHoi = nguoiHoi;
-        this.noiDungHoi = noiDungHoi;
-        this.thoiGianHoi = OffsetDateTime.now(ZoneOffset.ofHours(7));
+    public Question(Auction auction, Customer questioner, String questionContent) {
+        this.auction = auction;
+        this.questioner = questioner;
+        this.questionContent = questionContent;
+        this.questionTime = OffsetDateTime.now(ZoneOffset.ofHours(7));
     }
 
     // GETTER
@@ -53,36 +53,36 @@ public class Question {
         return id;
     }
 
-    public Auction getPhienDauGia() {
-        return phienDauGia;
+    public Auction getAuction() {
+        return auction;
     }
 
-    public Customer getNguoiHoi() {
-        return nguoiHoi;
+    public Customer getQuestioner() {
+        return questioner;
     }
 
-    public Customer getNguoiTraLoi() {
-        return nguoiTraLoi;
+    public Customer getAnswerer() {
+        return answerer;
     }
 
-    public String getNoiDungHoi() {
-        return noiDungHoi;
+    public String getQuestionContent() {
+        return questionContent;
     }
 
-    public String getNoiDungTraLoi() {
-        return noiDungTraLoi;
+    public String getAnswerContent() {
+        return answerContent;
     }
 
-    public OffsetDateTime getThoiGianHoi() {
-        return thoiGianHoi;
+    public OffsetDateTime getQuestionTime() {
+        return questionTime;
     }
 
-    public OffsetDateTime getThoiGianTraLoi() {
-        return thoiGianTraLoi;
+    public OffsetDateTime getAnswerTime() {
+        return answerTime;
     }
 
-    public QuestionStatus getTinhTrangCauHoi() {
-        return tinhTrangCauHoi;
+    public QuestionStatus getQuestionStatus() {
+        return questionStatus;
     }
 
     // SETTER
@@ -90,35 +90,35 @@ public class Question {
         this.id = id;
     }
 
-    public void setPhienDauGia(Auction phienDauGia) {
-        this.phienDauGia = phienDauGia;
+    public void setAuction(Auction auction) {
+        this.auction = auction;
     }
 
-    public void setNguoiHoi(Customer nguoiHoi) {
-        this.nguoiHoi = nguoiHoi;
+    public void setQuestioner(Customer questioner) {
+        this.questioner = questioner;
     }
 
-    public void setNguoiTraLoi(Customer nguoiTraLoi) {
-        this.nguoiTraLoi = nguoiTraLoi;
+    public void setAnswerer(Customer answerer) {
+        this.answerer = answerer;
     }
 
-    public void setNoiDungHoi(String noiDungHoi) {
-        this.noiDungHoi = noiDungHoi;
+    public void setQuestionContent(String questionContent) {
+        this.questionContent = questionContent;
     }
 
-    public void setNoiDungTraLoi(String noiDungTraLoi) {
-        this.noiDungTraLoi = noiDungTraLoi;
+    public void setAnswerContent(String answerContent) {
+        this.answerContent = answerContent;
     }
 
-    public void setThoiGianHoi(OffsetDateTime thoiGianHoi) {
-        this.thoiGianHoi = thoiGianHoi;
+    public void setQuestionTime(OffsetDateTime questionTime) {
+        this.questionTime = questionTime;
     }
 
-    public void setThoiGianTraLoi(OffsetDateTime thoiGianTraLoi) {
-        this.thoiGianTraLoi = thoiGianTraLoi;
+    public void setAnswerTime(OffsetDateTime answerTime) {
+        this.answerTime = answerTime;
     }
 
-    public void setTinhTrangCauHoi(QuestionStatus tinhTrangCauHoi) {
-        this.tinhTrangCauHoi = tinhTrangCauHoi;
+    public void setQuestionStatus(QuestionStatus questionStatus) {
+        this.questionStatus = questionStatus;
     }
 }

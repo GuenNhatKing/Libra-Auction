@@ -77,7 +77,7 @@ public class AuctionController {
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "20") Integer pageSize,
-            @RequestParam(defaultValue = "thoiGianBatDau") String sortBy,
+            @RequestParam(defaultValue = "startTime") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortOrder) {
 
         AuctionSearchRequest criteria = buildSearchCriteria(
@@ -101,7 +101,7 @@ public class AuctionController {
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "20") Integer pageSize,
-            @RequestParam(defaultValue = "thoiGianBatDau") String sortBy,
+            @RequestParam(defaultValue = "startTime") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortOrder) {
 
         AuctionSearchRequest criteria = buildSearchCriteria(
@@ -130,7 +130,7 @@ public class AuctionController {
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "20") Integer pageSize,
-            @RequestParam(defaultValue = "thoiGianBatDau") String sortBy,
+            @RequestParam(defaultValue = "startTime") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortOrder) {
 
         // Build base criteria (same as public search)
@@ -165,7 +165,7 @@ public class AuctionController {
             @PathVariable String id) {
 
         List<AuctionQuestionResponse> questions = questionRepository
-                .findByPhienDauGiaIdOrderByThoiGianHoiAsc(id)
+                .findByAuctionIdOrderByQuestionTimeAsc(id)
                 .stream()
                 .map(this::toQuestionResponse)
                 .toList();
@@ -191,22 +191,22 @@ public class AuctionController {
     }
 
     private AuctionQuestionResponse toQuestionResponse(Question question) {
-    String userName = question.getNguoiHoi() != null && question.getNguoiHoi().getHoVaTen() != null
-        && !question.getNguoiHoi().getHoVaTen().isBlank()
-        ? question.getNguoiHoi().getHoVaTen()
+    String userName = question.getQuestioner() != null && question.getQuestioner().getFullName() != null
+        && !question.getQuestioner().getFullName().isBlank()
+        ? question.getQuestioner().getFullName()
         : "Anonymous";
 
-    AuctionQuestionAnswerResponse answer = question.getTinhTrangCauHoi() == QuestionStatus.DA_TRA_LOI
-        && question.getNoiDungTraLoi() != null
-        && !question.getNoiDungTraLoi().isBlank()
-            ? new AuctionQuestionAnswerResponse(question.getNoiDungTraLoi(), question.getThoiGianTraLoi())
+    AuctionQuestionAnswerResponse answer = question.getQuestionStatus() == QuestionStatus.ANSWERED
+        && question.getAnswerContent() != null
+        && !question.getAnswerContent().isBlank()
+            ? new AuctionQuestionAnswerResponse(question.getAnswerContent(), question.getAnswerTime())
             : null;
 
     return new AuctionQuestionResponse(
         question.getId(),
         userName,
-        question.getNoiDungHoi(),
-        question.getThoiGianHoi(),
+        question.getQuestionContent(),
+        question.getQuestionTime(),
         answer);
     }
 
@@ -326,8 +326,8 @@ public class AuctionController {
 
         AuctionSearchRequest request = buildSearchCriteria(
                 null, null, null, null, null,
-                null, null, null, "CHUA_DUYET",
-                page, pageSize, "thoiGianBatDau", "DESC");
+                null, null, null, "PENDING_APPROVAL",
+                page, pageSize, "startTime", "DESC");
 
         PageResponse<AuctionResponse> response = searchService.searchAuctions(request);
         return ResponseEntity.ok(ServerAPIResponse.success(response));
@@ -351,8 +351,8 @@ public class AuctionController {
 
         AuctionSearchRequest request = buildSearchCriteria(
                 null, null, null, null, null,
-                null, null, null, "DA_DUYET",
-                page, pageSize, "thoiGianBatDau", "DESC");
+                null, null, null, "APPROVED",
+                page, pageSize, "startTime", "DESC");
 
         PageResponse<AuctionResponse> response = searchService.searchAuctions(request);
         return ResponseEntity.ok(ServerAPIResponse.success(response));
@@ -376,8 +376,8 @@ public class AuctionController {
 
         AuctionSearchRequest request = buildSearchCriteria(
                 null, null, null, null, null,
-                null, null, null, "BI_TU_CHOI",
-                page, pageSize, "thoiGianBatDau", "DESC");
+                null, null, null, "REJECTED",
+                page, pageSize, "startTime", "DESC");
 
         PageResponse<AuctionResponse> response = searchService.searchAuctions(request);
         return ResponseEntity.ok(ServerAPIResponse.success(response));
@@ -385,14 +385,12 @@ public class AuctionController {
 
     private AuctionSearchRequest buildSearchCriteria(
             String name, String categoryId, Long priceFrom, Long priceTo, Long startingPrice,
-            String timeStart, String timeEnd, String status, String trangThaiKiemDuyet,
+            String timeStart, String timeEnd, String status, String approvalStatus,
             Integer page, Integer pageSize, String sortBy, String sortOrder) {
 
-        // Logic parse thời gian
         OffsetDateTime parsedStart = ParseDateTime.parse(timeStart);
         OffsetDateTime parsedEnd = ParseDateTime.parse(timeEnd);
 
-        // Gọi constructor của Record (15 THAM SỐ theo định nghĩa Record mới)
         return new AuctionSearchRequest(
                 name,
                 categoryId,
@@ -403,7 +401,7 @@ public class AuctionController {
                 parsedEnd,
                 null,
                 status,
-                trangThaiKiemDuyet,
+                approvalStatus,
                 page,
                 pageSize,
                 sortBy,

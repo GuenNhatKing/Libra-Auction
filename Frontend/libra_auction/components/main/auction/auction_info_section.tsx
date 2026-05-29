@@ -21,7 +21,7 @@ export default function AuctionInfoSection({
   const [activeImage, setActiveImage] = useState(autionInfos.images[0]);
   const [isRegistering, setIsRegistering] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const isLive = autionInfos.auction_status === "DANG_DIEN_RA";
+  const isLive = autionInfos.auction_status === "IN_PROGRESS";
   const startDate = new Date(autionInfos.start_time);
 
   const formatDateOnly = (date: Date) => {

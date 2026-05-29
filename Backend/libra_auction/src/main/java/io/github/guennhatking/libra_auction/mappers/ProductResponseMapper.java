@@ -12,13 +12,13 @@ import java.util.List;
 public interface ProductResponseMapper {
 
     @Mapping(source = "id", target = "product_id")
-    @Mapping(source = "tenTaiSan", target = "product_name")
-    @Mapping(source = "soLuong", target = "quantity")
-    @Mapping(source = "moTa", target = "description")
-    @Mapping(source = "danhMuc.id", target = "category_id")
-    @Mapping(source = "danhMuc.tenDanhMuc", target = "category_name")
-    @Mapping(source = "hinhAnhTaiSanList", target = "images")
-    @Mapping(source = "thuocTinhTaiSanList", target = "attributes")
+    @Mapping(source = "name", target = "product_name")
+    @Mapping(source = "quantity", target = "quantity")
+    @Mapping(source = "description", target = "description")
+    @Mapping(source = "category.id", target = "category_id")
+    @Mapping(source = "category.name", target = "category_name")
+    @Mapping(source = "images", target = "images")
+    @Mapping(source = "attributes", target = "attributes")
     ProductResponse toProductResponse(Product product);
 
     List<ProductResponse> toProductResponseList(List<Product> products);

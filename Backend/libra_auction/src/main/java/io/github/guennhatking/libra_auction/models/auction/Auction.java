@@ -27,86 +27,84 @@ public class Auction {
     private String id;
 
     @ManyToOne
-    private Customer nguoiTao;
+    private Customer creator;
 
-    private OffsetDateTime thoiGianBatDau;
-    private long thoiLuong;
+    private OffsetDateTime startTime;
+    private long duration;
 
-    private long tienCoc;
-    private long giaKhoiDiem;
-    private long buocGiaNhoNhat;
+    private long depositAmount;
+    private long startingPrice;
+    private long minimumBidIncrement;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "phienDauGia")
-    private AuctionResult ketQuaDauGia;
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "auction")
+    private AuctionResult auctionResult;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "phienDauGia")
-    private List<Question> danhSachCauHoi;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "auction")
+    private List<Question> questions;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "phienDauGia")
-    private List<AuctionLog> lichSuDatGia;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "auction")
+    private List<AuctionLog> bidHistory;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "phienDauGia")
-    private List<AuctionParticipationInfo> danhSachThamGia;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "auction")
+    private List<AuctionParticipationInfo> participants;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "phienDauGia")
-    private List<BidRejectionRecord> danhSachBoCuoc;
-
-    @Enumerated(EnumType.STRING)
-    private ApprovalStatus trangThaiKiemDuyet;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "auction")
+    private List<BidRejectionRecord> rejectionRecords;
 
     @Enumerated(EnumType.STRING)
-    private AuctionStatus trangThaiPhien;
+    private ApprovalStatus approvalStatus;
 
-    private OffsetDateTime thoiGianTao;
+    @Enumerated(EnumType.STRING)
+    private AuctionStatus auctionStatus;
+
+    private OffsetDateTime createdAt;
 
     @OneToOne(fetch = FetchType.LAZY)
-    private Product taiSan;
+    private Product product;
 
     // CONSTRUCTOR
     public Auction() {
     }
 
     public Auction(
-            Customer nguoiTao,
-            Product taiSan,
-            OffsetDateTime thoiGianBatDau,
-            long thoiLuong,
-            long tienCoc,
-            long giaKhoiDiem,
-            long khoangGia,
-            long buocGiaNhoNhat) {
-        this.nguoiTao = nguoiTao;
-        this.taiSan = taiSan;
-        this.thoiGianBatDau = thoiGianBatDau;
-        this.thoiLuong = thoiLuong;
-        this.tienCoc = tienCoc;
-        this.giaKhoiDiem = giaKhoiDiem;
-        this.buocGiaNhoNhat = buocGiaNhoNhat;
-        this.thoiGianTao = OffsetDateTime.now(ZoneOffset.UTC);
+            Customer creator,
+            Product product,
+            OffsetDateTime startTime,
+            long duration,
+            long depositAmount,
+            long startingPrice,
+            long minimumBidIncrement) {
+        this.creator = creator;
+        this.product = product;
+        this.startTime = startTime;
+        this.duration = duration;
+        this.depositAmount = depositAmount;
+        this.startingPrice = startingPrice;
+        this.minimumBidIncrement = minimumBidIncrement;
+        this.createdAt = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
     public Auction(
-            Customer nguoiTao,
-            Product taiSan,
-            OffsetDateTime thoiGianBatDau,
-            long thoiLuong,
-            long tienCoc,
-            long giaKhoiDiem,
-            long khoangGia,
-            long buocGiaNhoNhat,
-            ApprovalStatus trangThaiKiemDuyet,
-            AuctionStatus trangThaiPhien,
-            OffsetDateTime thoiGianTao) {
-        this.nguoiTao = nguoiTao;
-        this.taiSan = taiSan;
-        this.thoiGianBatDau = thoiGianBatDau;
-        this.thoiLuong = thoiLuong;
-        this.tienCoc = tienCoc;
-        this.giaKhoiDiem = giaKhoiDiem;
-        this.buocGiaNhoNhat = buocGiaNhoNhat;
-        this.trangThaiKiemDuyet = trangThaiKiemDuyet;
-        this.trangThaiPhien = trangThaiPhien;
-        this.thoiGianTao = thoiGianTao != null ? thoiGianTao : OffsetDateTime.now(ZoneOffset.UTC);
+            Customer creator,
+            Product product,
+            OffsetDateTime startTime,
+            long duration,
+            long depositAmount,
+            long startingPrice,
+            long minimumBidIncrement,
+            ApprovalStatus approvalStatus,
+            AuctionStatus auctionStatus,
+            OffsetDateTime createdAt) {
+        this.creator = creator;
+        this.product = product;
+        this.startTime = startTime;
+        this.duration = duration;
+        this.depositAmount = depositAmount;
+        this.startingPrice = startingPrice;
+        this.minimumBidIncrement = minimumBidIncrement;
+        this.approvalStatus = approvalStatus;
+        this.auctionStatus = auctionStatus;
+        this.createdAt = createdAt != null ? createdAt : OffsetDateTime.now(ZoneOffset.UTC);
     }
 
     // GETTER
@@ -114,76 +112,76 @@ public class Auction {
         return id;
     }
 
-    public Customer getNguoiTao() {
-        return nguoiTao;
+    public Customer getCreator() {
+        return creator;
     }
 
-    public OffsetDateTime getThoiGianBatDau() {
-        return thoiGianBatDau;
+    public OffsetDateTime getStartTime() {
+        return startTime;
     }
 
-    public long getThoiLuong() {
-        return thoiLuong;
+    public long getDuration() {
+        return duration;
     }
 
-    public AuctionResult getKetQuaDauGia() {
-        return ketQuaDauGia;
+    public AuctionResult getAuctionResult() {
+        return auctionResult;
     }
 
-    public List<Question> getDanhSachCauHoi() {
-        return danhSachCauHoi;
+    public List<Question> getQuestions() {
+        return questions;
     }
 
-    public List<AuctionLog> getLichSuDatGia() {
-        return lichSuDatGia;
+    public List<AuctionLog> getBidHistory() {
+        return bidHistory;
     }
 
-    public List<AuctionParticipationInfo> getDanhSachThamGia() {
-        return danhSachThamGia;
+    public List<AuctionParticipationInfo> getParticipants() {
+        return participants;
     }
 
-    public List<BidRejectionRecord> getDanhSachBoCuoc() {
-        return danhSachBoCuoc;
+    public List<BidRejectionRecord> getRejectionRecords() {
+        return rejectionRecords;
     }
 
-    public ApprovalStatus getTrangThaiKiemDuyet() {
-        return trangThaiKiemDuyet;
+    public ApprovalStatus getApprovalStatus() {
+        return approvalStatus;
     }
 
-    public AuctionStatus getTrangThaiPhien() {
-        return trangThaiPhien;
+    public AuctionStatus getAuctionStatus() {
+        return auctionStatus;
     }
 
-    public OffsetDateTime getThoiGianTao() {
-        return thoiGianTao;
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public Product getTaiSan() {
-        return taiSan;
+    public Product getProduct() {
+        return product;
     }
 
-    public long getGiaKhoiDiem() {
-        return giaKhoiDiem;
+    public long getStartingPrice() {
+        return startingPrice;
     }
 
-    public long getTienCoc() {
-        return tienCoc;
+    public long getDepositAmount() {
+        return depositAmount;
     }
 
-    public long getBuocGiaNhoNhat() {
-        return buocGiaNhoNhat;
+    public long getMinimumBidIncrement() {
+        return minimumBidIncrement;
     }
 
     /**
-     * Compute current price from bid history (`lichSuDatGia`).
-     * Returns 0 if there are no bids; callers may fall back to `giaKhoiDiem`.
+     * Compute current price from bid history.
+     * Returns 0 if there are no bids; callers may fall back to startingPrice.
      */
-    public long getGiaHienTai() {
-        if (lichSuDatGia == null || lichSuDatGia.isEmpty()) {
+    public long getCurrentPrice() {
+        if (bidHistory == null || bidHistory.isEmpty()) {
             return 0L;
         }
-        return lichSuDatGia.stream()
-                .mapToLong(AuctionLog::getMucGia)
+        return bidHistory.stream()
+                .mapToLong(AuctionLog::getBidAmount)
                 .max()
                 .orElse(0L);
     }
@@ -193,64 +191,63 @@ public class Auction {
         this.id = id;
     }
 
-    public void setNguoiTao(Customer nguoiTao) {
-        this.nguoiTao = nguoiTao;
+    public void setCreator(Customer creator) {
+        this.creator = creator;
     }
 
-    public void setThoiGianBatDau(OffsetDateTime thoiGianBatDau) {
-        this.thoiGianBatDau = thoiGianBatDau;
+    public void setStartTime(OffsetDateTime startTime) {
+        this.startTime = startTime;
     }
 
-    public void setThoiLuong(long thoiLuong) {
-        this.thoiLuong = thoiLuong;
+    public void setDuration(long duration) {
+        this.duration = duration;
     }
 
-    public void setKetQuaDauGia(AuctionResult ketQuaDauGia) {
-        this.ketQuaDauGia = ketQuaDauGia;
+    public void setAuctionResult(AuctionResult auctionResult) {
+        this.auctionResult = auctionResult;
     }
 
-    public void setDanhSachCauHoi(List<Question> danhSachCauHoi) {
-        this.danhSachCauHoi = danhSachCauHoi;
+    public void setQuestions(List<Question> questions) {
+        this.questions = questions;
     }
 
-    public void setLichSuDatGia(List<AuctionLog> lichSuDatGia) {
-        this.lichSuDatGia = lichSuDatGia;
+    public void setBidHistory(List<AuctionLog> bidHistory) {
+        this.bidHistory = bidHistory;
     }
 
-    public void setDanhSachThamGia(List<AuctionParticipationInfo> danhSachThamGia) {
-        this.danhSachThamGia = danhSachThamGia;
+    public void setParticipants(List<AuctionParticipationInfo> participants) {
+        this.participants = participants;
     }
 
-    public void setDanhSachBoCuoc(List<BidRejectionRecord> danhSachBoCuoc) {
-        this.danhSachBoCuoc = danhSachBoCuoc;
+    public void setRejectionRecords(List<BidRejectionRecord> rejectionRecords) {
+        this.rejectionRecords = rejectionRecords;
     }
 
-    public void setTrangThaiKiemDuyet(ApprovalStatus trangThaiKiemDuyet) {
-        this.trangThaiKiemDuyet = trangThaiKiemDuyet;
+    public void setApprovalStatus(ApprovalStatus approvalStatus) {
+        this.approvalStatus = approvalStatus;
     }
 
-    public void setTrangThaiPhien(AuctionStatus trangThaiPhien) {
-        this.trangThaiPhien = trangThaiPhien;
+    public void setAuctionStatus(AuctionStatus auctionStatus) {
+        this.auctionStatus = auctionStatus;
     }
 
-    public void setThoiGianTao(OffsetDateTime thoiGianTao) {
-        this.thoiGianTao = thoiGianTao;
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public void setTaiSan(Product taiSan) {
-        this.taiSan = taiSan;
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
-    public void setGiaKhoiDiem(long giaKhoiDiem) {
-        this.giaKhoiDiem = giaKhoiDiem;
+    public void setStartingPrice(long startingPrice) {
+        this.startingPrice = startingPrice;
     }
 
-    public void setTienCoc(long tienCoc) {
-        this.tienCoc = tienCoc;
+    public void setDepositAmount(long depositAmount) {
+        this.depositAmount = depositAmount;
     }
 
-    public void setBuocGiaNhoNhat(long buocGiaNhoNhat) {
-        this.buocGiaNhoNhat = buocGiaNhoNhat;
+    public void setMinimumBidIncrement(long minimumBidIncrement) {
+        this.minimumBidIncrement = minimumBidIncrement;
     }
-
 }

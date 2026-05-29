@@ -17,20 +17,20 @@ public class CreateAuctionRequest {
     private String id;
 
     @ManyToOne
-    private Auction phienDauGia;
+    private Auction auction;
 
     @Enumerated(EnumType.STRING)
-    private RequestStatus trangThai;
+    private RequestStatus status;
 
-    private String liDoTuChoi;
+    private String rejectionReason;
 
     // CONSTRUCTOR
     public CreateAuctionRequest() {
     }
 
-    public CreateAuctionRequest(Auction phienDauGia) {
-        this.phienDauGia = phienDauGia;
-        this.trangThai = RequestStatus.KHOI_TAO;
+    public CreateAuctionRequest(Auction auction) {
+        this.auction = auction;
+        this.status = RequestStatus.INITIATED;
     }
 
     // GETTER
@@ -38,16 +38,16 @@ public class CreateAuctionRequest {
         return id;
     }
 
-    public Auction getPhienDauGia() {
-        return phienDauGia;
+    public Auction getAuction() {
+        return auction;
     }
 
-    public RequestStatus getTrangThai() {
-        return trangThai;
+    public RequestStatus getStatus() {
+        return status;
     }
 
-    public String getLiDoTuChoi() {
-        return liDoTuChoi;
+    public String getRejectionReason() {
+        return rejectionReason;
     }
 
     // SETTER
@@ -55,15 +55,15 @@ public class CreateAuctionRequest {
         this.id = id;
     }
 
-    public void setPhienDauGia(Auction phienDauGia) {
-        this.phienDauGia = phienDauGia;
+    public void setAuction(Auction auction) {
+        this.auction = auction;
     }
 
-    public void setTrangThai(RequestStatus trangThai) {
-        this.trangThai = trangThai;
+    public void setStatus(RequestStatus status) {
+        this.status = status;
     }
 
-    public void setLiDoTuChoi(String liDoTuChoi) {
-        this.liDoTuChoi = liDoTuChoi;
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
     }
 }

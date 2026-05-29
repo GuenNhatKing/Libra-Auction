@@ -26,42 +26,42 @@ import java.util.List;
 
 @Service
 public class AuctionService {
-        private final AuctionRepository phienDauGiaRepository;
+        private final AuctionRepository auctionRepository;
         private final AuctionMapper auctionMapper;
         private final ProductResponseMapper productResponseMapper;
-        private final ProductRepository taiSanRepository;
-        private final CustomerRepository nguoiDungRepository;
+        private final ProductRepository productRepository;
+        private final CustomerRepository customerRepository;
         private final AuctionStateRedisService auctionStateRedisService;
 
-        public AuctionService(AuctionRepository phienDauGiaRepository,
+        public AuctionService(AuctionRepository auctionRepository,
                         AuctionMapper auctionMapper,
                         ProductResponseMapper productResponseMapper,
-                        ProductRepository taiSanRepository,
-                        CustomerRepository nguoiDungRepository,
+                        ProductRepository productRepository,
+                        CustomerRepository customerRepository,
                         AuctionStateRedisService auctionStateRedisService) {
-                this.phienDauGiaRepository = phienDauGiaRepository;
+                this.auctionRepository = auctionRepository;
                 this.auctionMapper = auctionMapper;
                 this.productResponseMapper = productResponseMapper;
-                this.taiSanRepository = taiSanRepository;
-                this.nguoiDungRepository = nguoiDungRepository;
+                this.productRepository = productRepository;
+                this.customerRepository = customerRepository;
                 this.auctionStateRedisService = auctionStateRedisService;
         }
 
         @Transactional(readOnly = true)
         public List<AuctionResponse> getAuctions() {
-                List<Auction> phienDauGiaList = phienDauGiaRepository.findAll().stream()
-                                .sorted(Comparator.comparing(Auction::getThoiGianTao,
+                List<Auction> auctionList = auctionRepository.findAll().stream()
+                                .sorted(Comparator.comparing(Auction::getCreatedAt,
                                                 Comparator.nullsLast(Comparator.reverseOrder())))
                                 .toList();
-                return auctionMapper.toAuctionResponseList(phienDauGiaList);
+                return auctionMapper.toAuctionResponseList(auctionList);
         }
 
         @Transactional(readOnly = true)
         public AuctionResponse getAuctionById(String id) {
-                Auction session = phienDauGiaRepository.findById(id)
+                Auction session = auctionRepository.findById(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
                 // For public endpoint, only return approved auctions
-                if (session.getTrangThaiKiemDuyet() != ApprovalStatus.DA_DUYET) {
+                if (session.getApprovalStatus() != ApprovalStatus.APPROVED) {
                         throw new IllegalArgumentException("Auction session not found");
                 }
                 return auctionMapper.toAuctionResponse(session);
@@ -69,7 +69,7 @@ public class AuctionService {
 
         @Transactional(readOnly = true)
         public AuctionResponse getAuctionById(String id, String userId) {
-                Auction session = phienDauGiaRepository.findByIdAndNguoiTao_Id(id, userId)
+                Auction session = auctionRepository.findByIdAndCreator_Id(id, userId)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
 
                 return auctionMapper.toAuctionResponse(session);
@@ -77,12 +77,12 @@ public class AuctionService {
 
         @Transactional(readOnly = true)
         public AuctionResponse getAuctionByIdAndCategory(String id, String categoryId) {
-                Auction session = phienDauGiaRepository
-                                .findByIdAndTaiSan_DanhMuc_Id(id, categoryId)
+                Auction session = auctionRepository
+                                .findByIdAndProduct_Category_Id(id, categoryId)
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "Auction not found in this category"));
                 // For public endpoint, only return approved auctions
-                if (session.getTrangThaiKiemDuyet() != ApprovalStatus.DA_DUYET) {
+                if (session.getApprovalStatus() != ApprovalStatus.APPROVED) {
                         throw new IllegalArgumentException("Auction not found in this category");
                 }
                 return auctionMapper.toAuctionResponse(session);
@@ -90,59 +90,59 @@ public class AuctionService {
 
         @Transactional
         public AuctionResponse createAuction(AuctionCreateRequest request, String userId) {
-                Product product = taiSanRepository.findById(request.taiSanId())
+                Product product = productRepository.findById(request.productId())
                                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
-                Customer nguoiTao = nguoiDungRepository.findById(userId)
+                Customer creator = customerRepository.findById(userId)
                                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
                 Auction session = new Auction();
-                session.setThoiGianTao(OffsetDateTime.now(ZoneOffset.ofHours(7)));
-                session.setNguoiTao(nguoiTao);
-                session.setTaiSan(product);
-                session.setThoiLuong(request.thoiLuong());
-                session.setThoiGianBatDau(request.thoiGianBatDau());
-                session.setGiaKhoiDiem(request.giaKhoiDiem());
-                session.setBuocGiaNhoNhat(request.buocGiaNhoNhat());
-                session.setTienCoc(request.tienCoc());
-                session.setTrangThaiKiemDuyet(ApprovalStatus.CHUA_DUYET);
-                session.setTrangThaiPhien(AuctionStatus.CHUA_BAT_DAU);
+                session.setCreatedAt(OffsetDateTime.now(ZoneOffset.ofHours(7)));
+                session.setCreator(creator);
+                session.setProduct(product);
+                session.setDuration(request.duration());
+                session.setStartTime(request.startTime());
+                session.setStartingPrice(request.startingPrice());
+                session.setMinimumBidIncrement(request.minimumBidIncrement());
+                session.setDepositAmount(request.depositAmount());
+                session.setApprovalStatus(ApprovalStatus.PENDING_APPROVAL);
+                session.setAuctionStatus(AuctionStatus.NOT_STARTED);
 
 
-                Auction savedSession = phienDauGiaRepository.save(session);
+                Auction savedSession = auctionRepository.save(session);
 
                 return auctionMapper.toAuctionResponse(savedSession);
         }
 
         @Transactional
         public AuctionResponse updateAuction(String id, AuctionUpdateRequest request, String userId) {
-                Customer nguoiTao = nguoiDungRepository.findById(userId)
+                Customer creator = customerRepository.findById(userId)
                                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-                Auction session = phienDauGiaRepository.findById(id)
+                Auction session = auctionRepository.findById(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
 
-                if (!nguoiTao.getId().equals(session.getNguoiTao().getId())) {
+                if (!creator.getId().equals(session.getCreator().getId())) {
                         throw new AccessDeniedException("You do not have permission to edit this auction.");
                 }
 
-                session.setThoiGianBatDau(request.thoiGianBatDau());
-                session.setThoiLuong(request.thoiLuong());
-                session.setGiaKhoiDiem(request.giaKhoiDiem());
-                session.setBuocGiaNhoNhat(request.buocGiaNhoNhat());
-                session.setTienCoc(request.tienCoc());
+                session.setStartTime(request.startTime());
+                session.setDuration(request.duration());
+                session.setStartingPrice(request.startingPrice());
+                session.setMinimumBidIncrement(request.minimumBidIncrement());
+                session.setDepositAmount(request.depositAmount());
 
-                Auction updatedSession = phienDauGiaRepository.save(session);
+                Auction updatedSession = auctionRepository.save(session);
 
                 // If auction is already approved, update Redis scheduling
-                if (updatedSession.getTrangThaiKiemDuyet() == ApprovalStatus.DA_DUYET) {
+                if (updatedSession.getApprovalStatus() == ApprovalStatus.APPROVED) {
                         auctionStateRedisService.removeAuctionStartEvent(id);
                         auctionStateRedisService.removeAuctionEndEvent(id);
-                        
-                        if (updatedSession.getThoiGianBatDau() != null) {
-                                auctionStateRedisService.addAuctionStartEvent(updatedSession.getId(), updatedSession.getThoiGianBatDau());
-                                auctionStateRedisService.addAuctionEndEvent(updatedSession.getId(), 
-                                        updatedSession.getThoiGianBatDau().plusSeconds(updatedSession.getThoiLuong()));
+
+                        if (updatedSession.getStartTime() != null) {
+                                auctionStateRedisService.addAuctionStartEvent(updatedSession.getId(), updatedSession.getStartTime());
+                                auctionStateRedisService.addAuctionEndEvent(updatedSession.getId(),
+                                        updatedSession.getStartTime().plusSeconds(updatedSession.getDuration()));
                         }
                 }
 
@@ -151,43 +151,43 @@ public class AuctionService {
 
         @Transactional
         public void deleteAuction(String id, String userId) {
-                Customer nguoiTao = nguoiDungRepository.findById(userId)
+                Customer creator = customerRepository.findById(userId)
                                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-                Auction session = phienDauGiaRepository.findById(id)
+                Auction session = auctionRepository.findById(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
 
-                if (!nguoiTao.getId().equals(session.getNguoiTao().getId())) {
-                        throw new AccessDeniedException("Bạn không có quyền xóa phiên đấu giá này");
+                if (!creator.getId().equals(session.getCreator().getId())) {
+                        throw new AccessDeniedException("You do not have permission to delete this auction");
                 }
 
                 // Clean up Redis scheduling when deleting
                 auctionStateRedisService.removeAuctionStartEvent(id);
                 auctionStateRedisService.removeAuctionEndEvent(id);
 
-                phienDauGiaRepository.delete(session);
+                auctionRepository.delete(session);
         }
 
         // ========== ADMIN APPROVAL METHODS ==========
 
         @Transactional
         public AuctionResponse approveAuction(String id, String adminId) {
-                Auction session = phienDauGiaRepository.findById(id)
+                Auction session = auctionRepository.findById(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
 
-                if (session.getTrangThaiKiemDuyet() != ApprovalStatus.CHUA_DUYET) {
+                if (session.getApprovalStatus() != ApprovalStatus.PENDING_APPROVAL) {
                         throw new IllegalStateException("Auction is not pending approval");
                 }
 
-                session.setTrangThaiKiemDuyet(ApprovalStatus.DA_DUYET);
-                Auction saved = phienDauGiaRepository.save(session);
+                session.setApprovalStatus(ApprovalStatus.APPROVED);
+                Auction saved = auctionRepository.save(session);
 
                 // Register the auction in Redis for automatic start/end scheduling
-                if (saved.getThoiGianBatDau() != null) {
-                        auctionStateRedisService.addAuctionStartEvent(saved.getId(), saved.getThoiGianBatDau());
+                if (saved.getStartTime() != null) {
+                        auctionStateRedisService.addAuctionStartEvent(saved.getId(), saved.getStartTime());
                         // Calculate end time: start_time + duration
-                        auctionStateRedisService.addAuctionEndEvent(saved.getId(), 
-                                saved.getThoiGianBatDau().plusSeconds(saved.getThoiLuong()));
+                        auctionStateRedisService.addAuctionEndEvent(saved.getId(),
+                                saved.getStartTime().plusSeconds(saved.getDuration()));
                 }
 
                 return auctionMapper.toAuctionResponse(saved);
@@ -195,15 +195,15 @@ public class AuctionService {
 
         @Transactional
         public AuctionResponse rejectAuction(String id, String adminId, String reason) {
-                Auction session = phienDauGiaRepository.findById(id)
+                Auction session = auctionRepository.findById(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
 
-                if (session.getTrangThaiKiemDuyet() != ApprovalStatus.CHUA_DUYET) {
+                if (session.getApprovalStatus() != ApprovalStatus.PENDING_APPROVAL) {
                         throw new IllegalStateException("Auction is not pending approval");
                 }
 
-                session.setTrangThaiKiemDuyet(ApprovalStatus.BI_TU_CHOI);
-                Auction saved = phienDauGiaRepository.save(session);
+                session.setApprovalStatus(ApprovalStatus.REJECTED);
+                Auction saved = auctionRepository.save(session);
 
                 // Clean up Redis scheduling when rejecting
                 auctionStateRedisService.removeAuctionStartEvent(id);
@@ -219,23 +219,23 @@ public class AuctionService {
          * @return Number of auctions registered
          */
         public int registerExistingAuctionsToRedis() {
-                List<Auction> approvedNotStarted = phienDauGiaRepository.findByTrangThaiPhien(AuctionStatus.CHUA_BAT_DAU);
+                List<Auction> approvedNotStarted = auctionRepository.findByAuctionStatus(AuctionStatus.NOT_STARTED);
                 int count = 0;
-                
+
                 for (Auction auction : approvedNotStarted) {
-                        if (auction.getTrangThaiKiemDuyet() == ApprovalStatus.DA_DUYET && 
-                            auction.getThoiGianBatDau() != null) {
+                        if (auction.getApprovalStatus() == ApprovalStatus.APPROVED &&
+                            auction.getStartTime() != null) {
                                 try {
-                                        auctionStateRedisService.addAuctionStartEvent(auction.getId(), auction.getThoiGianBatDau());
-                                        auctionStateRedisService.addAuctionEndEvent(auction.getId(), 
-                                                auction.getThoiGianBatDau().plusSeconds(auction.getThoiLuong()));
+                                        auctionStateRedisService.addAuctionStartEvent(auction.getId(), auction.getStartTime());
+                                        auctionStateRedisService.addAuctionEndEvent(auction.getId(),
+                                                auction.getStartTime().plusSeconds(auction.getDuration()));
                                         count++;
                                 } catch (Exception e) {
                                         // Log and continue with next auction
                                 }
                         }
                 }
-                
+
                 return count;
         }
 
@@ -245,15 +245,15 @@ public class AuctionService {
         @Transactional(readOnly = true)
         public ProductResponse getProductFromApprovedAuction(
                         String auctionId, String productId) {
-                Auction session = phienDauGiaRepository.findById(auctionId)
+                Auction session = auctionRepository.findById(auctionId)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction not found"));
 
                 // Verify auction is approved
-                if (session.getTrangThaiKiemDuyet() != ApprovalStatus.DA_DUYET) {
+                if (session.getApprovalStatus() != ApprovalStatus.APPROVED) {
                         throw new IllegalArgumentException("Auction is not approved");
                 }
 
-                Product product = session.getTaiSan();
+                Product product = session.getProduct();
                 if (product == null) {
                         throw new IllegalArgumentException("Product not found in this auction");
                 }

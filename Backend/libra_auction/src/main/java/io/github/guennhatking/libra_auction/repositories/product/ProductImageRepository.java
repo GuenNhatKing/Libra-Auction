@@ -7,7 +7,7 @@ import io.github.guennhatking.libra_auction.models.product.ProductImage;
 import java.util.List;
 
 public interface ProductImageRepository extends JpaRepository<ProductImage, String> {
-	List<ProductImage> findByTaiSanIdOrderByThuTuHienThiAsc(String taiSanId);
+	List<ProductImage> findByProductIdOrderByDisplayOrderAsc(String productId);
 
-	void deleteByTaiSanId(String taiSanId);
+	void deleteByProductId(String productId);
 }

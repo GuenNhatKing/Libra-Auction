@@ -8,33 +8,33 @@ import jakarta.persistence.OneToOne;
 @Entity
 public class PasswordResetRequest extends RequestEntity {
     @OneToOne
-    private OtpRequest yeuCauOTP;
+    private OtpRequest otpRequest;
 
-    private String matKhauMoi;
+    private String newPassword;
 
     // CONSTRUCTOR
     protected PasswordResetRequest() {
     }
 
-    public PasswordResetRequest(Customer nguoiYeuCau) {
-        super(nguoiYeuCau, RequestType.QUEN_MAT_KHAU);
+    public PasswordResetRequest(Customer customer) {
+        super(customer, RequestType.PASSWORD_RESET);
     }
 
     // GETTER
-    public OtpRequest getYeuCauOTP() {
-        return yeuCauOTP;
+    public OtpRequest getOtpRequest() {
+        return otpRequest;
     }
 
-    public String getMatKhauMoi() {
-        return matKhauMoi;
+    public String getNewPassword() {
+        return newPassword;
     }
 
     // SETTER
-    public void setYeuCauOTP(OtpRequest yeuCauOTP) {
-        this.yeuCauOTP = yeuCauOTP;
+    public void setOtpRequest(OtpRequest otpRequest) {
+        this.otpRequest = otpRequest;
     }
 
-    public void setMatKhauMoi(String matKhauMoi) {
-        this.matKhauMoi = matKhauMoi;
+    public void setNewPassword(String newPassword) {
+        this.newPassword = newPassword;
     }
 }

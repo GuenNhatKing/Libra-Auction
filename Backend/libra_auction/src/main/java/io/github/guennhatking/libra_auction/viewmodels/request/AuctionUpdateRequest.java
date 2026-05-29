@@ -9,16 +9,16 @@ import java.time.OffsetDateTime;
 import io.github.guennhatking.libra_auction.validators.FutureTime;
 
 public record AuctionUpdateRequest(
-    @NotNull(message = "thoiGianBatDau is required")
-    @FutureTime(message = "thoiGianBatDau must be in the future")
-    OffsetDateTime thoiGianBatDau,
+    @NotNull(message = "startTime is required")
+    @FutureTime(message = "startTime must be in the future")
+    OffsetDateTime startTime,
 
-        @NotNull(message = "thoiLuong is required") @Positive(message = "thoiLuong must be greater than 0") Long thoiLuong,
+        @NotNull(message = "duration is required") @Positive(message = "duration must be greater than 0") Long duration,
 
-        @NotNull(message = "giaKhoiDiem is required") @Positive(message = "giaKhoiDiem must be greater than 0") Long giaKhoiDiem,
+        @NotNull(message = "startingPrice is required") @Positive(message = "startingPrice must be greater than 0") Long startingPrice,
 
-        @NotNull(message = "buocGiaNhoNhat is required") @Positive(message = "buocGiaNhoNhat must be greater than 0") Long buocGiaNhoNhat,
+        @NotNull(message = "minimumBidIncrement is required") @Positive(message = "minimumBidIncrement must be greater than 0") Long minimumBidIncrement,
 
-        @NotNull(message = "tienCoc is required") @PositiveOrZero(message = "tienCoc must be greater than or equal 0") Long tienCoc
+        @NotNull(message = "depositAmount is required") @PositiveOrZero(message = "depositAmount must be greater than or equal 0") Long depositAmount
 ) {
 }

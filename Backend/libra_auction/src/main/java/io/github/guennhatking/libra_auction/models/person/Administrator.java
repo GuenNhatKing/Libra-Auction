@@ -1,6 +1,6 @@
 package io.github.guennhatking.libra_auction.models.person;
 
-import io.github.guennhatking.libra_auction.models.account.TaiKhoanPassword;
+import io.github.guennhatking.libra_auction.models.account.AccountPassword;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,14 +14,14 @@ public class Administrator {
     private String id;
 
     @OneToOne
-    private TaiKhoanPassword taiKhoan;
+    private AccountPassword account;
 
     // CONSTRUCTOR
     protected Administrator() {
     }
 
-    public Administrator(TaiKhoanPassword taiKhoan) {
-        this.taiKhoan = taiKhoan;
+    public Administrator(AccountPassword account) {
+        this.account = account;
     }
 
     // GETTER
@@ -29,8 +29,8 @@ public class Administrator {
         return id;
     }
 
-    public TaiKhoanPassword getTaiKhoan() {
-        return taiKhoan;
+    public AccountPassword getAccount() {
+        return account;
     }
 
     // SETTER
@@ -38,7 +38,7 @@ public class Administrator {
         this.id = id;
     }
 
-    public void setTaiKhoan(TaiKhoanPassword taiKhoan) {
-        this.taiKhoan = taiKhoan;
+    public void setAccount(AccountPassword account) {
+        this.account = account;
     }
 }

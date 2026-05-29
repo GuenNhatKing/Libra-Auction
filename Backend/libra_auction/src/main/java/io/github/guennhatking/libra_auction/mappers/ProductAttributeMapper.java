@@ -9,8 +9,8 @@ import io.github.guennhatking.libra_auction.viewmodels.response.AttributeRespons
 @Mapper(componentModel = "spring")
 public interface ProductAttributeMapper {
 
-    @Mapping(source = "tenThuocTinh", target = "key")
-    @Mapping(source = "giaTri", target = "value")
-    @Mapping(target = "isSystem", constant = "false") 
+    @Mapping(source = "attributeName", target = "key")
+    @Mapping(source = "attributeValue", target = "value")
+    @Mapping(target = "isSystem", constant = "false")
     AttributeResponse toAttributeResponse(ProductAttribute attr);
 }

@@ -16,7 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Controller xử lý thanh toán VNPay
+ * Controller for VNPay payment processing
  */
 @RestController
 @RequestMapping("/api/payments/vnpay")
@@ -35,7 +35,7 @@ public class VNPayController {
 
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ServerAPIResponse.error("Người dùng chưa đăng nhập"));
+                    .body(ServerAPIResponse.error("Authentication required"));
         }
 
         try {
@@ -55,7 +55,7 @@ public class VNPayController {
             HttpServletRequest servletRequest) {
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ServerAPIResponse.error("Người dùng chưa đăng nhập"));
+                    .body(ServerAPIResponse.error("Authentication required"));
         }
 
         try {
@@ -75,7 +75,7 @@ public class VNPayController {
         System.out.println("Received verify payment request: " + request);
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ServerAPIResponse.error("Người dùng chưa đăng nhập"));
+                    .body(ServerAPIResponse.error("Authentication required"));
         }
 
         try {
@@ -94,7 +94,7 @@ public class VNPayController {
         System.out.println("Received verify payment request: " + request);
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ServerAPIResponse.error("Người dùng chưa đăng nhập"));
+                    .body(ServerAPIResponse.error("Authentication required"));
         }
 
         try {
@@ -113,7 +113,7 @@ public class VNPayController {
 
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ServerAPIResponse.error("Người dùng chưa đăng nhập"));
+                    .body(ServerAPIResponse.error("Authentication required"));
         }
 
         try {

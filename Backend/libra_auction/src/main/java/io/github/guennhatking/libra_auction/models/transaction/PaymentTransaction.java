@@ -10,48 +10,48 @@ import jakarta.persistence.OneToOne;
 @Entity
 public class PaymentTransaction extends Transaction {
     @ManyToOne
-    private Customer nguoiGui;
+    private Customer sender;
 
     @ManyToOne
-    private Customer nguoiNhan;
+    private Customer receiver;
 
     @OneToOne
-    private AuctionResult ketQuaDauGia; 
+    private AuctionResult auctionResult;
 
     // CONSTRUCTOR
     protected PaymentTransaction() {
     }
 
-    public PaymentTransaction(long soTien, Customer nguoiGui, Customer nguoiNhan, AuctionResult ketQuaDauGia) {
-        super(TransactionType.THANH_TOAN, soTien);
-        this.nguoiGui = nguoiGui;
-        this.nguoiNhan = nguoiNhan;
-        this.ketQuaDauGia = ketQuaDauGia;
+    public PaymentTransaction(long amount, Customer sender, Customer receiver, AuctionResult auctionResult) {
+        super(TransactionType.PAYMENT, amount);
+        this.sender = sender;
+        this.receiver = receiver;
+        this.auctionResult = auctionResult;
     }
 
     // GETTER
-    public Customer getNguoiGui() {
-        return nguoiGui;
+    public Customer getSender() {
+        return sender;
     }
 
-    public Customer getNguoiNhan() {
-        return nguoiNhan;
+    public Customer getReceiver() {
+        return receiver;
     }
 
-    public AuctionResult getKetQuaDauGia() {
-        return ketQuaDauGia;
+    public AuctionResult getAuctionResult() {
+        return auctionResult;
     }
 
     // SETTER
-    public void setNguoiGui(Customer nguoiGui) {
-        this.nguoiGui = nguoiGui;
+    public void setSender(Customer sender) {
+        this.sender = sender;
     }
 
-    public void setNguoiNhan(Customer nguoiNhan) {
-        this.nguoiNhan = nguoiNhan;
+    public void setReceiver(Customer receiver) {
+        this.receiver = receiver;
     }
 
-    public void setKetQuaDauGia(AuctionResult ketQuaDauGia) {
-        this.ketQuaDauGia = ketQuaDauGia;
+    public void setAuctionResult(AuctionResult auctionResult) {
+        this.auctionResult = auctionResult;
     }
 }

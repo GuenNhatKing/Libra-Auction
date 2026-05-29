@@ -2,13 +2,13 @@ import { EmailStatus, AccountStatus } from "./status"
 
 export interface UserInfo {
     id: string,
-    hoVaTen: string,
-    soDienThoai: string,
-    CCCD: string,
+    fullName: string,
+    phoneNumber: string,
+    identityNumber: string,
     email: string,
-    anhDaiDien: string,
-    trangThaiEmail: EmailStatus,
-    trangThaiTaiKhoan: AccountStatus,
+    avatarUrl: string,
+    emailStatus: EmailStatus,
+    accountStatus: AccountStatus,
     roles: Role[]
 }
 

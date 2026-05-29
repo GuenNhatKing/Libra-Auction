@@ -19,98 +19,98 @@ import io.github.guennhatking.libra_auction.viewmodels.response.AuctionRegistrat
 
 @Service
 public class AuctionRegistrationService {
-        private final AuctionParticipationInfoRepository thongTinThamGiaDauGiaRepository;
-        private final CustomerRepository nguoiDungRepository;
-        private final AuctionRepository phienDauGiaRepository;
+        private final AuctionParticipationInfoRepository participationInfoRepository;
+        private final CustomerRepository customerRepository;
+        private final AuctionRepository auctionRepository;
         private final AuctionRegistrationMapper auctionRegistrationMapper;
 
-        public AuctionRegistrationService(AuctionParticipationInfoRepository thongTinThamGiaDauGiaRepository,
-                        CustomerRepository nguoiDungRepository,
-                        AuctionRepository phienDauGiaRepository,
+        public AuctionRegistrationService(AuctionParticipationInfoRepository participationInfoRepository,
+                        CustomerRepository customerRepository,
+                        AuctionRepository auctionRepository,
                         AuctionRegistrationMapper auctionRegistrationMapper) {
-                this.thongTinThamGiaDauGiaRepository = thongTinThamGiaDauGiaRepository;
-                this.nguoiDungRepository = nguoiDungRepository;
-                this.phienDauGiaRepository = phienDauGiaRepository;
+                this.participationInfoRepository = participationInfoRepository;
+                this.customerRepository = customerRepository;
+                this.auctionRepository = auctionRepository;
                 this.auctionRegistrationMapper = auctionRegistrationMapper;
         }
 
         @Transactional(readOnly = true)
         public List<AuctionRegistrationResponse> getAllRegistrations() {
-                List<AuctionParticipationInfo> entities = thongTinThamGiaDauGiaRepository.findAll();
+                List<AuctionParticipationInfo> entities = participationInfoRepository.findAll();
                 List<AuctionRegistrationResponse> responses = auctionRegistrationMapper.toResponseList(entities);
                 return responses;
         }
 
         @Transactional(readOnly = true)
         public AuctionRegistrationResponse getRegistrationById(String id) {
-                // 1. Tìm entity từ Database
-                AuctionParticipationInfo registration = thongTinThamGiaDauGiaRepository.findById(id)
+                // 1. Tim entity tu Database
+                AuctionParticipationInfo registration = participationInfoRepository.findById(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Registration not found"));
 
-                // 2. Sử dụng mapper để chuyển đổi và trả về
+                // 2. Su dung mapper de chuyen doi va tra ve
                 return auctionRegistrationMapper.toResponse(registration);
         }
 
         @Transactional
         public AuctionRegistrationResponse registerForAuction(AuctionRegistrationCreateRequest request, String userId) {
-                // 1. Kiểm tra User
-                Customer user = nguoiDungRepository.findById(userId)
+                // 1. Kiem tra User
+                Customer user = customerRepository.findById(userId)
                                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-                // 2. Kiểm tra Phiên đấu giá
-                Auction auction = phienDauGiaRepository.findById(request.auctionId())
+                // 2. Kiem tra Phien dau gia
+                Auction auction = auctionRepository.findById(request.auctionId())
                                 .orElseThrow(() -> new IllegalArgumentException("Auction not found"));
 
-                // 3. Kiểm tra đăng ký trùng lặp (Logic cũ giữ nguyên)
-                boolean alreadyRegistered = Optional.ofNullable(auction.getDanhSachThamGia())
+                // 3. Kiem tra dang ky trung lap (Logic cu giu nguyen)
+                boolean alreadyRegistered = Optional.ofNullable(auction.getParticipants())
                                 .orElse(Collections.emptyList())
                                 .stream()
-                                .anyMatch(reg -> reg.getNguoiThamGia().getId().equals(userId));
+                                .anyMatch(reg -> reg.getParticipant().getId().equals(userId));
 
                 if (alreadyRegistered) {
                         throw new IllegalArgumentException("User is already registered for this auction");
                 }
 
-                // 4. Tạo và lưu đăng ký
+                // 4. Tao va luu dang ky
                 AuctionParticipationInfo registration = new AuctionParticipationInfo(user, auction);
-                AuctionParticipationInfo savedRegistration = thongTinThamGiaDauGiaRepository.save(registration);
+                AuctionParticipationInfo savedRegistration = participationInfoRepository.save(registration);
 
                 return auctionRegistrationMapper.toResponse(savedRegistration);
         }
 
         @Transactional
         public void deleteRegistration(String id) {
-                AuctionParticipationInfo registration = thongTinThamGiaDauGiaRepository.findById(id)
+                AuctionParticipationInfo registration = participationInfoRepository.findById(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Registration not found"));
-                thongTinThamGiaDauGiaRepository.delete(registration);
+                participationInfoRepository.delete(registration);
         }
 
         @Transactional(readOnly = true)
         public List<AuctionRegistrationResponse> getRegistrationsByUserId(String userId) {
-                // 1. Kiểm tra User tồn tại
-                if (!nguoiDungRepository.existsById(userId)) {
+                // 1. Kiem tra User ton tai
+                if (!customerRepository.existsById(userId)) {
                         throw new IllegalArgumentException("User not found");
                 }
 
-                // 2. Lấy dữ liệu đã lọc từ DB (Thay vì lấy tất cả rồi filter)
-                List<AuctionParticipationInfo> entities = thongTinThamGiaDauGiaRepository.findByNguoiThamGiaId(userId);
+                // 2. Lay du lieu da loc tu DB (Thay vi lay tat ca roi filter)
+                List<AuctionParticipationInfo> entities = participationInfoRepository.findByParticipantId(userId);
 
-                // 3. Sử dụng mapper để chuyển đổi toàn bộ danh sách
+                // 3. Su dung mapper de chuyen doi toan bo danh sach
                 return auctionRegistrationMapper.toResponseList(entities);
         }
 
         @Transactional(readOnly = true)
         public List<AuctionRegistrationResponse> getRegistrationsByAuctionId(String auctionId) {
-                // 1. Kiểm tra phiên đấu giá có tồn tại không
-                if (!phienDauGiaRepository.existsById(auctionId)) {
+                // 1. Kiem tra phien dau gia co ton tai khong
+                if (!auctionRepository.existsById(auctionId)) {
                         throw new IllegalArgumentException("Auction not found");
                 }
 
-                // 2. Lấy dữ liệu từ DB thông qua phương thức mới ở Repository
-                List<AuctionParticipationInfo> entities = thongTinThamGiaDauGiaRepository
-                                .findByPhienDauGiaId(auctionId);
+                // 2. Lay du lieu tu DB thong qua phuong thuoc moi o Repository
+                List<AuctionParticipationInfo> entities = participationInfoRepository
+                                .findByAuctionId(auctionId);
 
-                // 3. Sử dụng Mapper để chuyển đổi sang danh sách Response
+                // 3. Su dung Mapper de chuyen doi sang danh sach Response
                 return auctionRegistrationMapper.toResponseList(entities);
         }
 }

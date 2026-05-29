@@ -13,19 +13,19 @@ public class ProductAttribute {
     private String id;
 
     @ManyToOne
-    private Product taiSan;
+    private Product product;
 
-    private String tenThuocTinh;
-    private String giaTri;
+    private String attributeName;
+    private String attributeValue;
 
     // CONSTRUCTOR
     public ProductAttribute() {
     }
 
-    public ProductAttribute(Product taiSan, String tenThuocTinh, String giaTri) {
-        this.taiSan = taiSan;
-        this.tenThuocTinh = tenThuocTinh;
-        this.giaTri = giaTri;
+    public ProductAttribute(Product product, String attributeName, String attributeValue) {
+        this.product = product;
+        this.attributeName = attributeName;
+        this.attributeValue = attributeValue;
     }
 
     // GETTER
@@ -33,16 +33,16 @@ public class ProductAttribute {
         return id;
     }
 
-    public Product getTaiSan() {
-        return taiSan;
+    public Product getProduct() {
+        return product;
     }
 
-    public String getTenThuocTinh() {
-        return tenThuocTinh;
+    public String getAttributeName() {
+        return attributeName;
     }
 
-    public String getGiaTri() {
-        return giaTri;
+    public String getAttributeValue() {
+        return attributeValue;
     }
 
     // SETTER
@@ -50,15 +50,15 @@ public class ProductAttribute {
         this.id = id;
     }
 
-    public void setTaiSan(Product taiSan) {
-        this.taiSan = taiSan;
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
-    public void setTenThuocTinh(String tenThuocTinh) {
-        this.tenThuocTinh = tenThuocTinh;
+    public void setAttributeName(String attributeName) {
+        this.attributeName = attributeName;
     }
 
-    public void setGiaTri(String giaTri) {
-        this.giaTri = giaTri;
+    public void setAttributeValue(String attributeValue) {
+        this.attributeValue = attributeValue;
     }
 }

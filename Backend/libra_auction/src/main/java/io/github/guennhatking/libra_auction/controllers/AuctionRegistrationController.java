@@ -51,7 +51,7 @@ public class AuctionRegistrationController {
 
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ServerAPIResponse.error("Người dùng chưa đăng nhập"));
+                    .body(ServerAPIResponse.error("Authentication required"));
         }
 
         try {

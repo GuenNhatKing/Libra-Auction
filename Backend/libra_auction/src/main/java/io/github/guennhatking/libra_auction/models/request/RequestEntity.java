@@ -14,7 +14,7 @@ import java.time.OffsetDateTime;
 
 import io.github.guennhatking.libra_auction.enums.request.RequestType;
 import io.github.guennhatking.libra_auction.enums.request.RequestStatus;
-import io.github.guennhatking.libra_auction.models.notification.ThongBao;
+import io.github.guennhatking.libra_auction.models.notification.Notification;
 import io.github.guennhatking.libra_auction.models.person.Customer;
 
 @Entity
@@ -25,30 +25,30 @@ public abstract class RequestEntity {
     protected String id;
 
     @ManyToOne
-    protected Customer nguoiDung;
+    protected Customer customer;
 
     @ManyToOne
-    protected ThongBao thongBao;
+    protected Notification notification;
 
     protected String token;
 
     @Enumerated(EnumType.STRING)
-    protected RequestType loaiYeuCau;
+    protected RequestType requestType;
 
     @Enumerated(EnumType.STRING)
-    protected RequestStatus trangThaiYeuCau;
+    protected RequestStatus requestStatus;
 
-    protected OffsetDateTime thoiGianHetHanKichHoat;
-    protected OffsetDateTime thoiGianHetHanSuDung;
+    protected OffsetDateTime activationExpiry;
+    protected OffsetDateTime usageExpiry;
 
     // CONSTRUCTOR
     protected RequestEntity() {
     }
 
-    public RequestEntity(Customer nguoiDung, RequestType loaiYeuCau) {
-        this.nguoiDung = nguoiDung;
-        this.loaiYeuCau = loaiYeuCau;
-        this.trangThaiYeuCau = RequestStatus.KHOI_TAO;
+    public RequestEntity(Customer customer, RequestType requestType) {
+        this.customer = customer;
+        this.requestType = requestType;
+        this.requestStatus = RequestStatus.INITIATED;
     }
 
     // GETTER
@@ -56,32 +56,32 @@ public abstract class RequestEntity {
         return id;
     }
 
-    public Customer getNguoiDung() {
-        return nguoiDung;
+    public Customer getCustomer() {
+        return customer;
     }
 
-    public ThongBao getThongBao() {
-        return thongBao;
+    public Notification getNotification() {
+        return notification;
     }
 
     public String getToken() {
         return token;
     }
 
-    public RequestType getLoaiYeuCau() {
-        return loaiYeuCau;
+    public RequestType getRequestType() {
+        return requestType;
     }
 
-    public RequestStatus getTrangThaiYeuCau() {
-        return trangThaiYeuCau;
+    public RequestStatus getRequestStatus() {
+        return requestStatus;
     }
 
-    public OffsetDateTime getThoiGianHetHanKichHoat() {
-        return thoiGianHetHanKichHoat;
+    public OffsetDateTime getActivationExpiry() {
+        return activationExpiry;
     }
 
-    public OffsetDateTime getThoiGianHetHanSuDung() {
-        return thoiGianHetHanSuDung;
+    public OffsetDateTime getUsageExpiry() {
+        return usageExpiry;
     }
 
     // SETTER
@@ -89,31 +89,31 @@ public abstract class RequestEntity {
         this.id = id;
     }
 
-    public void setNguoiDung(Customer nguoiDung) {
-        this.nguoiDung = nguoiDung;
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 
-    public void setThongBao(ThongBao thongBao) {
-        this.thongBao = thongBao;
+    public void setNotification(Notification notification) {
+        this.notification = notification;
     }
 
     public void setToken(String token) {
         this.token = token;
     }
 
-    public void setLoaiYeuCau(RequestType loaiYeuCau) {
-        this.loaiYeuCau = loaiYeuCau;
+    public void setRequestType(RequestType requestType) {
+        this.requestType = requestType;
     }
 
-    public void setTrangThaiYeuCau(RequestStatus trangThaiYeuCau) {
-        this.trangThaiYeuCau = trangThaiYeuCau;
+    public void setRequestStatus(RequestStatus requestStatus) {
+        this.requestStatus = requestStatus;
     }
 
-    public void setThoiGianHetHanKichHoat(OffsetDateTime thoiGianHetHanKichHoat) {
-        this.thoiGianHetHanKichHoat = thoiGianHetHanKichHoat;
+    public void setActivationExpiry(OffsetDateTime activationExpiry) {
+        this.activationExpiry = activationExpiry;
     }
 
-    public void setThoiGianHetHanSuDung(OffsetDateTime thoiGianHetHanSuDung) {
-        this.thoiGianHetHanSuDung = thoiGianHetHanSuDung;
+    public void setUsageExpiry(OffsetDateTime usageExpiry) {
+        this.usageExpiry = usageExpiry;
     }
 }

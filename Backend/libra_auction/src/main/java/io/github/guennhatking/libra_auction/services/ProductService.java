@@ -26,37 +26,37 @@ import io.github.guennhatking.libra_auction.viewmodels.response.ProductResponse;
 
 @Service
 public class ProductService {
-    private final CategoryRepository danhMucRepository;
-    private final ProductRepository taiSanRepository;
-    private final ProductImageRepository hinhAnhTaiSanRepository;
-    private final ProductAttributeRepository thuocTinhTaiSanRepository;
+    private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
+    private final ProductImageRepository productImageRepository;
+    private final ProductAttributeRepository productAttributeRepository;
     private final ProductResponseMapper productResponseMapper;
-    private final CustomerRepository nguoiDungRepository;
+    private final CustomerRepository customerRepository;
 
-    public ProductService(CategoryRepository danhMucRepository,
-            ProductRepository taiSanRepository,
-            ProductImageRepository hinhAnhTaiSanRepository,
-            AuctionRepository phienDauGiaRepository,
-            ProductAttributeRepository thuocTinhTaiSanRepository,
+    public ProductService(CategoryRepository categoryRepository,
+            ProductRepository productRepository,
+            ProductImageRepository productImageRepository,
+            AuctionRepository auctionRepository,
+            ProductAttributeRepository productAttributeRepository,
             ProductResponseMapper productResponseMapper,
-            CustomerRepository nguoiDungRepository) {
-        this.danhMucRepository = danhMucRepository;
-        this.taiSanRepository = taiSanRepository;
-        this.hinhAnhTaiSanRepository = hinhAnhTaiSanRepository;
-        this.thuocTinhTaiSanRepository = thuocTinhTaiSanRepository;
+            CustomerRepository customerRepository) {
+        this.categoryRepository = categoryRepository;
+        this.productRepository = productRepository;
+        this.productImageRepository = productImageRepository;
+        this.productAttributeRepository = productAttributeRepository;
         this.productResponseMapper = productResponseMapper;
-        this.nguoiDungRepository = nguoiDungRepository;
+        this.customerRepository = customerRepository;
     }
 
     @Transactional(readOnly = true)
     public List<ProductResponse> getProducts() {
-        List<Product> taiSanList = taiSanRepository.findAll().stream().toList();
-        return productResponseMapper.toProductResponseList(taiSanList);
+        List<Product> productList = productRepository.findAll().stream().toList();
+        return productResponseMapper.toProductResponseList(productList);
     }
 
     @Transactional(readOnly = true)
     public ProductResponse getProductById(String id) {
-        Product product = taiSanRepository.findById(id)
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
         return productResponseMapper.toProductResponse(product);
     }
@@ -65,40 +65,40 @@ public class ProductService {
     public ProductResponse createProduct(ProductCreateRequest request, String userId) {
         System.out.println("=== SERVICE START ===");
 
-        Customer nguoiTao = nguoiDungRepository.findById(userId)
+        Customer creator = customerRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        Category category = danhMucRepository.findById(request.danhMucId())
+        Category category = categoryRepository.findById(request.categoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));
 
         Product product = new Product(
-                request.tenTaiSan(),
-                request.soLuong(),
-                request.moTa(),
+                request.name(),
+                request.quantity(),
+                request.description(),
                 category);
 
-        product.setNguoiTao(nguoiTao);
-        Product savedProduct = taiSanRepository.save(product);
+        product.setCreator(creator);
+        Product savedProduct = productRepository.save(product);
 
-        // 1. Lưu Attributes
+        // 1. Luu Attributes
         if (request.attributes() != null) {
             for (AttributeRequest attr : request.attributes()) {
                 if (!attr.isSystem()) {
                     ProductAttribute entity = new ProductAttribute();
-                    entity.setTaiSan(savedProduct);
-                    entity.setTenThuocTinh(attr.key());
-                    entity.setGiaTri(attr.value());
-                    thuocTinhTaiSanRepository.save(entity);
+                    entity.setProduct(savedProduct);
+                    entity.setAttributeName(attr.key());
+                    entity.setAttributeValue(attr.value());
+                    productAttributeRepository.save(entity);
                 }
             }
         }
 
-        // 2. Lưu Hình ảnh
+        // 2. Luu Hinh anh
         if (request.imageUrls() != null && !request.imageUrls().isEmpty()) {
             int order = 0;
             for (String url : request.imageUrls()) {
                 ProductImage image = new ProductImage(savedProduct, order++, url);
-                hinhAnhTaiSanRepository.save(image);
+                productImageRepository.save(image);
                 System.out.println("Saved Image URL: " + url);
             }
         }
@@ -111,43 +111,43 @@ public class ProductService {
     public ProductResponse updateProduct(String id, ProductUpdateRequest request, String userId) {
         System.out.println("=== UPDATE SERVICE START (URL MODE) ===");
 
-        // 1. Tìm và kiểm tra quyền sở hữu
-        Product product = taiSanRepository.findById(id)
+        // 1. Tim va kiem tra quyen so huu
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
-        if (!userId.equals(product.getNguoiTao().getId())) {
-            throw new AccessDeniedException("Bạn không có quyền chỉnh sửa tài sản này");
+        if (!userId.equals(product.getCreator().getId())) {
+            throw new AccessDeniedException("Ban khong co quyen chinh sua tai san nay");
         }
 
-        // 2. Tìm category mới
-        Category category = danhMucRepository.findById(request.danhMucId())
+        // 2. Tim category moi
+        Category category = categoryRepository.findById(request.categoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));
 
-        // 3. Update thông tin cơ bản
-        product.setTenTaiSan(request.tenTaiSan());
-        product.setSoLuong(request.soLuong());
-        product.setMoTa(request.moTa());
-        product.setDanhMuc(category);
-        Product updatedProduct = taiSanRepository.save(product);
+        // 3. Update thong tin co ban
+        product.setName(request.name());
+        product.setQuantity(request.quantity());
+        product.setDescription(request.description());
+        product.setCategory(category);
+        Product updatedProduct = productRepository.save(product);
 
-        // 4. XỬ LÝ ATTRIBUTES: Xóa cũ, thêm mới
-        thuocTinhTaiSanRepository.deleteByTaiSanId(id);
+        // 4. XU LY ATTRIBUTES: Xoa cu, them moi
+        productAttributeRepository.deleteByProductId(id);
         if (request.attributes() != null) {
             for (AttributeRequest attr : request.attributes()) {
                 if (!attr.isSystem()) {
                     ProductAttribute entity = new ProductAttribute();
-                    entity.setTaiSan(updatedProduct);
-                    entity.setTenThuocTinh(attr.key());
-                    entity.setGiaTri(attr.value());
-                    thuocTinhTaiSanRepository.save(entity);
+                    entity.setProduct(updatedProduct);
+                    entity.setAttributeName(attr.key());
+                    entity.setAttributeValue(attr.value());
+                    productAttributeRepository.save(entity);
                 }
             }
         }
 
-        // 5. XỬ LÝ HÌNH ẢNH
+        // 5. XU LY HINH ANH
         System.out.println("=== UPDATE IMAGES ===");
 
-        hinhAnhTaiSanRepository.deleteByTaiSanId(id);
+        productImageRepository.deleteByProductId(id);
 
         List<String> allImagesToSave = new ArrayList<>();
         if (request.imageUrls() != null)
@@ -156,7 +156,7 @@ public class ProductService {
         int order = 0;
         for (String url : allImagesToSave) {
             ProductImage image = new ProductImage(updatedProduct, order++, url);
-            hinhAnhTaiSanRepository.save(image);
+            productImageRepository.save(image);
         }
 
         System.out.println("=== UPDATE DONE ===");
@@ -165,13 +165,13 @@ public class ProductService {
 
     @Transactional
     public void deleteProduct(String id, String userId) {
-        Product product = taiSanRepository.findById(id)
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
-        if (!userId.equals(product.getNguoiTao().getId())) {
-            throw new AccessDeniedException("Bạn không có quyền xóa tài sản này");
+        if (!userId.equals(product.getCreator().getId())) {
+            throw new AccessDeniedException("Ban khong co quyen xoa tai san nay");
         }
-        hinhAnhTaiSanRepository.deleteByTaiSanId(id);
-        taiSanRepository.delete(product);
+        productImageRepository.deleteByProductId(id);
+        productRepository.delete(product);
     }
 }

@@ -1,7 +1,7 @@
 package io.github.guennhatking.libra_auction.viewmodels.request;
 
 /**
- * Utility to produce a copy of an {@link AuctionSearchRequest} with an owner id (chuSoHuuId).
+ * Utility to produce a copy of an {@link AuctionSearchRequest} with an owner id.
  * This avoids changing the constructor signature of the original record for every call.
  */
 public final class AuctionSearchRequestWrapper {
@@ -18,7 +18,7 @@ public final class AuctionSearchRequestWrapper {
                 original.timeEnd(),
                 original.attributes(),
                 original.status(),
-                original.trangThaiKiemDuyet(),
+                original.approvalStatus(),
                 original.page(),
                 original.pageSize(),
                 original.sortBy(),

@@ -1,7 +1,7 @@
 package io.github.guennhatking.libra_auction.services;
 
 import io.github.guennhatking.libra_auction.viewmodels.request.SignupFormRequest;
-import io.github.guennhatking.libra_auction.models.account.TaiKhoanPassword;
+import io.github.guennhatking.libra_auction.models.account.AccountPassword;
 import io.github.guennhatking.libra_auction.models.person.Customer;
 import io.github.guennhatking.libra_auction.viewmodels.request.GoogleLoginRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.GoogleUserInfo;
@@ -53,18 +53,18 @@ public class AuthenticationService {
     }
 
     public JwtResponse signin(SigninRequest request) throws Exception {
-        Optional<TaiKhoanPassword> account = userService.findPasswordAccountByUsername(request.username());
+        Optional<AccountPassword> account = userService.findPasswordAccountByUsername(request.username());
 
         if (account.isEmpty()) {
             throw new IllegalArgumentException("Invalid username or password");
         }
 
-        TaiKhoanPassword taiKhoan = account.get();
-        if (!passwordService.verifyPassword(request.password(), taiKhoan.getPasswordHash())) {
+        AccountPassword accountPassword = account.get();
+        if (!passwordService.verifyPassword(request.password(), accountPassword.getPasswordHash())) {
             throw new IllegalArgumentException("Invalid username or password");
         }
 
-        return tokenService.generateTokens(taiKhoan.getNguoiDung());
+        return tokenService.generateTokens(accountPassword.getCustomer());
     }
 
     public JwtResponse googleLogin(GoogleLoginRequest request) throws Exception {

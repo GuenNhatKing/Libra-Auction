@@ -7,13 +7,13 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public record ProductCreateRequest(
-        @NotBlank(message = "tenTaiSan is required") String tenTaiSan,
+        @NotBlank(message = "name is required") String name,
 
-        @NotNull(message = "soLuong is required") @Min(value = 1, message = "soLuong must be greater than 0") Integer soLuong,
+        @NotNull(message = "quantity is required") @Min(value = 1, message = "quantity must be greater than 0") Integer quantity,
 
-        String moTa,
+        String description,
 
-        @NotBlank(message = "danhMucId is required") String danhMucId,
+        @NotBlank(message = "categoryId is required") String categoryId,
 
         List<String> imageUrls,
         List<AttributeRequest> attributes) {

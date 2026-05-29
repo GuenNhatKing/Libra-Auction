@@ -6,11 +6,11 @@ import { useState } from "react";
 
 type AuctionFormData = {
   productId: string;
-  thoiGianBatDau: string;
-  thoiLuong: number;
-  giaKhoiDiem: number;
-  buocGiaNhoNhat: number;
-  tienCoc: number;
+  startTime: string;
+  duration: number;
+  startingPrice: number;
+  minimumBidIncrement: number;
+  depositAmount: number;
 };
 
 export default function AuctionForm({ products }: { products: Product[] }) {
@@ -18,11 +18,11 @@ export default function AuctionForm({ products }: { products: Product[] }) {
 
   const [formData, setFormData] = useState<AuctionFormData>({
     productId: "",
-    thoiGianBatDau: "",
-    thoiLuong: 60,
-    giaKhoiDiem: 0,
-    buocGiaNhoNhat: 0,
-    tienCoc: 0
+    startTime: "",
+    duration: 60,
+    startingPrice: 0,
+    minimumBidIncrement: 0,
+    depositAmount: 0
   });
 
   const handleChange = <K extends keyof AuctionFormData>(field: K, value: AuctionFormData[K]) => {
@@ -35,12 +35,12 @@ export default function AuctionForm({ products }: { products: Product[] }) {
   const handleSubmit = async () => {
     try {
       const auction: NewAuction = {
-        taiSanId: formData.productId,
-        thoiGianBatDau: new Date(formData.thoiGianBatDau).toISOString(),
-        thoiLuong: Number(formData.thoiLuong),
-        giaKhoiDiem: Number(formData.giaKhoiDiem),
-        buocGiaNhoNhat: Number(formData.buocGiaNhoNhat),
-        tienCoc: Number(formData.tienCoc)
+        productId: formData.productId,
+        startTime: new Date(formData.startTime).toISOString(),
+        duration: Number(formData.duration),
+        startingPrice: Number(formData.startingPrice),
+        minimumBidIncrement: Number(formData.minimumBidIncrement),
+        depositAmount: Number(formData.depositAmount)
       };
 
       const res = await createAuction(auction);
@@ -106,7 +106,7 @@ export default function AuctionForm({ products }: { products: Product[] }) {
                 <label className="text-sm font-medium">Start time</label>
                 <input
                   type="datetime-local"
-                  onChange={(e) => handleChange("thoiGianBatDau", e.target.value)}
+                  onChange={(e) => handleChange("startTime", e.target.value)}
                   className="border p-2 rounded"
                 />
               </div>
@@ -115,8 +115,8 @@ export default function AuctionForm({ products }: { products: Product[] }) {
                 <label className="text-sm font-medium">Duration (minutes)</label>
                 <input
                   type="number"
-                  value={formData.thoiLuong}
-                  onChange={(e) => handleChange("thoiLuong", Number(e.target.value))}
+                  value={formData.duration}
+                  onChange={(e) => handleChange("duration", Number(e.target.value))}
                   className="border p-2 rounded"
                 />
               </div>
@@ -125,7 +125,7 @@ export default function AuctionForm({ products }: { products: Product[] }) {
                 <label className="text-sm font-medium">Starting price</label>
                 <input
                   type="number"
-                  onChange={(e) => handleChange("giaKhoiDiem", Number(e.target.value))}
+                  onChange={(e) => handleChange("startingPrice", Number(e.target.value))}
                   className="border p-2 rounded"
                 />
               </div>
@@ -134,7 +134,7 @@ export default function AuctionForm({ products }: { products: Product[] }) {
                 <label className="text-sm font-medium">Minimum bid increment</label>
                 <input
                   type="number"
-                  onChange={(e) => handleChange("buocGiaNhoNhat", Number(e.target.value))}
+                  onChange={(e) => handleChange("minimumBidIncrement", Number(e.target.value))}
                   className="border p-2 rounded"
                 />
               </div>
@@ -144,7 +144,7 @@ export default function AuctionForm({ products }: { products: Product[] }) {
                 <input
                   type="number"
                   placeholder="0"
-                  onChange={(e) => handleChange("tienCoc", Number(e.target.value))}
+                  onChange={(e) => handleChange("depositAmount", Number(e.target.value))}
                   className="border p-2 rounded"
                 />
               </div>

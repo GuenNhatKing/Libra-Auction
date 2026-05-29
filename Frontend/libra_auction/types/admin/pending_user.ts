@@ -1,10 +1,10 @@
 export interface PendingUser {
     id: string;
-    hoVaTen: string;
-    soDienThoai: string;
-    CCCD: string;
+    fullName: string;
+    phoneNumber: string;
+    identityNumber: string;
     email: string;
-    anhDaiDien: string;
-    trangThaiEmail: string;
-    trangThaiTaiKhoan: string;
+    avatarUrl: string;
+    emailStatus: string;
+    accountStatus: string;
 }

@@ -2,61 +2,61 @@ package io.github.guennhatking.libra_auction.models.auction;
 
 /**
  * DAU_GIA_LEN (English Auction - Ascending)
- * 
+ *
  * Rules:
- * - Starting price: giaKhoiDiem (minimum acceptable price)
+ * - Starting price: startingPrice (minimum acceptable price)
  * - Bidders compete by placing increasingly higher bids
- * - Each new bid must exceed the previous bid by at least giaMoiThapNhat (minimum bidding increment)
+ * - Each new bid must exceed the previous bid by at least minimumBidIncrement
  * - Highest bidder at the end of the auction wins
  * - All bids are visible to all participants
  */
 public class AscendingBid {
     private String id;
-    private String phienDauGiaId;
-    
-    // Current highest bid (giaKinTamThoi)
-    private long giaKinTamThoi;
-    
+    private String auctionId;
+
+    // Current highest bid
+    private long currentPrice;
+
     // Minimum bidding increment required between consecutive bids
-    private long giaMoiThapNhat;
-    
+    private long minimumBidIncrement;
+
     // Current highest bidder information
     private String bidderId;
     private String bidderName;
-    
+
     // Number of bids placed in this auction
-    private int soBidDaRa;
+    private int totalBids;
 
     // CONSTRUCTOR
     public AscendingBid() {
-        this.soBidDaRa = 0;
+        this.totalBids = 0;
     }
 
-    public AscendingBid(long giaMoiThapNhat) {
-        this.giaMoiThapNhat = giaMoiThapNhat;
-        this.giaKinTamThoi = 0;
-        this.soBidDaRa = 0;
+    public AscendingBid(long minimumBidIncrement) {
+        this.minimumBidIncrement = minimumBidIncrement;
+        this.currentPrice = 0;
+        this.totalBids = 0;
     }
 
     // BUSINESS LOGIC METHODS
-    
+
     /**
      * Validate if a new bid is acceptable for ascending auction
      * @param newBidAmount The new bid amount to validate
      * @return true if valid, false otherwise
      */
     public boolean isValidBid(long newBidAmount) {
-        return newBidAmount >= giaKinTamThoi + giaMoiThapNhat;
+        return newBidAmount >= currentPrice + minimumBidIncrement;
     }
-    
+
     /**
      * Get the minimum acceptable bid for the next round
      * @return Minimum amount for the next bid
      */
     public long getNextMinimumBid() {
-        return giaKinTamThoi + giaMoiThapNhat;
+        return currentPrice + minimumBidIncrement;
     }
-    
+
     /**
      * Record a new winning bid
      * @param bidAmount The bid amount
@@ -65,10 +65,10 @@ public class AscendingBid {
      */
     public void placeBid(long bidAmount, String bidderId, String bidderName) {
         if (isValidBid(bidAmount)) {
-            this.giaKinTamThoi = bidAmount;
+            this.currentPrice = bidAmount;
             this.bidderId = bidderId;
             this.bidderName = bidderName;
-            this.soBidDaRa++;
+            this.totalBids++;
         }
     }
 
@@ -77,16 +77,16 @@ public class AscendingBid {
         return id;
     }
 
-    public String getPhienDauGiaId() {
-        return phienDauGiaId;
+    public String getAuctionId() {
+        return auctionId;
     }
 
-    public long getGiaKinTamThoi() {
-        return giaKinTamThoi;
+    public long getCurrentPrice() {
+        return currentPrice;
     }
 
-    public long getGiaMoiThapNhat() {
-        return giaMoiThapNhat;
+    public long getMinimumBidIncrement() {
+        return minimumBidIncrement;
     }
 
     public String getBidderId() {
@@ -97,8 +97,8 @@ public class AscendingBid {
         return bidderName;
     }
 
-    public int getSoBidDaRa() {
-        return soBidDaRa;
+    public int getTotalBids() {
+        return totalBids;
     }
 
     // SETTER
@@ -106,16 +106,16 @@ public class AscendingBid {
         this.id = id;
     }
 
-    public void setPhienDauGiaId(String phienDauGiaId) {
-        this.phienDauGiaId = phienDauGiaId;
+    public void setAuctionId(String auctionId) {
+        this.auctionId = auctionId;
     }
 
-    public void setGiaKinTamThoi(long giaKinTamThoi) {
-        this.giaKinTamThoi = giaKinTamThoi;
+    public void setCurrentPrice(long currentPrice) {
+        this.currentPrice = currentPrice;
     }
 
-    public void setGiaMoiThapNhat(long giaMoiThapNhat) {
-        this.giaMoiThapNhat = giaMoiThapNhat;
+    public void setMinimumBidIncrement(long minimumBidIncrement) {
+        this.minimumBidIncrement = minimumBidIncrement;
     }
 
     public void setBidderId(String bidderId) {
@@ -126,7 +126,7 @@ public class AscendingBid {
         this.bidderName = bidderName;
     }
 
-    public void setSoBidDaRa(int soBidDaRa) {
-        this.soBidDaRa = soBidDaRa;
+    public void setTotalBids(int totalBids) {
+        this.totalBids = totalBids;
     }
 }

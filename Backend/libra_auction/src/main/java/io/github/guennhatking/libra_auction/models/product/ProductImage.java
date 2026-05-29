@@ -13,19 +13,19 @@ public class ProductImage {
     private String id;
 
     @ManyToOne
-    private Product taiSan;
+    private Product product;
 
-    private int thuTuHienThi;
-    private String hinhAnh;
+    private int displayOrder;
+    private String imageUrl;
 
     // CONSTRUCTOR
     protected ProductImage() {
     }
 
-    public ProductImage(Product taiSan, int thuTuHienThi, String hinhAnh) {
-        this.taiSan = taiSan;
-        this.thuTuHienThi = thuTuHienThi;
-        this.hinhAnh = hinhAnh;
+    public ProductImage(Product product, int displayOrder, String imageUrl) {
+        this.product = product;
+        this.displayOrder = displayOrder;
+        this.imageUrl = imageUrl;
     }
 
     // GETTER
@@ -33,16 +33,16 @@ public class ProductImage {
         return id;
     }
 
-    public Product getTaiSan() {
-        return taiSan;
+    public Product getProduct() {
+        return product;
     }
 
-    public int getThuTuHienThi() {
-        return thuTuHienThi;
+    public int getDisplayOrder() {
+        return displayOrder;
     }
 
-    public String getHinhAnh() {
-        return hinhAnh;
+    public String getImageUrl() {
+        return imageUrl;
     }
 
     // SETTER
@@ -50,15 +50,15 @@ public class ProductImage {
         this.id = id;
     }
 
-    public void setTaiSan(Product taiSan) {
-        this.taiSan = taiSan;
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
-    public void setThuTuHienThi(int thuTuHienThi) {
-        this.thuTuHienThi = thuTuHienThi;
+    public void setDisplayOrder(int displayOrder) {
+        this.displayOrder = displayOrder;
     }
 
-    public void setHinhAnh(String hinhAnh) {
-        this.hinhAnh = hinhAnh;
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

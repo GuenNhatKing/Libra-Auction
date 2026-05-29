@@ -1,7 +1,7 @@
 package io.github.guennhatking.libra_auction.viewmodels.request;
 
 /**
- * Utility to produce a copy of a {@link ProductSearchRequest} with a creator id (nguoiTaoId).
+ * Utility to produce a copy of a {@link ProductSearchRequest} with a creator id.
  * This avoids changing the constructor signature of the original record for every call.
  */
 public final class ProductSearchRequestWrapper {

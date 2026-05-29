@@ -23,8 +23,8 @@ export const ProfileSidebar = ({ user }: { user: UserInfo }) => {
       <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
         <div className="relative mb-5">
           <img 
-            src={user.anhDaiDien} 
-            alt={user.hoVaTen} 
+            src={user.avatarUrl} 
+            alt={user.fullName} 
             // Tăng kích thước ảnh từ w-24 lên w-32
             className="w-32 h-32 rounded-full object-cover border-4 border-[var(--accent-color)] shadow-md"
           />
@@ -33,7 +33,7 @@ export const ProfileSidebar = ({ user }: { user: UserInfo }) => {
         </div>
         
         {/* Tăng font chữ Tên lên text-2xl */}
-        <h2 className="text-2xl font-extrabold text-[var(--secondary-color)]">{user.hoVaTen}</h2>
+        <h2 className="text-2xl font-extrabold text-[var(--secondary-color)]">{user.fullName}</h2>
         <p className="text-base text-gray-500 mt-1">{user.email}</p>
         
         <span className="mt-4 px-4 py-1.5 bg-[var(--accent-color)]/30 text-[var(--secondary-color)] text-sm font-bold rounded-full">

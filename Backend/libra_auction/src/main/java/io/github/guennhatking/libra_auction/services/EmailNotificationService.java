@@ -17,48 +17,48 @@ import java.time.format.DateTimeFormatter;
  */
 @Service
 public class EmailNotificationService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(EmailNotificationService.class);
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-    
+
     private final JavaMailSender mailSender;
-    
+
     @Value("${spring.mail.from:noreply@auction.com}")
     private String fromEmail;
-    
+
     @Value("${app.auction.name:Libra Auction}")
     private String auctionName;
-    
+
     public EmailNotificationService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
-    
+
     /**
      * Send notification when an auction has started
      * @param auction The auction
      */
     public void sendAuctionStartedNotification(Auction auction) {
         try {
-            String productName = auction.getTaiSan() != null ? auction.getTaiSan().getTenTaiSan() : "N/A";
+            String productName = auction.getProduct() != null ? auction.getProduct().getName() : "N/A";
             String auctionId = auction.getId();
-            String startTime = auction.getThoiGianBatDau().format(DATE_FORMATTER);
-            
+            String startTime = auction.getStartTime().format(DATE_FORMATTER);
+
             // For now, we send to the auction creator
-            if (auction.getNguoiTao() != null && auction.getNguoiTao().getEmail() != null) {
+            if (auction.getCreator() != null && auction.getCreator().getEmail() != null) {
                 SimpleMailMessage message = new SimpleMailMessage();
                 message.setFrom(fromEmail);
-                message.setTo(auction.getNguoiTao().getEmail());
-                message.setSubject("[" + auctionName + "] Phiên đấu giá của bạn đã bắt đầu");
+                message.setTo(auction.getCreator().getEmail());
+                message.setSubject("[" + auctionName + "] Phien dau gia cua ban da bat dau");
                 message.setText(buildAuctionStartedEmailBody(productName, auctionId, startTime));
-                
+
                 mailSender.send(message);
-                logger.info("Auction started notification sent to {}", auction.getNguoiTao().getEmail());
+                logger.info("Auction started notification sent to {}", auction.getCreator().getEmail());
             }
         } catch (Exception e) {
             logger.error("Error sending auction started notification: {}", e.getMessage(), e);
         }
     }
-    
+
     /**
      * Send notification to the auction winner
      * @param auction The auction
@@ -71,53 +71,53 @@ public class EmailNotificationService {
                 logger.warn("Cannot send winner notification: winner email is null");
                 return;
             }
-            
-            String productName = auction.getTaiSan() != null ? auction.getTaiSan().getTenTaiSan() : "N/A";
+
+            String productName = auction.getProduct() != null ? auction.getProduct().getName() : "N/A";
             String auctionId = auction.getId();
-            String endTime = auction.getThoiGianBatDau().plusSeconds(auction.getThoiLuong()).format(DATE_FORMATTER);
+            String endTime = auction.getStartTime().plusSeconds(auction.getDuration()).format(DATE_FORMATTER);
             String formattedPrice = String.format("%,d", finalPrice);
-            
+
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(winner.getEmail());
-            message.setSubject("[" + auctionName + "] Xin chúc mừng! Bạn đã thắng cuộc đấu giá");
+            message.setSubject("[" + auctionName + "] Xin chuc mung! Ban da thang cuoc dau gia");
             message.setText(buildWinnerNotificationEmailBody(productName, auctionId, endTime, formattedPrice));
-            
+
             mailSender.send(message);
             logger.info("Winner notification sent to {}", winner.getEmail());
         } catch (Exception e) {
             logger.error("Error sending winner notification: {}", e.getMessage(), e);
         }
     }
-    
+
     /**
      * Send notification when an auction has ended
      * @param auction The auction
      */
     public void sendAuctionEndedNotification(Auction auction) {
         try {
-            if (auction.getNguoiTao() == null || auction.getNguoiTao().getEmail() == null) {
+            if (auction.getCreator() == null || auction.getCreator().getEmail() == null) {
                 logger.warn("Cannot send auction ended notification: creator email is null");
                 return;
             }
-            
-            String productName = auction.getTaiSan() != null ? auction.getTaiSan().getTenTaiSan() : "N/A";
+
+            String productName = auction.getProduct() != null ? auction.getProduct().getName() : "N/A";
             String auctionId = auction.getId();
-            String endTime = auction.getThoiGianBatDau().plusSeconds(auction.getThoiLuong()).format(DATE_FORMATTER);
-            
+            String endTime = auction.getStartTime().plusSeconds(auction.getDuration()).format(DATE_FORMATTER);
+
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
-            message.setTo(auction.getNguoiTao().getEmail());
-            message.setSubject("[" + auctionName + "] Phiên đấu giá của bạn đã kết thúc");
+            message.setTo(auction.getCreator().getEmail());
+            message.setSubject("[" + auctionName + "] Phien dau gia cua ban da ket thuc");
             message.setText(buildAuctionEndedEmailBody(productName, auctionId, endTime));
-            
+
             mailSender.send(message);
-            logger.info("Auction ended notification sent to {}", auction.getNguoiTao().getEmail());
+            logger.info("Auction ended notification sent to {}", auction.getCreator().getEmail());
         } catch (Exception e) {
             logger.error("Error sending auction ended notification: {}", e.getMessage(), e);
         }
     }
-    
+
     /**
      * Send payment request notification to the winner
      * @param auction The auction
@@ -130,36 +130,36 @@ public class EmailNotificationService {
                 logger.warn("Cannot send payment request notification: winner email is null");
                 return;
             }
-            
-            String productName = auction.getTaiSan() != null ? auction.getTaiSan().getTenTaiSan() : "N/A";
+
+            String productName = auction.getProduct() != null ? auction.getProduct().getName() : "N/A";
             String formattedPrice = String.format("%,d", amount);
             String auctionId = auction.getId();
-            
+
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(winner.getEmail());
-            message.setSubject("[" + auctionName + "] Yêu cầu thanh toán cho sản phẩm đã thắng");
+            message.setSubject("[" + auctionName + "] Yeu cau thanh toan san pham da thang");
             message.setText(buildPaymentRequestEmailBody(productName, formattedPrice, auctionId));
-            
+
             mailSender.send(message);
             logger.info("Payment request notification sent to {}", winner.getEmail());
         } catch (Exception e) {
             logger.error("Error sending payment request notification: {}", e.getMessage(), e);
         }
     }
-    
+
     public void sendEmailVerificationOtp(String toEmail, String otp) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(toEmail);
-            message.setSubject("[" + auctionName + "] Mã xác thực email của bạn");
+            message.setSubject("[" + auctionName + "] Ma xac thuc email cua ban");
             message.setText(buildEmailVerificationOtpBody(otp));
             mailSender.send(message);
             logger.info("Email verification OTP sent to {}", toEmail);
         } catch (Exception e) {
             logger.error("Error sending email verification OTP: {}", e.getMessage(), e);
-            throw new RuntimeException("Không thể gửi email. Vui lòng thử lại.");
+            throw new RuntimeException("Khong the gui email. Vui long thu lai.");
         }
     }
 
@@ -168,85 +168,85 @@ public class EmailNotificationService {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(toEmail);
-            message.setSubject("[" + auctionName + "] Mã đặt lại mật khẩu của bạn");
+            message.setSubject("[" + auctionName + "] Ma dat lai mat khau cua ban");
             message.setText(buildPasswordResetOtpBody(otp));
             mailSender.send(message);
             logger.info("Password reset OTP sent to {}", toEmail);
         } catch (Exception e) {
             logger.error("Error sending password reset OTP: {}", e.getMessage(), e);
-            throw new RuntimeException("Không thể gửi email. Vui lòng thử lại.");
+            throw new RuntimeException("Khong the gui email. Vui long thu lai.");
         }
     }
 
     // ==================== Email Body Templates ====================
-    
+
     private String buildAuctionStartedEmailBody(String productName, String auctionId, String startTime) {
-        return "Xin chào,\n\n" +
-               "Phiên đấu giá của bạn vừa bắt đầu!\n\n" +
-               "Sản phẩm: " + productName + "\n" +
-               "ID Phiên: " + auctionId + "\n" +
-               "Thời gian bắt đầu: " + startTime + "\n\n" +
-               "Người mua sẽ có thể đặt giá cho sản phẩm của bạn ngay bây giờ.\n\n" +
-               "Cảm ơn bạn đã sử dụng " + auctionName + "!\n\n" +
-               "Trân trọng,\n" +
+        return "Xin chao,\n\n" +
+               "Phien dau gia cua ban vua bat dau!\n\n" +
+               "San pham: " + productName + "\n" +
+               "ID Phien: " + auctionId + "\n" +
+               "Thoi gian bat dau: " + startTime + "\n\n" +
+               "Nguoi mua se co the dat gia cho san pham cua ban ngay bay gio.\n\n" +
+               "Cam on ban da su dung " + auctionName + "!\n\n" +
+               "Tran trong,\n" +
                auctionName + " Team";
     }
-    
+
     private String buildWinnerNotificationEmailBody(String productName, String auctionId, String endTime, String price) {
-        return "Xin chào,\n\n" +
-               "Chúc mừng! Bạn đã thắng cuộc đấu giá!\n\n" +
-               "Sản phẩm: " + productName + "\n" +
-               "ID Phiên: " + auctionId + "\n" +
-               "Giá thắng: " + price + " VND\n" +
-               "Thời gian kết thúc: " + endTime + "\n\n" +
-               "Vui lòng tiến hành thanh toán trong vòng 3 ngày.\n\n" +
-               "Cảm ơn bạn đã sử dụng " + auctionName + "!\n\n" +
-               "Trân trọng,\n" +
+        return "Xin chao,\n\n" +
+               "Chuc mung! Ban da thang cuoc dau gia!\n\n" +
+               "San pham: " + productName + "\n" +
+               "ID Phien: " + auctionId + "\n" +
+               "Gia thang: " + price + " VND\n" +
+               "Thoi gian ket thuc: " + endTime + "\n\n" +
+               "Vui long tien hanh thanh toan trong vong 3 ngay.\n\n" +
+               "Cam on ban da su dung " + auctionName + "!\n\n" +
+               "Tran trong,\n" +
                auctionName + " Team";
     }
-    
+
     private String buildAuctionEndedEmailBody(String productName, String auctionId, String endTime) {
-        return "Xin chào,\n\n" +
-               "Phiên đấu giá của bạn đã kết thúc.\n\n" +
-               "Sản phẩm: " + productName + "\n" +
-               "ID Phiên: " + auctionId + "\n" +
-               "Thời gian kết thúc: " + endTime + "\n\n" +
-               "Hãy kiểm tra chi tiết kết quả trên hệ thống của chúng tôi.\n\n" +
-               "Cảm ơn bạn đã sử dụng " + auctionName + "!\n\n" +
-               "Trân trọng,\n" +
+        return "Xin chao,\n\n" +
+               "Phien dau gia cua ban da ket thuc.\n\n" +
+               "San pham: " + productName + "\n" +
+               "ID Phien: " + auctionId + "\n" +
+               "Thoi gian ket thuc: " + endTime + "\n\n" +
+               "Hay kiem tra chi tiet ket qua tren he thong cua chung toi.\n\n" +
+               "Cam on ban da su dung " + auctionName + "!\n\n" +
+               "Tran trong,\n" +
                auctionName + " Team";
     }
-    
+
     private String buildPaymentRequestEmailBody(String productName, String price, String auctionId) {
-        return "Xin chào,\n\n" +
-               "Bạn cần thanh toán cho sản phẩm mà bạn đã thắng cuộc.\n\n" +
-               "Sản phẩm: " + productName + "\n" +
-               "Số tiền cần thanh toán: " + price + " VND\n" +
-               "ID Phiên: " + auctionId + "\n\n" +
-               "Vui lòng thanh toán trong vòng 3 ngày để hoàn thành giao dịch.\n\n" +
-               "Cảm ơn bạn đã sử dụng " + auctionName + "!\n\n" +
-               "Trân trọng,\n" +
+        return "Xin chao,\n\n" +
+               "Ban can thanh toan cho san pham ma ban da thang cuoc.\n\n" +
+               "San pham: " + productName + "\n" +
+               "So tien can thanh toan: " + price + " VND\n" +
+               "ID Phien: " + auctionId + "\n\n" +
+               "Vui long thanh toan trong vong 3 ngay de hoan thanh giao dich.\n\n" +
+               "Cam on ban da su dung " + auctionName + "!\n\n" +
+               "Tran trong,\n" +
                auctionName + " Team";
     }
 
     private String buildEmailVerificationOtpBody(String otp) {
-        return "Xin chào,\n\n" +
-               "Mã xác thực email của bạn là:\n\n" +
+        return "Xin chao,\n\n" +
+               "Ma xac thuc email cua ban la:\n\n" +
                "    " + otp + "\n\n" +
-               "Mã này có hiệu lực trong 5 phút. Vui lòng không chia sẻ mã này với bất kỳ ai.\n\n" +
-               "Nếu bạn không yêu cầu xác thực email, hãy bỏ qua email này.\n\n" +
-               "Trân trọng,\n" +
+               "Ma nay co hieu luc trong 5 phut. Vui long khong chia se ma nay voi bat ky ai.\n\n" +
+               "Neu ban khong yeu cau xac thuc email, hay bo qua email nay.\n\n" +
+               "Tran trong,\n" +
                auctionName + " Team";
     }
 
     private String buildPasswordResetOtpBody(String otp) {
-        return "Xin chào,\n\n" +
-               "Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.\n\n" +
-               "Mã OTP đặt lại mật khẩu:\n\n" +
+        return "Xin chao,\n\n" +
+               "Chung toi nhan duoc yeu cau dat lai mat khau cho tai khoan cua ban.\n\n" +
+               "Ma OTP dat lai mat khau:\n\n" +
                "    " + otp + "\n\n" +
-               "Mã này có hiệu lực trong 5 phút. Vui lòng không chia sẻ mã này với bất kỳ ai.\n\n" +
-               "Nếu bạn không yêu cầu đặt lại mật khẩu, hãy bỏ qua email này.\n\n" +
-               "Trân trọng,\n" +
+               "Ma nay co hieu luc trong 5 phut. Vui long khong chia se ma nay voi bat ky ai.\n\n" +
+               "Neu ban khong yeu cau dat lai mat khau, hay bo qua email nay.\n\n" +
+               "Tran trong,\n" +
                auctionName + " Team";
     }
 }

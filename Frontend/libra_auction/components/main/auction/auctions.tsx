@@ -26,8 +26,8 @@ export default async function Auctions({
     ]);
 
     const visibleCards = cards.filter((card) =>
-        card.approval_status === "DA_DUYET" &&
-        (card.auction_status === "CHUA_BAT_DAU" || card.auction_status === "DANG_DIEN_RA")
+        card.approval_status === "APPROVED" &&
+        (card.auction_status === "NOT_STARTED" || card.auction_status === "IN_PROGRESS")
     );
 
     const pageTitle = categoryName || "Online Auction Marketplace";

@@ -14,18 +14,18 @@ import java.util.stream.Collectors;
 
 @Service
 public class ProductSearchService {
-    private final ProductRepository taiSanRepository;
+    private final ProductRepository productRepository;
     private final ProductResponseMapper productResponseMapper;
 
-    public ProductSearchService(ProductRepository taiSanRepository,
+    public ProductSearchService(ProductRepository productRepository,
             ProductResponseMapper productResponseMapper) {
-        this.taiSanRepository = taiSanRepository;
+        this.productRepository = productRepository;
         this.productResponseMapper = productResponseMapper;
     }
 
     public PageResponse<ProductResponse> searchProducts(ProductSearchRequest criteria) {
         // Get all products
-        List<Product> allProducts = taiSanRepository.findAll();
+        List<Product> allProducts = productRepository.findAll();
 
         // Apply filters
         List<Product> filtered = applyFilters(allProducts, criteria);
@@ -45,8 +45,8 @@ public class ProductSearchService {
                         || filterByCategory(product, criteria.categoryId()))
                 .filter(product -> criteria.attributes() == null
                         || filterByAttributes(product, criteria.attributes()))
-                .filter(product -> criteria.nguoiTaoId() == null
-                    || filterByCreator(product, criteria.nguoiTaoId()))
+                .filter(product -> criteria.creatorId() == null
+                    || filterByCreator(product, criteria.creatorId()))
                 .collect(Collectors.toList());
     }
 
@@ -54,16 +54,16 @@ public class ProductSearchService {
         if (name == null || name.isBlank()) {
             return true;
         }
-        return product.getTenTaiSan() != null &&
-                product.getTenTaiSan().toLowerCase().contains(name.toLowerCase());
+        return product.getName() != null &&
+                product.getName().toLowerCase().contains(name.toLowerCase());
     }
 
     private boolean filterByCategory(Product product, String categoryId) {
         if (categoryId == null || categoryId.isBlank()) {
             return true;
         }
-        return product.getDanhMuc() != null &&
-                product.getDanhMuc().getId().equals(categoryId);
+        return product.getCategory() != null &&
+                product.getCategory().getId().equals(categoryId);
     }
 
     private boolean filterByAttributes(Product product, List<java.util.Map<String, String>> attributes) {
@@ -71,8 +71,8 @@ public class ProductSearchService {
             return true;
         }
 
-        // Nếu sản phẩm không có thuộc tính thì bỏ qua
-        if (product.getThuocTinhTaiSanList() == null || product.getThuocTinhTaiSanList().isEmpty()) {
+        // Neu san pham khong co thuoc tinh thi bo qua
+        if (product.getAttributes() == null || product.getAttributes().isEmpty()) {
             return false;
         }
 
@@ -81,33 +81,33 @@ public class ProductSearchService {
             String attrName = filterAttr.get("attribute_name");
             String attrValue = filterAttr.get("attribute_value");
 
-            return product.getThuocTinhTaiSanList().stream()
-                    .anyMatch(taiSanAttr -> taiSanAttr.getTenThuocTinh() != null &&
-                            taiSanAttr.getTenThuocTinh().equals(attrName) &&
-                            taiSanAttr.getGiaTri() != null &&
-                            taiSanAttr.getGiaTri().equals(attrValue));
+            return product.getAttributes().stream()
+                    .anyMatch(productAttr -> productAttr.getAttributeName() != null &&
+                            productAttr.getAttributeName().equals(attrName) &&
+                            productAttr.getAttributeValue() != null &&
+                            productAttr.getAttributeValue().equals(attrValue));
         });
     }
 
-    private boolean filterByCreator(Product product, String nguoiTaoId) {
-        if (nguoiTaoId == null || nguoiTaoId.isBlank()) {
+    private boolean filterByCreator(Product product, String creatorId) {
+        if (creatorId == null || creatorId.isBlank()) {
             return true; // no creator filter
         }
-        if (product.getNguoiTao() == null) {
+        if (product.getCreator() == null) {
             return false;
         }
-        return nguoiTaoId.equals(product.getNguoiTao().getId());
+        return creatorId.equals(product.getCreator().getId());
     }
 
     private List<Product> applySort(List<Product> products, ProductSearchRequest criteria) {
-        String sortBy = criteria.sortBy() != null ? criteria.sortBy() : "tenTaiSan";
+        String sortBy = criteria.sortBy() != null ? criteria.sortBy() : "name";
         boolean isAsc = "ASC".equalsIgnoreCase(criteria.sortOrder());
 
         Comparator<Product> comparator = switch (sortBy) {
-            case "soLuong" -> Comparator.comparing(Product::getSoLuong);
-            // Mặc định sắp xếp theo tên tài sản
-            case "tenTaiSan" -> Comparator.comparing(t -> t.getTenTaiSan() != null ? t.getTenTaiSan() : "");
-            default -> Comparator.comparing(t -> t.getTenTaiSan() != null ? t.getTenTaiSan() : "");
+            case "quantity" -> Comparator.comparing(Product::getQuantity);
+            // Mac dinh sap xep theo ten tai san
+            case "name" -> Comparator.comparing(t -> t.getName() != null ? t.getName() : "");
+            default -> Comparator.comparing(t -> t.getName() != null ? t.getName() : "");
         };
 
         if (!isAsc) {

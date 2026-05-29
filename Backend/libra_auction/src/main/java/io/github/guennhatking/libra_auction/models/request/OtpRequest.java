@@ -6,32 +6,32 @@ import jakarta.persistence.Entity;
 
 @Entity
 public class OtpRequest extends RequestEntity {
-    private String maOTPDaTao;
-    private String maOTPNguoiDungNhap;
+    private String generatedOtpCode;
+    private String userInputOtpCode;
 
     // CONSTRUCTOR
     protected OtpRequest() {
     }
 
-    public OtpRequest(Customer nguoiYeuCau) {
-        super(nguoiYeuCau, RequestType.OTP);
+    public OtpRequest(Customer customer) {
+        super(customer, RequestType.OTP);
     }
 
     // GETTER
-    public String getMaOTPDaTao() {
-        return maOTPDaTao;
+    public String getGeneratedOtpCode() {
+        return generatedOtpCode;
     }
 
-    public String getMaOTPNguoiDungNhap() {
-        return maOTPNguoiDungNhap;
+    public String getUserInputOtpCode() {
+        return userInputOtpCode;
     }
 
     // SETTER
-    public void setMaOTPDaTao(String maOTPDaTao) {
-        this.maOTPDaTao = maOTPDaTao;
+    public void setGeneratedOtpCode(String generatedOtpCode) {
+        this.generatedOtpCode = generatedOtpCode;
     }
 
-    public void setMaOTPNguoiDungNhap(String maOTPNguoiDungNhap) {
-        this.maOTPNguoiDungNhap = maOTPNguoiDungNhap;
+    public void setUserInputOtpCode(String userInputOtpCode) {
+        this.userInputOtpCode = userInputOtpCode;
     }
 }

@@ -12,16 +12,16 @@ interface AuctionItemProps {
 }
 
 const statusConfig: Record<AuctionStatus, { label: string, classes: string }> = {
-    "CHUA_BAT_DAU": { label: 'Upcoming', classes: 'bg-amber-50 text-amber-600 border-amber-100' },
-    "DANG_DIEN_RA": { label: 'Live', classes: 'bg-green-50 text-green-600 border-green-100' },
-    "DA_KET_THUC": { label: 'Ended', classes: 'bg-gray-50 text-gray-500 border-gray-100' },
-    "BI_HUY": { label: 'Cancelled', classes: 'bg-red-50 text-red-600 border-red-100' },
+    "NOT_STARTED": { label: 'Upcoming', classes: 'bg-amber-50 text-amber-600 border-amber-100' },
+    "IN_PROGRESS": { label: 'Live', classes: 'bg-green-50 text-green-600 border-green-100' },
+    "ENDED": { label: 'Ended', classes: 'bg-gray-50 text-gray-500 border-gray-100' },
+    "CANCELLED": { label: 'Cancelled', classes: 'bg-red-50 text-red-600 border-red-100' },
 };
 
 const approvalStatusConfig: Record<ApprovalStatus, { label: string; classes: string }> = {
-    CHUA_DUYET: { label: 'Pending', classes: 'bg-amber-50 text-amber-700 border-amber-100' },
-    DA_DUYET: { label: 'Approved', classes: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
-    BI_TU_CHOI: { label: 'Rejected', classes: 'bg-red-50 text-red-700 border-red-100' },
+    PENDING: { label: 'Pending', classes: 'bg-amber-50 text-amber-700 border-amber-100' },
+    APPROVED: { label: 'Approved', classes: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
+    REJECTED: { label: 'Rejected', classes: 'bg-red-50 text-red-700 border-red-100' },
 };
 
 export const AuctionItem = ({ auction, onView, onEdit, onDelete }: AuctionItemProps) => {
@@ -40,7 +40,7 @@ export const AuctionItem = ({ auction, onView, onEdit, onDelete }: AuctionItemPr
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                         <h3 className="font-bold text-gray-800 text-base">{auction.product_name}</h3>
-                        {auction.approval_status === "DA_DUYET" && (
+                        {auction.approval_status === "APPROVED" && (
                             <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-lg border ${status.classes}`}>
                                 {status.label}
                             </span>

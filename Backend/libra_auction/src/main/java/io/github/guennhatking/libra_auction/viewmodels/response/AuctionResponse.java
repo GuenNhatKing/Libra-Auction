@@ -17,7 +17,7 @@ public record AuctionResponse(
 
         Long starting_price,
         Long current_price,
-        Long tien_coc,
+        Long deposit_amount,
         Long min_bid_increment,
 
         String product_id,

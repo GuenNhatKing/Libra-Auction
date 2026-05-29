@@ -17,23 +17,23 @@ public class BidRejectionRecord {
     private String id;
 
     @ManyToOne
-    private Customer nguoiBoCuoc;
+    private Customer bidder;
 
     @ManyToOne
-    private Auction phienDauGia;
+    private Auction auction;
 
-    private OffsetDateTime thoiGian;
-    private String lyDo;
+    private OffsetDateTime timestamp;
+    private String reason;
 
     // CONSTRUCTOR
     public BidRejectionRecord() {
     }
 
-    public BidRejectionRecord(Customer nguoiBoCuoc, Auction phienDauGia, String lyDo) {
-        this.nguoiBoCuoc = nguoiBoCuoc;
-        this.phienDauGia = phienDauGia;
-        this.thoiGian = OffsetDateTime.now(ZoneOffset.ofHours(7));
-        this.lyDo = lyDo;
+    public BidRejectionRecord(Customer bidder, Auction auction, String reason) {
+        this.bidder = bidder;
+        this.auction = auction;
+        this.timestamp = OffsetDateTime.now(ZoneOffset.ofHours(7));
+        this.reason = reason;
     }
 
     // GETTER
@@ -41,20 +41,20 @@ public class BidRejectionRecord {
         return id;
     }
 
-    public Customer getNguoiBoCuoc() {
-        return nguoiBoCuoc;
+    public Customer getBidder() {
+        return bidder;
     }
 
-    public Auction getPhienDauGia() {
-        return phienDauGia;
+    public Auction getAuction() {
+        return auction;
     }
 
-    public OffsetDateTime getThoiGian() {
-        return thoiGian;
+    public OffsetDateTime getTimestamp() {
+        return timestamp;
     }
 
-    public String getLyDo() {
-        return lyDo;
+    public String getReason() {
+        return reason;
     }
 
     // SETTER
@@ -62,19 +62,19 @@ public class BidRejectionRecord {
         this.id = id;
     }
 
-    public void setNguoiBoCuoc(Customer nguoiBoCuoc) {
-        this.nguoiBoCuoc = nguoiBoCuoc;
+    public void setBidder(Customer bidder) {
+        this.bidder = bidder;
     }
 
-    public void setPhienDauGia(Auction phienDauGia) {
-        this.phienDauGia = phienDauGia;
+    public void setAuction(Auction auction) {
+        this.auction = auction;
     }
 
-    public void setThoiGian(OffsetDateTime thoiGian) {
-        this.thoiGian = thoiGian;
+    public void setTimestamp(OffsetDateTime timestamp) {
+        this.timestamp = timestamp;
     }
 
-    public void setLyDo(String lyDo) {
-        this.lyDo = lyDo;
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 }

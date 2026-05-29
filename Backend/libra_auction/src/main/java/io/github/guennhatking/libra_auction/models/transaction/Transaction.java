@@ -23,24 +23,24 @@ public class Transaction {
     private String id;
 
     @Enumerated(EnumType.STRING)
-    private TransactionType loaiGiaoDich;
+    private TransactionType transactionType;
 
-    private long soTien;
-    private OffsetDateTime ngayTao;
+    private long amount;
+    private OffsetDateTime createdAt;
 
     @Enumerated(EnumType.STRING)
-    private TransactionStatus tinhTrangGiaoDich = TransactionStatus.DANG_XU_LY;
+    private TransactionStatus transactionStatus = TransactionStatus.PROCESSING;
 
-    private String maGiaoDichCuaDoiTac; // Lưu lại mã giao dịch của VNPay
+    private String partnerTransactionId;
 
     // CONSTRUCTOR
     protected Transaction() {
     }
 
-    public Transaction(TransactionType loaiGiaoDich, long soTien) {
-        this.loaiGiaoDich = loaiGiaoDich;
-        this.soTien = soTien;
-        this.ngayTao = OffsetDateTime.now(ZoneOffset.ofHours(7));
+    public Transaction(TransactionType transactionType, long amount) {
+        this.transactionType = transactionType;
+        this.amount = amount;
+        this.createdAt = OffsetDateTime.now(ZoneOffset.ofHours(7));
     }
 
     // GETTER
@@ -48,24 +48,24 @@ public class Transaction {
         return id;
     }
 
-    public TransactionType getLoaiGiaoDich() {
-        return loaiGiaoDich;
+    public TransactionType getTransactionType() {
+        return transactionType;
     }
 
-    public long getSoTien() {
-        return soTien;
+    public long getAmount() {
+        return amount;
     }
 
-    public OffsetDateTime getNgayTao() {
-        return ngayTao;
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public TransactionStatus getTinhTrangGiaoDich() {
-        return tinhTrangGiaoDich;
+    public TransactionStatus getTransactionStatus() {
+        return transactionStatus;
     }
 
-    public String getMaGiaoDichCuaDoiTac() {
-        return maGiaoDichCuaDoiTac;
+    public String getPartnerTransactionId() {
+        return partnerTransactionId;
     }
 
     // SETTER
@@ -73,23 +73,23 @@ public class Transaction {
         this.id = id;
     }
 
-    public void setLoaiGiaoDich(TransactionType loaiGiaoDich) {
-        this.loaiGiaoDich = loaiGiaoDich;
+    public void setTransactionType(TransactionType transactionType) {
+        this.transactionType = transactionType;
     }
 
-    public void setSoTien(long soTien) {
-        this.soTien = soTien;
+    public void setAmount(long amount) {
+        this.amount = amount;
     }
 
-    public void setNgayTao(OffsetDateTime ngayTao) {
-        this.ngayTao = ngayTao;
+    public void setCreatedAt(OffsetDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public void setTinhTrangGiaoDich(TransactionStatus tinhTrangGiaoDich) {
-        this.tinhTrangGiaoDich = tinhTrangGiaoDich;
+    public void setTransactionStatus(TransactionStatus transactionStatus) {
+        this.transactionStatus = transactionStatus;
     }
 
-    public void setMaGiaoDichCuaDoiTac(String maGiaoDichCuaDoiTac) {
-        this.maGiaoDichCuaDoiTac = maGiaoDichCuaDoiTac;
+    public void setPartnerTransactionId(String partnerTransactionId) {
+        this.partnerTransactionId = partnerTransactionId;
     }
 }

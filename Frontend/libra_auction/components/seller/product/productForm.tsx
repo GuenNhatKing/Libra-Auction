@@ -58,10 +58,10 @@ export default function ProductForm() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const newProduct: NewProduct = {
-      tenTaiSan: formData.get("tenTaiSan") as string,
-      soLuong: Number(formData.get("soLuong")),
-      danhMucId: formData.get("danhMucId") as string,
-      moTa: formData.get("moTa") as string,
+      name: formData.get("name") as string,
+      quantity: Number(formData.get("quantity")),
+      categoryId: formData.get("categoryId") as string,
+      description: formData.get("description") as string,
       attributes: attributes,
       imageUrls: []
     }
@@ -99,7 +99,7 @@ export default function ProductForm() {
           <input
             required
             className="border border-[#AFD3E2] p-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#19A7CE] transition-all"
-            name="tenTaiSan"
+            name="name"
             placeholder="Example: iPhone 15 Pro Max"
           />
         </div>
@@ -110,7 +110,7 @@ export default function ProductForm() {
             type="number"
             min="1"
             className="border border-[#AFD3E2] p-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#19A7CE] transition-all"
-            name="soLuong"
+            name="quantity"
           />
         </div>
       </div>
@@ -118,7 +118,7 @@ export default function ProductForm() {
         <label className="text-sm font-bold text-[#146C94]">Category</label>
 
         <select
-          name="danhMucId"
+          name="categoryId"
           required
           className="border border-[#AFD3E2] p-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#19A7CE]"
         >
@@ -136,7 +136,7 @@ export default function ProductForm() {
         <label className="text-sm font-bold text-[#146C94]">Description</label>
         <textarea
           className="border border-[#AFD3E2] p-2.5 rounded-xl h-28 focus:outline-none focus:ring-2 focus:ring-[#19A7CE] transition-all resize-none"
-          name="moTa"
+          name="description"
           placeholder="Enter a detailed product description..."
         />
       </div>

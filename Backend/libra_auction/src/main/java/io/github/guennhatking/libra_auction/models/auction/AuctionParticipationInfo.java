@@ -17,21 +17,21 @@ public class AuctionParticipationInfo {
     private String id;
 
     @ManyToOne
-    private Customer nguoiThamGia;
+    private Customer participant;
 
     @ManyToOne
-    private Auction phienDauGia;
+    private Auction auction;
 
-    private OffsetDateTime thoiGianDangKy;
+    private OffsetDateTime registeredAt;
 
     // CONSTRUCTOR
     public AuctionParticipationInfo() {
     }
 
-    public AuctionParticipationInfo(Customer nguoiThamGia, Auction phienDauGia) {
-        this.nguoiThamGia = nguoiThamGia;
-        this.phienDauGia = phienDauGia;
-        this.thoiGianDangKy = OffsetDateTime.now(ZoneOffset.ofHours(7));
+    public AuctionParticipationInfo(Customer participant, Auction auction) {
+        this.participant = participant;
+        this.auction = auction;
+        this.registeredAt = OffsetDateTime.now(ZoneOffset.ofHours(7));
     }
 
     // GETTER
@@ -39,16 +39,16 @@ public class AuctionParticipationInfo {
         return id;
     }
 
-    public Customer getNguoiThamGia() {
-        return nguoiThamGia;
+    public Customer getParticipant() {
+        return participant;
     }
 
-    public Auction getPhienDauGia() {
-        return phienDauGia;
+    public Auction getAuction() {
+        return auction;
     }
 
-    public OffsetDateTime getThoiGianDangKy() {
-        return thoiGianDangKy;
+    public OffsetDateTime getRegisteredAt() {
+        return registeredAt;
     }
 
     // SETTER
@@ -56,15 +56,15 @@ public class AuctionParticipationInfo {
         this.id = id;
     }
 
-    public void setNguoiThamGia(Customer nguoiThamGia) {
-        this.nguoiThamGia = nguoiThamGia;
+    public void setParticipant(Customer participant) {
+        this.participant = participant;
     }
 
-    public void setPhienDauGia(Auction phienDauGia) {
-        this.phienDauGia = phienDauGia;
+    public void setAuction(Auction auction) {
+        this.auction = auction;
     }
 
-    public void setThoiGianDangKy(OffsetDateTime thoiGianDangKy) {
-        this.thoiGianDangKy = thoiGianDangKy;
+    public void setRegisteredAt(OffsetDateTime registeredAt) {
+        this.registeredAt = registeredAt;
     }
 }

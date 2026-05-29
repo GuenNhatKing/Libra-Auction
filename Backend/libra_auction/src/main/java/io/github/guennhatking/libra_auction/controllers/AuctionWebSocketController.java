@@ -30,7 +30,7 @@ public class AuctionWebSocketController {
     private static final Logger logger = LoggerFactory.getLogger(AuctionWebSocketController.class);
 
     private final SimpMessagingTemplate messagingTemplate;
-    private final AuctionRepository phienDauGiaRepository;
+    private final AuctionRepository auctionRepository;
     private final AuctionStateRedisService auctionStateRedisService;
     private final AuctionWebSocketNotificationService auctionWebSocketNotificationService;
 
@@ -42,11 +42,11 @@ public class AuctionWebSocketController {
     private static final int EXTENSION_MINUTES = 5;
 
     public AuctionWebSocketController(SimpMessagingTemplate messagingTemplate,
-            AuctionRepository phienDauGiaRepository,
+            AuctionRepository auctionRepository,
             AuctionStateRedisService auctionStateRedisService,
             AuctionWebSocketNotificationService auctionWebSocketNotificationService) {
         this.messagingTemplate = messagingTemplate;
-        this.phienDauGiaRepository = phienDauGiaRepository;
+        this.auctionRepository = auctionRepository;
         this.auctionStateRedisService = auctionStateRedisService;
         this.auctionWebSocketNotificationService = auctionWebSocketNotificationService;
     }
@@ -60,16 +60,16 @@ public class AuctionWebSocketController {
                 bidMessage.auctionId(), bidMessage.bidAmount(), bidMessage.bidderId(), bidMessage.bidderName());
         try {
             // Validate auction exists
-            Auction auction = phienDauGiaRepository.findById(bidMessage.auctionId())
+            Auction auction = auctionRepository.findById(bidMessage.auctionId())
                     .orElseThrow(() -> new IllegalArgumentException("Auction not found"));
 
-            logger.info("Auction found: id={}, status={}, type={}, giaHienTai={}, giaKhoiDiem={}, buocGiaNhoNhat={}",
-                    auction.getId(), auction.getTrangThaiPhien(),
-                    auction.getGiaHienTai(), auction.getGiaKhoiDiem(), auction.getBuocGiaNhoNhat());
+            logger.info("Auction found: id={}, status={}, currentPrice={}, startingPrice={}, minimumBidIncrement={}",
+                    auction.getId(), auction.getAuctionStatus(),
+                    auction.getCurrentPrice(), auction.getStartingPrice(), auction.getMinimumBidIncrement());
 
             // Validate auction is active
-            if (!auction.getTrangThaiPhien().equals(AuctionStatus.DANG_DIEN_RA)) {
-                String errorMsg = "Auction is not active. Current status: " + auction.getTrangThaiPhien();
+            if (!auction.getAuctionStatus().equals(AuctionStatus.IN_PROGRESS)) {
+                String errorMsg = "Auction is not active. Current status: " + auction.getAuctionStatus();
                 logger.error(errorMsg);
                 sendErrorNotification(bidMessage.auctionId(), errorMsg);
                 return;
@@ -94,22 +94,22 @@ public class AuctionWebSocketController {
     /**
      * DAU_GIA_LEN (English Auction - Ascending)
      * Rules:
-     * - Starting price is giaKhoiDiem
-     * - Each bid must be at least (currentPrice + buocGiaNhoNhat)
+     * - Starting price is startingPrice
+     * - Each bid must be at least (currentPrice + minimumBidIncrement)
      * - Highest bidder at the end wins
      * - All bids are visible to participants
      */
     private void handleAscendingAuction(BidMessage bidMessage, Auction auction) {
-        long minimumBid = auction.getGiaHienTai() > 0
-                ? auction.getGiaHienTai() + auction.getBuocGiaNhoNhat()
-                : auction.getGiaKhoiDiem();
+        long minimumBid = auction.getCurrentPrice() > 0
+                ? auction.getCurrentPrice() + auction.getMinimumBidIncrement()
+                : auction.getStartingPrice();
 
         logger.info("Processing ascending auction bid: minimumBid={}, bidAmount={}", minimumBid, bidMessage.bidAmount());
 
         // Validate bid amount
         if (bidMessage.bidAmount() < minimumBid) {
             String errorMsg = String.format("Bid must be at least %.0f (current price: %.0f + minimum step: %.0f)",
-                    minimumBid, auction.getGiaHienTai(), auction.getBuocGiaNhoNhat());
+                    minimumBid, auction.getCurrentPrice(), auction.getMinimumBidIncrement());
             logger.error(errorMsg);
             sendErrorNotification(bidMessage.auctionId(), errorMsg);
             return;
@@ -120,14 +120,14 @@ public class AuctionWebSocketController {
         recordBid(bidMessage.auctionId(), bidResponse);
 
         AuctionLog log = new AuctionLog();
-        log.setPhienDauGia(auction);
-        log.setMucGia(bidMessage.bidAmount());
+        log.setAuction(auction);
+        log.setBidAmount(bidMessage.bidAmount());
 
-        if (auction.getLichSuDatGia() == null) {
-            auction.setLichSuDatGia(new ArrayList<>());
+        if (auction.getBidHistory() == null) {
+            auction.setBidHistory(new ArrayList<>());
         }
-        auction.getLichSuDatGia().add(log);
-        phienDauGiaRepository.save(auction);
+        auction.getBidHistory().add(log);
+        auctionRepository.save(auction);
 
         logger.info("Bid accepted and saved to log: auctionId={}, bidAmount={}", bidMessage.auctionId(), bidMessage.bidAmount());
 

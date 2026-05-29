@@ -11,16 +11,16 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    private String tenDanhMuc;
-    private String hinhAnh;
+    private String name;
+    private String imageUrl;
 
     // CONSTRUCTOR
     public Category() {
     }
 
-    public Category(String tenDanhMuc, String hinhAnh) {
-        this.tenDanhMuc = tenDanhMuc;
-        this.hinhAnh = hinhAnh;
+    public Category(String name, String imageUrl) {
+        this.name = name;
+        this.imageUrl = imageUrl;
     }
 
     // GETTER
@@ -28,12 +28,12 @@ public class Category {
         return id;
     }
 
-    public String getTenDanhMuc() {
-        return tenDanhMuc;
+    public String getName() {
+        return name;
     }
 
-    public String getHinhAnh() {
-        return hinhAnh;
+    public String getImageUrl() {
+        return imageUrl;
     }
 
     // SETTER
@@ -41,11 +41,11 @@ public class Category {
         this.id = id;
     }
 
-    public void setTenDanhMuc(String tenDanhMuc) {
-        this.tenDanhMuc = tenDanhMuc;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public void setHinhAnh(String hinhAnh) {
-        this.hinhAnh = hinhAnh;
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

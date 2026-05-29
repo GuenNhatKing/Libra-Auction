@@ -6,10 +6,10 @@ import io.github.guennhatking.libra_auction.models.product.ProductImage;
 
 @Mapper(componentModel = "spring")
 public interface ProductImageMapper {
-    default String toImageUrl(ProductImage hinhAnhTaiSan) {
-        if (hinhAnhTaiSan == null) {
+    default String toImageUrl(ProductImage productImage) {
+        if (productImage == null) {
             return null;
         }
-        return hinhAnhTaiSan.getHinhAnh();
+        return productImage.getImageUrl();
     }
 }

@@ -22,7 +22,7 @@ export default function UserMenuDropdown({
     <div className="relative">
       <div className="h-full flex items-center">
         <Image
-          src={userInfo?.anhDaiDien || "/default-avatar.png"}
+          src={userInfo?.avatarUrl || "/default-avatar.png"}
           alt="Avatar"
           width={40}
           height={40}
@@ -38,7 +38,7 @@ export default function UserMenuDropdown({
           
           <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 shadow-2xl rounded-xl py-1 z-50">
             <div className="px-4 py-2 border-b border-gray-50">
-              <p className="text-sm font-bold truncate">{userInfo.hoVaTen || "User"}</p>
+              <p className="text-sm font-bold truncate">{userInfo.fullName || "User"}</p>
               <p className="text-xs text-gray-500 truncate">{userInfo.email}</p>
               {isAdmin && (
                 <p className="text-xs font-semibold text-[#19A7CE] mt-1">👤 Admin</p>

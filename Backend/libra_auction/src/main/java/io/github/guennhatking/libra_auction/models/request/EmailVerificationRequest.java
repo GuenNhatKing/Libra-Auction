@@ -8,23 +8,23 @@ import jakarta.persistence.OneToOne;
 @Entity
 public class EmailVerificationRequest extends RequestEntity {
     @OneToOne
-    private OtpRequest yeuCauOTP;
+    private OtpRequest otpRequest;
 
     // CONSTRUCTOR
     protected EmailVerificationRequest() {
     }
 
-    public EmailVerificationRequest(Customer nguoiYeuCau) {
-        super(nguoiYeuCau, RequestType.XAC_THUC_EMAIL);
+    public EmailVerificationRequest(Customer customer) {
+        super(customer, RequestType.EMAIL_VERIFICATION);
     }
 
     // GETTER
-    public OtpRequest getYeuCauOTP() {
-        return yeuCauOTP;
+    public OtpRequest getOtpRequest() {
+        return otpRequest;
     }
 
     // SETTER
-    public void setYeuCauOTP(OtpRequest yeuCauOTP) {
-        this.yeuCauOTP = yeuCauOTP;
+    public void setOtpRequest(OtpRequest otpRequest) {
+        this.otpRequest = otpRequest;
     }
 }

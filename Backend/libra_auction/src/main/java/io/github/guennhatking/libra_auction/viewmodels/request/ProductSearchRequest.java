@@ -8,7 +8,7 @@ public record ProductSearchRequest(
         String name,
         String categoryId,
 
-        // Attributes filter (Dựa trên thuocTinhTaiSanList)
+        // Attributes filter
         List<Map<String, String>> attributes,
 
         // Pagination
@@ -18,9 +18,9 @@ public record ProductSearchRequest(
         // Sorting
         String sortBy,
         String sortOrder,
-        
+
         // Creator/Owner id – optional, null when not filtering by creator
-            String nguoiTaoId) {
+            String creatorId) {
 
         // Secondary constructor for standard calls (without creator id)
     public ProductSearchRequest(String name, String categoryId,
@@ -29,20 +29,20 @@ public record ProductSearchRequest(
                                 String sortBy, String sortOrder) {
             this(name, categoryId, attributes, page, pageSize, sortBy, sortOrder, null);
     }
-    
+
     // Method to add page
     public ProductSearchRequest withPage(Integer page) {
         return new ProductSearchRequest(
-                this.name, this.categoryId, this.attributes, 
-                page, this.pageSize, this.sortBy, this.sortOrder, 
-                    this.nguoiTaoId);
+                this.name, this.categoryId, this.attributes,
+                page, this.pageSize, this.sortBy, this.sortOrder,
+                    this.creatorId);
     }
-    
+
     // Method to add page size
     public ProductSearchRequest withPageSize(Integer pageSize) {
         return new ProductSearchRequest(
-                this.name, this.categoryId, this.attributes, 
-                this.page, pageSize, this.sortBy, this.sortOrder, 
-                    this.nguoiTaoId);
+                this.name, this.categoryId, this.attributes,
+                this.page, pageSize, this.sortBy, this.sortOrder,
+                    this.creatorId);
     }
 }

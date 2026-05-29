@@ -9,19 +9,19 @@ import java.util.List;
 
 @Service
 public class CategoryService {
-    private final CategoryRepository danhMucRepository;
+    private final CategoryRepository categoryRepository;
 
-    public CategoryService(CategoryRepository danhMucRepository) {
-        this.danhMucRepository = danhMucRepository;
+    public CategoryService(CategoryRepository categoryRepository) {
+        this.categoryRepository = categoryRepository;
     }
 
     @Transactional(readOnly = true)
     public List<CategoryResponse> getCategories() {
-        return danhMucRepository.findAll().stream()
+        return categoryRepository.findAll().stream()
             .map(category -> new CategoryResponse(
                 category.getId(),
-                category.getHinhAnh(),
-                category.getTenDanhMuc()
+                category.getImageUrl(),
+                category.getName()
             ))
             .toList();
     }

@@ -9,7 +9,7 @@ export async function fetchLiveAuctions(): Promise<LiveAuction[]> {
     const request: RequestInit = {
         method: "GET",
     }
-    const res = await ServerAPICall<PageResponse<Auction>>("/api/public/auctions?status=DANG_DIEN_RA", request);
+    const res = await ServerAPICall<PageResponse<Auction>>("/api/public/auctions?status=IN_PROGRESS", request);
     if (res.isSuccess && res.data) {
         return res.data.content.map((i) => mapAuctionToLiveAuction(i));
     }

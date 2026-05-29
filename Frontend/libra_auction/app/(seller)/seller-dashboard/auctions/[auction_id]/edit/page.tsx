@@ -26,12 +26,12 @@ export default function EditAuctionPage() {
 
                 const data = await fetchAuction(params.auction_id);
                 const newAuction: NewAuction = {
-                    taiSanId: data.product_id,
-                    buocGiaNhoNhat: data.min_bid_increment,
-                    giaKhoiDiem: data.starting_price,
-                    thoiGianBatDau: data.start_time,
-                    thoiLuong: data.duration,
-                    tienCoc: data.tien_coc
+                    productId: data.product_id,
+                    minimumBidIncrement: data.min_bid_increment,
+                    startingPrice: data.starting_price,
+                    startTime: data.start_time,
+                    duration: data.duration,
+                    depositAmount: data.deposit_amount
                 }
                 setAuctionData(newAuction);
             } catch (e) {
@@ -71,12 +71,12 @@ export default function EditAuctionPage() {
                     }
 
                     const newAuction: NewAuction = {
-                        taiSanId: formData.taiSanId,
-                        buocGiaNhoNhat: formData.buocGiaNhoNhat,
-                        giaKhoiDiem: formData.giaKhoiDiem,
-                        thoiGianBatDau: formData.thoiGianBatDau,
-                        thoiLuong: formData.thoiLuong,
-                        tienCoc: formData.tienCoc
+                        productId: formData.productId,
+                        minimumBidIncrement: formData.minimumBidIncrement,
+                        startingPrice: formData.startingPrice,
+                        startTime: formData.startTime,
+                        duration: formData.duration,
+                        depositAmount: formData.depositAmount
                     };
                     const res = await updateAuction(params.auction_id, newAuction);
                     if (res) {

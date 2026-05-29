@@ -9,7 +9,7 @@ export interface AdminAuction {
     duration: number;
     starting_price: number;
     current_price: number;
-    tien_coc: number;
+    deposit_amount: number;
     min_bid_increment: number;
     product_id: string;
     product_name: string;

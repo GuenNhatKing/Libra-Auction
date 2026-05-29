@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import io.github.guennhatking.libra_auction.models.auction.AuctionParticipationInfo;
 
 public interface AuctionParticipationInfoRepository extends JpaRepository<AuctionParticipationInfo, String> {
-    List<AuctionParticipationInfo> findByNguoiThamGiaId(String userId);
-    List<AuctionParticipationInfo> findByPhienDauGiaId(String auctionId);
-    Optional<AuctionParticipationInfo> findByNguoiThamGiaIdAndPhienDauGiaId(String userId, String auctionId);
+    List<AuctionParticipationInfo> findByParticipantId(String userId);
+    List<AuctionParticipationInfo> findByAuctionId(String auctionId);
+    Optional<AuctionParticipationInfo> findByParticipantIdAndAuctionId(String userId, String auctionId);
 }

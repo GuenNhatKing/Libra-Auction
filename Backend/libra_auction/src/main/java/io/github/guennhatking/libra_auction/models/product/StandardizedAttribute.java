@@ -11,16 +11,16 @@ public class StandardizedAttribute {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    private String tenThuocTinh;
-    private String giaTri;
+    private String attributeName;
+    private String attributeValue;
 
     // CONSTRUCTOR
     public StandardizedAttribute() {
     }
 
-    public StandardizedAttribute(String tenThuocTinh, String giaTri) {
-        this.tenThuocTinh = tenThuocTinh;
-        this.giaTri = giaTri;
+    public StandardizedAttribute(String attributeName, String attributeValue) {
+        this.attributeName = attributeName;
+        this.attributeValue = attributeValue;
     }
 
     // GETTER
@@ -28,12 +28,12 @@ public class StandardizedAttribute {
         return id;
     }
 
-    public String getTenThuocTinh() {
-        return tenThuocTinh;
+    public String getAttributeName() {
+        return attributeName;
     }
 
-    public String getGiaTri() {
-        return giaTri;
+    public String getAttributeValue() {
+        return attributeValue;
     }
 
     // SETTER
@@ -41,11 +41,11 @@ public class StandardizedAttribute {
         this.id = id;
     }
 
-    public void setTenThuocTinh(String tenThuocTinh) {
-        this.tenThuocTinh = tenThuocTinh;
+    public void setAttributeName(String attributeName) {
+        this.attributeName = attributeName;
     }
 
-    public void setGiaTri(String giaTri) {
-        this.giaTri = giaTri;
+    public void setAttributeValue(String attributeValue) {
+        this.attributeValue = attributeValue;
     }
 }

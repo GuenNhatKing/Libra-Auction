@@ -13,18 +13,18 @@ public class AttributeCombination {
     private String id;
 
     @ManyToOne
-    private Product taiSan;
+    private Product product;
 
     @ManyToOne
-    private StandardizedAttribute thuocTinhChuanHoa;
+    private StandardizedAttribute standardizedAttribute;
 
     // CONSTRUCTOR
     protected AttributeCombination() {
     }
 
-    public AttributeCombination(Product taiSan, StandardizedAttribute thuocTinhChuanHoa) {
-        this.taiSan = taiSan;
-        this.thuocTinhChuanHoa = thuocTinhChuanHoa;
+    public AttributeCombination(Product product, StandardizedAttribute standardizedAttribute) {
+        this.product = product;
+        this.standardizedAttribute = standardizedAttribute;
     }
 
     // GETTER
@@ -32,12 +32,12 @@ public class AttributeCombination {
         return id;
     }
 
-    public Product getTaiSan() {
-        return taiSan;
+    public Product getProduct() {
+        return product;
     }
 
-    public StandardizedAttribute getThuocTinhChuanHoa() {
-        return thuocTinhChuanHoa;
+    public StandardizedAttribute getStandardizedAttribute() {
+        return standardizedAttribute;
     }
 
     // SETTER
@@ -45,11 +45,11 @@ public class AttributeCombination {
         this.id = id;
     }
 
-    public void setTaiSan(Product taiSan) {
-        this.taiSan = taiSan;
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
-    public void setThuocTinhChuanHoa(StandardizedAttribute thuocTinhChuanHoa) {
-        this.thuocTinhChuanHoa = thuocTinhChuanHoa;
+    public void setStandardizedAttribute(StandardizedAttribute standardizedAttribute) {
+        this.standardizedAttribute = standardizedAttribute;
     }
 }

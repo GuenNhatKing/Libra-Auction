@@ -5,11 +5,11 @@ import io.github.guennhatking.libra_auction.enums.account.EmailStatus;
 
 public record AdminPendingUserResponse(
         String id,
-        String hoVaTen,
-        String soDienThoai,
-        String CCCD,
+        String fullName,
+        String phoneNumber,
+        String identityNumber,
         String email,
-        String anhDaiDien,
-        EmailStatus trangThaiEmail,
-        AccountStatus trangThaiTaiKhoan) {
+        String avatarUrl,
+        EmailStatus emailStatus,
+        AccountStatus accountStatus) {
 }

@@ -72,10 +72,10 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const newProduct: NewProduct = {
-      tenTaiSan: formData.get("tenTaiSan") as string,
-      soLuong: Number(formData.get("soLuong")),
-      danhMucId: formData.get("danhMucId") as string,
-      moTa: formData.get("moTa") as string,
+      name: formData.get("name") as string,
+      quantity: Number(formData.get("quantity")),
+      categoryId: formData.get("categoryId") as string,
+      description: formData.get("description") as string,
       attributes: attributes,
       imageUrls: []
     }
@@ -115,7 +115,7 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
         <div className="flex flex-col gap-2">
           <label className="text-sm font-bold text-[#146C94]">Product name</label>
           <input
-            name="tenTaiSan"
+            name="name"
             defaultValue={initialData.product_name}
             required
             className="border border-[#AFD3E2] p-3 rounded-xl focus:ring-2 focus:ring-[#19A7CE] outline-none transition-all"
@@ -125,7 +125,7 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
           <label className="text-sm font-bold text-[#146C94]">Quantity</label>
           <input
             type="number"
-            name="soLuong"
+            name="quantity"
             defaultValue={initialData.quantity}
             required
             className="border border-[#AFD3E2] p-3 rounded-xl focus:ring-2 focus:ring-[#19A7CE] outline-none transition-all"
@@ -135,7 +135,7 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
       <div className="flex flex-col gap-2">
         <label className="text-sm font-bold text-[#146C94]">Category</label>
         <select
-          name="danhMucId"
+          name="categoryId"
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
           required
@@ -154,7 +154,7 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
       <div className="flex flex-col gap-2">
         <label className="text-sm font-bold text-[#146C94]">Detailed description</label>
         <textarea
-          name="moTa"
+          name="description"
           defaultValue={initialData.description}
           className="border border-[#AFD3E2] p-3 rounded-xl h-32 resize-none outline-none focus:ring-2 focus:ring-[#19A7CE] transition-all"
         />
