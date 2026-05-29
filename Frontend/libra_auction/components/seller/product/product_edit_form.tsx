@@ -9,9 +9,9 @@ import { updateProduct } from "@/services/update_product";
 import { NewProduct } from "@/types/product/new-product";
 import { fetchImageUploadConfig } from "@/services/fetch_image_upload_config";
 import { uploadImageToCloudinary } from "@/services/image_upload_to_cloudinary";
+import { fetchAttributeNames, fetchAttributeValues } from "@/services/fetch_standardized_attributes";
 
 export default function ProductEditForm({ initialData }: { initialData: Product }) {
-  // --- State quản lý dữ liệu ---
   const [attributes, setAttributes] = useState<Attribute[]>(initialData.attributes || []);
   const [existingImages, setExistingImages] = useState<string[]>(initialData.images || []);
   const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
@@ -19,7 +19,16 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState(initialData.category_id || "");
 
+  // System attribute picker state
+  const [showSystemPicker, setShowSystemPicker] = useState(false);
+  const [attrNames, setAttrNames] = useState<string[]>([]);
+  const [attrNameSearch, setAttrNameSearch] = useState("");
+  const [selectedAttrName, setSelectedAttrName] = useState<string | null>(null);
+  const [attrValues, setAttrValues] = useState<{ id: string; attributeName: string; attributeValue: string }[]>([]);
+  const [attrValueSearch, setAttrValueSearch] = useState("");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -29,13 +38,37 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
         console.error("Fetch categories error:", e);
       }
     };
-
     loadCategories();
   }, []);
 
-  // --- Logic Thuộc tính ---
-  const addAttribute = (isSystem: boolean) => {
-    setAttributes([...attributes, { key: "", value: "", isSystem }]);
+  // Load attribute names when system picker opens
+  useEffect(() => {
+    if (showSystemPicker && attrNames.length === 0) {
+      fetchAttributeNames().then(setAttrNames);
+    }
+  }, [showSystemPicker, attrNames.length]);
+
+  // Load values when an attribute name is selected
+  useEffect(() => {
+    if (selectedAttrName) {
+      fetchAttributeValues(selectedAttrName).then(setAttrValues);
+      setAttrValueSearch("");
+    }
+  }, [selectedAttrName]);
+
+  const addCustomAttribute = () => {
+    setAttributes([...attributes, { key: "", value: "", isSystem: false }]);
+  };
+
+  const addSystemAttribute = (name: string, value: string) => {
+    const exists = attributes.some(a => a.isSystem && a.key === name && a.value === value);
+    if (!exists) {
+      setAttributes([...attributes, { key: name, value, isSystem: true }]);
+    }
+    setShowSystemPicker(false);
+    setSelectedAttrName(null);
+    setAttrNameSearch("");
+    setAttrValueSearch("");
   };
 
   const updateAttribute = <K extends keyof Attribute>(index: number, field: K, val: Attribute[K]) => {
@@ -48,7 +81,6 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
     setAttributes(attributes.filter((_, i) => i !== index));
   };
 
-  // --- Logic Hình ảnh ---
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
@@ -100,6 +132,15 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
       throw new Error("Backend returned an error");
     }
   };
+
+  const filteredAttrNames = attrNames.filter(name =>
+    name.toLowerCase().includes(attrNameSearch.toLowerCase())
+  );
+
+  const filteredAttrValues = attrValues.filter(v =>
+    v.attributeValue.toLowerCase().includes(attrValueSearch.toLowerCase())
+  );
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -142,7 +183,6 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
           className="border border-[#AFD3E2] p-3 rounded-xl focus:ring-2 focus:ring-[#19A7CE]"
         >
           <option value="">-- Select a category --</option>
-
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {cat.title}
@@ -164,7 +204,6 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
       <div className="space-y-4">
         <label className="text-sm font-bold text-[#146C94] block">Product images</label>
         <div className="flex flex-wrap gap-4">
-          {/* Existing images */}
           {existingImages.map((url, index) => (
             <div key={`old-${index}`} className="relative w-28 h-28 group animate-in fade-in zoom-in">
               <Image src={url} width={96} height={96} className="w-full h-full object-cover rounded-xl border-2 border-[#19A7CE]" alt="old" />
@@ -178,7 +217,6 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
             </div>
           ))}
 
-          {/* New images pending upload */}
           {newPreviews.map((src, index) => (
             <div key={`new-${index}`} className="relative w-28 h-28 group animate-in fade-in slide-in-from-bottom-2">
               <Image src={src} width={96} height={96} className="w-full h-full object-cover rounded-xl border-2 border-dashed border-green-500" alt="new" />
@@ -193,7 +231,6 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
             </div>
           ))}
 
-          {/* Add image button */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -211,8 +248,8 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
         <div className="flex justify-between items-center">
           <h3 className="font-bold text-[#146C94]">Specifications</h3>
           <div className="flex gap-2">
-            <button type="button" onClick={() => addAttribute(true)} className="text-[10px] font-black bg-[#19A7CE] text-white px-3 py-2 rounded-lg shadow-sm active:scale-95 transition-all">SYSTEM</button>
-            <button type="button" onClick={() => addAttribute(false)} className="text-[10px] font-black bg-[#AFD3E2] text-[#146C94] px-3 py-2 rounded-lg shadow-sm active:scale-95 transition-all">CUSTOM</button>
+            <button type="button" onClick={() => setShowSystemPicker(true)} className="text-[10px] font-black bg-[#19A7CE] text-white px-3 py-2 rounded-lg shadow-sm active:scale-95 transition-all">SYSTEM</button>
+            <button type="button" onClick={addCustomAttribute} className="text-[10px] font-black bg-[#AFD3E2] text-[#146C94] px-3 py-2 rounded-lg shadow-sm active:scale-95 transition-all">CUSTOM</button>
           </div>
         </div>
 
@@ -225,12 +262,15 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
                   }`}
                 value={attr.key}
                 onChange={(e) => updateAttribute(index, 'key', e.target.value)}
+                readOnly={attr.isSystem}
               />
               <input
                 placeholder="Value"
-                className="flex-1 border border-gray-200 p-2.5 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#19A7CE] transition-all"
+                className={`flex-1 border p-2.5 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#19A7CE] transition-all ${attr.isSystem ? 'border-[#19A7CE] bg-blue-50/20' : 'border-gray-200'
+                  }`}
                 value={attr.value}
                 onChange={(e) => updateAttribute(index, 'value', e.target.value)}
+                readOnly={attr.isSystem}
               />
               <button
                 type="button"
@@ -242,6 +282,95 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
             </div>
           ))}
         </div>
+
+        {/* System Attribute Picker Modal */}
+        {showSystemPicker && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold text-[#146C94] text-lg">
+                  {selectedAttrName ? `Select value for "${selectedAttrName}"` : "Select attribute name"}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSystemPicker(false);
+                    setSelectedAttrName(null);
+                    setAttrNameSearch("");
+                    setAttrValueSearch("");
+                  }}
+                  className="p-1 hover:bg-gray-100 rounded-full"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                </button>
+              </div>
+
+              {!selectedAttrName ? (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Search attribute name..."
+                    className="w-full border border-[#AFD3E2] p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#19A7CE]"
+                    value={attrNameSearch}
+                    onChange={(e) => setAttrNameSearch(e.target.value)}
+                    autoFocus
+                  />
+                  <div className="max-h-64 overflow-y-auto space-y-1">
+                    {filteredAttrNames.length === 0 && (
+                      <p className="text-sm text-gray-400 italic p-2">No attributes found</p>
+                    )}
+                    {filteredAttrNames.map((name) => (
+                      <button
+                        key={name}
+                        type="button"
+                        onClick={() => setSelectedAttrName(name)}
+                        className="w-full text-left p-2.5 rounded-lg hover:bg-[#F6F1F1] transition-colors text-sm font-medium"
+                      >
+                        {name}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedAttrName(null);
+                      setAttrValueSearch("");
+                    }}
+                    className="text-sm text-[#19A7CE] hover:underline"
+                  >
+                    &larr; Back to attribute names
+                  </button>
+                  <input
+                    type="text"
+                    placeholder="Search value..."
+                    className="w-full border border-[#AFD3E2] p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#19A7CE]"
+                    value={attrValueSearch}
+                    onChange={(e) => setAttrValueSearch(e.target.value)}
+                    autoFocus
+                  />
+                  <div className="max-h-64 overflow-y-auto space-y-1">
+                    {filteredAttrValues.length === 0 && (
+                      <p className="text-sm text-gray-400 italic p-2">No values found</p>
+                    )}
+                    {filteredAttrValues.map((v) => (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => addSystemAttribute(v.attributeName, v.attributeValue)}
+                        className="w-full text-left p-2.5 rounded-lg hover:bg-[#F6F1F1] transition-colors text-sm"
+                      >
+                        {v.attributeValue}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <footer className="pt-6">

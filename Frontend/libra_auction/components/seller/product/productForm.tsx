@@ -8,6 +8,7 @@ import { uploadImageToCloudinary } from "@/services/image_upload_to_cloudinary";
 import { fetchImageUploadConfig } from "@/services/fetch_image_upload_config";
 import { NewProduct } from "@/types/product/new-product";
 import { createProduct } from "@/services/create_product";
+import { fetchAttributeNames, fetchAttributeValues } from "@/services/fetch_standardized_attributes";
 
 export default function ProductForm() {
   const [attributes, setAttributes] = useState<Attribute[]>([]);
@@ -15,6 +16,14 @@ export default function ProductForm() {
   const [previews, setPreviews] = useState<string[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // System attribute picker state
+  const [showSystemPicker, setShowSystemPicker] = useState(false);
+  const [attrNames, setAttrNames] = useState<string[]>([]);
+  const [attrNameSearch, setAttrNameSearch] = useState("");
+  const [selectedAttrName, setSelectedAttrName] = useState<string | null>(null);
+  const [attrValues, setAttrValues] = useState<{ id: string; attributeName: string; attributeValue: string }[]>([]);
+  const [attrValueSearch, setAttrValueSearch] = useState("");
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -24,8 +33,36 @@ export default function ProductForm() {
     loadCategories();
   }, []);
 
-  const addAttribute = (isSystem: boolean) => {
-    setAttributes([...attributes, { key: "", value: "", isSystem }]);
+  // Load attribute names when system picker opens
+  useEffect(() => {
+    if (showSystemPicker && attrNames.length === 0) {
+      fetchAttributeNames().then(setAttrNames);
+    }
+  }, [showSystemPicker, attrNames.length]);
+
+  // Load values when an attribute name is selected
+  useEffect(() => {
+    if (selectedAttrName) {
+      fetchAttributeValues(selectedAttrName).then(setAttrValues);
+      setAttrValueSearch("");
+    }
+  }, [selectedAttrName]);
+
+  const addCustomAttribute = () => {
+    setAttributes([...attributes, { key: "", value: "", isSystem: false }]);
+  };
+
+  const addSystemAttribute = (name: string, value: string) => {
+    // Prevent duplicates
+    const exists = attributes.some(a => a.isSystem && a.key === name && a.value === value);
+    if (!exists) {
+      setAttributes([...attributes, { key: name, value, isSystem: true }]);
+    }
+    // Reset picker
+    setShowSystemPicker(false);
+    setSelectedAttrName(null);
+    setAttrNameSearch("");
+    setAttrValueSearch("");
   };
 
   const removeAttribute = (index: number) => {
@@ -86,6 +123,16 @@ export default function ProductForm() {
       throw new Error("Backend returned an error");
     }
   };
+
+  // Filter attribute names by search
+  const filteredAttrNames = attrNames.filter(name =>
+    name.toLowerCase().includes(attrNameSearch.toLowerCase())
+  );
+
+  // Filter attribute values by search
+  const filteredAttrValues = attrValues.filter(v =>
+    v.attributeValue.toLowerCase().includes(attrValueSearch.toLowerCase())
+  );
 
   return (
     <form
@@ -182,14 +229,14 @@ export default function ProductForm() {
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => addAttribute(true)}
+              onClick={() => setShowSystemPicker(true)}
               className="text-[10px] font-bold uppercase bg-[#19A7CE] text-white px-3 py-1.5 rounded-lg hover:bg-[#146C94] transition-all shadow-sm"
             >
               + System
             </button>
             <button
               type="button"
-              onClick={() => addAttribute(false)}
+              onClick={addCustomAttribute}
               className="text-[10px] font-bold uppercase bg-[#AFD3E2] text-[#146C94] px-3 py-1.5 rounded-lg hover:bg-[#97c4d6] transition-all shadow-sm"
             >
               + Custom
@@ -210,12 +257,15 @@ export default function ProductForm() {
                   }`}
                 value={attr.key}
                 onChange={(e) => updateAttribute(index, 'key', e.target.value)}
+                readOnly={attr.isSystem}
               />
               <input
                 placeholder="Value"
-                className="flex-1 border border-gray-200 p-2.5 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[#19A7CE] transition-all"
+                className={`flex-1 border p-2.5 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[#19A7CE] transition-all ${attr.isSystem ? 'border-[#19A7CE] bg-blue-50/30 font-medium' : 'border-gray-200'
+                  }`}
                 value={attr.value}
                 onChange={(e) => updateAttribute(index, 'value', e.target.value)}
+                readOnly={attr.isSystem}
               />
               <button
                 type="button"
@@ -227,6 +277,95 @@ export default function ProductForm() {
             </div>
           ))}
         </div>
+
+        {/* System Attribute Picker Modal */}
+        {showSystemPicker && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold text-[#146C94] text-lg">
+                  {selectedAttrName ? `Select value for "${selectedAttrName}"` : "Select attribute name"}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSystemPicker(false);
+                    setSelectedAttrName(null);
+                    setAttrNameSearch("");
+                    setAttrValueSearch("");
+                  }}
+                  className="p-1 hover:bg-gray-100 rounded-full"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                </button>
+              </div>
+
+              {!selectedAttrName ? (
+                <>
+                  <input
+                    type="text"
+                    placeholder="Search attribute name..."
+                    className="w-full border border-[#AFD3E2] p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#19A7CE]"
+                    value={attrNameSearch}
+                    onChange={(e) => setAttrNameSearch(e.target.value)}
+                    autoFocus
+                  />
+                  <div className="max-h-64 overflow-y-auto space-y-1">
+                    {filteredAttrNames.length === 0 && (
+                      <p className="text-sm text-gray-400 italic p-2">No attributes found</p>
+                    )}
+                    {filteredAttrNames.map((name) => (
+                      <button
+                        key={name}
+                        type="button"
+                        onClick={() => setSelectedAttrName(name)}
+                        className="w-full text-left p-2.5 rounded-lg hover:bg-[#F6F1F1] transition-colors text-sm font-medium"
+                      >
+                        {name}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedAttrName(null);
+                      setAttrValueSearch("");
+                    }}
+                    className="text-sm text-[#19A7CE] hover:underline"
+                  >
+                    &larr; Back to attribute names
+                  </button>
+                  <input
+                    type="text"
+                    placeholder="Search value..."
+                    className="w-full border border-[#AFD3E2] p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#19A7CE]"
+                    value={attrValueSearch}
+                    onChange={(e) => setAttrValueSearch(e.target.value)}
+                    autoFocus
+                  />
+                  <div className="max-h-64 overflow-y-auto space-y-1">
+                    {filteredAttrValues.length === 0 && (
+                      <p className="text-sm text-gray-400 italic p-2">No values found</p>
+                    )}
+                    {filteredAttrValues.map((v) => (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => addSystemAttribute(v.attributeName, v.attributeValue)}
+                        className="w-full text-left p-2.5 rounded-lg hover:bg-[#F6F1F1] transition-colors text-sm"
+                      >
+                        {v.attributeValue}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <button className="w-full bg-[#146C94] text-white py-4 rounded-xl font-bold hover:bg-[#19A7CE] transition-all active:scale-[0.98] shadow-lg shadow-blue-100">

@@ -11,14 +11,18 @@ import io.github.guennhatking.libra_auction.mappers.ProductResponseMapper;
 import io.github.guennhatking.libra_auction.models.person.Customer;
 import io.github.guennhatking.libra_auction.models.product.Category;
 import io.github.guennhatking.libra_auction.models.product.ProductImage;
+import io.github.guennhatking.libra_auction.models.product.AttributeCombination;
 import io.github.guennhatking.libra_auction.models.product.Product;
 import io.github.guennhatking.libra_auction.models.product.ProductAttribute;
+import io.github.guennhatking.libra_auction.models.product.StandardizedAttribute;
 import io.github.guennhatking.libra_auction.repositories.auction.AuctionRepository;
 import io.github.guennhatking.libra_auction.repositories.person.CustomerRepository;
+import io.github.guennhatking.libra_auction.repositories.product.AttributeCombinationRepository;
 import io.github.guennhatking.libra_auction.repositories.product.CategoryRepository;
 import io.github.guennhatking.libra_auction.repositories.product.ProductImageRepository;
 import io.github.guennhatking.libra_auction.repositories.product.ProductRepository;
 import io.github.guennhatking.libra_auction.repositories.product.ProductAttributeRepository;
+import io.github.guennhatking.libra_auction.repositories.product.StandardizedAttributeRepository;
 import io.github.guennhatking.libra_auction.viewmodels.request.AttributeRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.ProductCreateRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.ProductUpdateRequest;
@@ -30,6 +34,8 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductAttributeRepository productAttributeRepository;
+    private final StandardizedAttributeRepository standardizedAttributeRepository;
+    private final AttributeCombinationRepository attributeCombinationRepository;
     private final ProductResponseMapper productResponseMapper;
     private final CustomerRepository customerRepository;
 
@@ -38,12 +44,16 @@ public class ProductService {
             ProductImageRepository productImageRepository,
             AuctionRepository auctionRepository,
             ProductAttributeRepository productAttributeRepository,
+            StandardizedAttributeRepository standardizedAttributeRepository,
+            AttributeCombinationRepository attributeCombinationRepository,
             ProductResponseMapper productResponseMapper,
             CustomerRepository customerRepository) {
         this.categoryRepository = categoryRepository;
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
         this.productAttributeRepository = productAttributeRepository;
+        this.standardizedAttributeRepository = standardizedAttributeRepository;
+        this.attributeCombinationRepository = attributeCombinationRepository;
         this.productResponseMapper = productResponseMapper;
         this.customerRepository = customerRepository;
     }
@@ -83,7 +93,18 @@ public class ProductService {
         // 1. Luu Attributes
         if (request.attributes() != null) {
             for (AttributeRequest attr : request.attributes()) {
-                if (!attr.isSystem()) {
+                if (attr.isSystem()) {
+                    // Tim StandardizedAttribute trong DB
+                    List<StandardizedAttribute> matches = standardizedAttributeRepository
+                            .findByAttributeName(attr.key());
+                    for (StandardizedAttribute sa : matches) {
+                        if (sa.getAttributeValue().equals(attr.value())) {
+                            AttributeCombination combination = new AttributeCombination(savedProduct, sa);
+                            attributeCombinationRepository.save(combination);
+                            break;
+                        }
+                    }
+                } else {
                     ProductAttribute entity = new ProductAttribute();
                     entity.setProduct(savedProduct);
                     entity.setAttributeName(attr.key());
@@ -132,9 +153,23 @@ public class ProductService {
 
         // 4. XU LY ATTRIBUTES: Xoa cu, them moi
         productAttributeRepository.deleteByProductId(id);
+        attributeCombinationRepository.deleteAll(
+                attributeCombinationRepository.findAll().stream()
+                        .filter(ac -> ac.getProduct().getId().equals(id))
+                        .toList());
         if (request.attributes() != null) {
             for (AttributeRequest attr : request.attributes()) {
-                if (!attr.isSystem()) {
+                if (attr.isSystem()) {
+                    List<StandardizedAttribute> matches = standardizedAttributeRepository
+                            .findByAttributeName(attr.key());
+                    for (StandardizedAttribute sa : matches) {
+                        if (sa.getAttributeValue().equals(attr.value())) {
+                            AttributeCombination combination = new AttributeCombination(updatedProduct, sa);
+                            attributeCombinationRepository.save(combination);
+                            break;
+                        }
+                    }
+                } else {
                     ProductAttribute entity = new ProductAttribute();
                     entity.setProduct(updatedProduct);
                     entity.setAttributeName(attr.key());
