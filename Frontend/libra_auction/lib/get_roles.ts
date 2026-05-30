@@ -7,23 +7,19 @@ import { refreshToken } from "./refresh_token";
 import { getJWTTokenInfo } from "./get_jwt_token_info";
 import { Role } from "@/types/user_info";
 
-function toRoleList(rawRoleValue: unknown): Role[] {
-	const roleNames = Array.isArray(rawRoleValue)
-		? rawRoleValue
-		: typeof rawRoleValue === "string"
-			? [rawRoleValue]
-			: [];
-
-	return roleNames
-		.filter((roleName): roleName is string => typeof roleName === "string" && roleName.length > 0)
-		.map((roleName) => ({
-			name: roleName,
-			description: "",
-			permissions: []
-		}));
+function toRole(rawRoleValue: unknown): Role | null {
+	if (typeof rawRoleValue === "string" && rawRoleValue.length > 0) {
+		return { name: rawRoleValue, description: "", permissions: [] };
+	}
+	// Backward compat: handle array from old tokens
+	if (Array.isArray(rawRoleValue)) {
+		const first = rawRoleValue.find((r): r is string => typeof r === "string" && r.length > 0);
+		return first ? { name: first, description: "", permissions: [] } : null;
+	}
+	return null;
 }
 
-export async function getRoles(): Promise<Role[]> {
+export async function getRole(): Promise<Role | null> {
 	const jwtTokenInfo = await getJWTTokenInfo();
 	const alg = "RS256";
 	const spki = await getJWTPublicKey();
@@ -32,15 +28,15 @@ export async function getRoles(): Promise<Role[]> {
 		const publicKey = await jose.importSPKI(spki, alg);
 		try {
 			const { payload } = await jose.jwtVerify(jwtTokenInfo.token, publicKey);
-			const roleValue = payload.roles ?? payload.role;
-			return toRoleList(roleValue);
+			const roleValue = payload.role ?? payload.roles;
+			return toRole(roleValue);
 		} catch (error) {
 			if (error instanceof JWTExpired) {
 				console.log("Token expired");
 				if (await refreshToken() == false) {
-					return [];
+					return null;
 				}
-				return await getRoles();
+				return await getRole();
 			}
 
 			if (error instanceof JWSSignatureVerificationFailed) {
@@ -49,5 +45,5 @@ export async function getRoles(): Promise<Role[]> {
 		}
 	}
 
-	return [];
+	return null;
 }

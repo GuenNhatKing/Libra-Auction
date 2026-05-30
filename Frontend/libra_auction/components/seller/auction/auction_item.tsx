@@ -14,6 +14,7 @@ interface AuctionItemProps {
 const statusConfig: Record<AuctionStatus, { label: string, classes: string }> = {
     "NOT_STARTED": { label: 'Upcoming', classes: 'bg-amber-50 text-amber-600 border-amber-100' },
     "IN_PROGRESS": { label: 'Live', classes: 'bg-green-50 text-green-600 border-green-100' },
+    "PAUSED": { label: 'Paused', classes: 'bg-yellow-50 text-yellow-600 border-yellow-100' },
     "ENDED": { label: 'Ended', classes: 'bg-gray-50 text-gray-500 border-gray-100' },
     "CANCELLED": { label: 'Cancelled', classes: 'bg-red-50 text-red-600 border-red-100' },
 };
@@ -40,13 +41,13 @@ export const AuctionItem = ({ auction, onView, onEdit, onDelete }: AuctionItemPr
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                         <h3 className="font-bold text-gray-800 text-base">{auction.product_name}</h3>
-                        {auction.approval_status === "APPROVED" && (
+                        {auction.approval_status === "APPROVED" && status && (
                             <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-lg border ${status.classes}`}>
                                 {status.label}
                             </span>
                         )}
-                        <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-lg border ${approvalStatusConfig[auction.approval_status].classes}`}>
-                            {approvalStatusConfig[auction.approval_status].label}
+                        <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-lg border ${approvalStatusConfig[auction.approval_status]?.classes ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>
+                            {approvalStatusConfig[auction.approval_status]?.label ?? auction.approval_status ?? "Unknown"}
                         </span>
                     </div>
                     

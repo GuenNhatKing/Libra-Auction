@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import AuctionDetailModal from "@/components/admin/auction_detail_modal";
 import { approveAuction } from "@/services/approve_auction";
 import { fetchApprovedAuctions } from "@/services/fetch_approved_auctions";
@@ -20,6 +21,7 @@ type AuctionRow = AdminAuction & {
   startTime: string;
   endTime: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
+  auctionStatus: string;
   images: string[];
   productName: string;
 };
@@ -53,6 +55,7 @@ function mapAuction(auction: AdminAuction): AuctionRow {
     startTime: DateFormat(startDate),
     endTime: DateFormat(endDate),
     status: resolveAuctionStatus(auction.approval_status),
+    auctionStatus: auction.auction_status || "NOT_STARTED",
     images: auction.images || [],
     productName: auction.product_name,
   };
@@ -278,6 +281,20 @@ export default function AuctionsApprovalPage() {
                         >
                           Details
                         </button>
+                        {row.status === "APPROVED" &&
+                          (row.auctionStatus === "IN_PROGRESS" ||
+                            row.auctionStatus === "PAUSED") && (
+                            <Link
+                              href={`/admin-dashboard/auctions/${row.id}/live`}
+                              className="px-3 py-1 bg-green-50 text-green-700 rounded hover:bg-green-100 text-xs font-semibold inline-flex items-center gap-1"
+                            >
+                              <span className="relative flex h-1.5 w-1.5">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
+                              </span>
+                              Live Monitor
+                            </Link>
+                          )}
                         <button
                           onClick={() => handleApprove(row)}
                           disabled={actionLoadingId === row.id || row.status !== "PENDING"}

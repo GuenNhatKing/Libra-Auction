@@ -16,7 +16,7 @@ export default function UserMenuDropdown({
   const [isOpen, setIsOpen] = useState(false);
 
   // Check if user is admin
-  const isAdmin = userInfo?.roles?.some(role => role.name === "ADMIN") ?? false;
+  const isAdmin = userInfo?.role?.name === "ADMIN";
 
   return (
     <div className="relative">

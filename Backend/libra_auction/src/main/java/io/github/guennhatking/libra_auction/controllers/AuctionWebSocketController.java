@@ -68,6 +68,13 @@ public class AuctionWebSocketController {
                     auction.getCurrentPrice(), auction.getStartingPrice(), auction.getMinimumBidIncrement());
 
             // Validate auction is active
+            if (auction.getAuctionStatus().equals(AuctionStatus.PAUSED)) {
+                String errorMsg = "Phiên đấu giá đang tạm dừng. Không thể đặt giá lúc này.";
+                logger.error(errorMsg);
+                sendErrorNotification(bidMessage.auctionId(), errorMsg);
+                return;
+            }
+
             if (!auction.getAuctionStatus().equals(AuctionStatus.IN_PROGRESS)) {
                 String errorMsg = "Auction is not active. Current status: " + auction.getAuctionStatus();
                 logger.error(errorMsg);

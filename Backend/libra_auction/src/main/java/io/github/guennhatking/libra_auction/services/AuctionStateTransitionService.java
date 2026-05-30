@@ -90,6 +90,66 @@ public class AuctionStateTransitionService {
     }
 
     /**
+     * Pause an auction (IN_PROGRESS -> PAUSED)
+     * @param auctionId The auction ID
+     */
+    @Transactional
+    public void pauseAuction(String auctionId) {
+        try {
+            Optional<Auction> auctionOpt = auctionRepository.findById(auctionId);
+            if (auctionOpt.isEmpty()) {
+                logger.warn("Auction not found: {}", auctionId);
+                return;
+            }
+
+            Auction auction = auctionOpt.get();
+
+            if (auction.getAuctionStatus() != AuctionStatus.IN_PROGRESS) {
+                logger.warn("Auction {} cannot be paused, current status: {}", auctionId, auction.getAuctionStatus());
+                return;
+            }
+
+            auction.setAuctionStatus(AuctionStatus.PAUSED);
+            auctionRepository.save(auction);
+
+            logger.info("Auction {} paused", auctionId);
+            sendAuctionStatusUpdate(auctionId, "PAUSED");
+        } catch (Exception e) {
+            logger.error("Error pausing auction {}: {}", auctionId, e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Resume a paused auction (PAUSED -> IN_PROGRESS)
+     * @param auctionId The auction ID
+     */
+    @Transactional
+    public void resumeAuction(String auctionId) {
+        try {
+            Optional<Auction> auctionOpt = auctionRepository.findById(auctionId);
+            if (auctionOpt.isEmpty()) {
+                logger.warn("Auction not found: {}", auctionId);
+                return;
+            }
+
+            Auction auction = auctionOpt.get();
+
+            if (auction.getAuctionStatus() != AuctionStatus.PAUSED) {
+                logger.warn("Auction {} cannot be resumed, current status: {}", auctionId, auction.getAuctionStatus());
+                return;
+            }
+
+            auction.setAuctionStatus(AuctionStatus.IN_PROGRESS);
+            auctionRepository.save(auction);
+
+            logger.info("Auction {} resumed", auctionId);
+            sendAuctionStatusUpdate(auctionId, "IN_PROGRESS");
+        } catch (Exception e) {
+            logger.error("Error resuming auction {}: {}", auctionId, e.getMessage(), e);
+        }
+    }
+
+    /**
      * Transition an auction to ENDED state (ENDED)
      * - Find the winner
      * - Create AuctionResult (auction result)
@@ -108,9 +168,10 @@ public class AuctionStateTransitionService {
 
             Auction auction = auctionOpt.get();
 
-            // Only transition if currently in IN_PROGRESS state
-            if (auction.getAuctionStatus() != AuctionStatus.IN_PROGRESS) {
-                logger.warn("Auction {} is not in IN_PROGRESS state, current: {}",
+            // Only transition if currently in IN_PROGRESS or PAUSED state
+            if (auction.getAuctionStatus() != AuctionStatus.IN_PROGRESS
+                    && auction.getAuctionStatus() != AuctionStatus.PAUSED) {
+                logger.warn("Auction {} cannot be ended, current status: {}",
                     auctionId, auction.getAuctionStatus());
                 return;
             }

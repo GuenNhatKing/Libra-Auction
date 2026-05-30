@@ -112,6 +112,30 @@ public class AuctionWebSocketNotificationService {
     }
     
     /**
+     * Send admin notification to all participants of an auction
+     * @param auctionId The auction ID
+     * @param type The notification type (e.g., AUCTION_PAUSED, AUCTION_RESUMED)
+     * @param message The notification message
+     */
+    public void sendAdminNotification(String auctionId, String type, String message) {
+        try {
+            Map<String, Object> notification = new HashMap<>();
+            notification.put("type", type);
+            notification.put("auctionId", auctionId);
+            notification.put("message", message);
+            notification.put("timestamp", OffsetDateTime.now(ZoneOffset.ofHours(7)));
+
+            messagingTemplate.convertAndSend(
+                (String) ("/topic/auction/" + auctionId + "/admin"),
+                (Object) notification
+            );
+            logger.info("Admin notification sent for auction {}: type={}, message={}", auctionId, type, message);
+        } catch (Exception e) {
+            logger.error("Error sending admin notification for auction {}: {}", auctionId, e.getMessage());
+        }
+    }
+
+    /**
      * Send a notification about auction ending soon
      * @param auctionId The auction ID
      */

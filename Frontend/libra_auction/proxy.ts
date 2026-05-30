@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server'
 import { NextRequest } from 'next/server'
 import { isAuthenticated } from './lib/is_authenticated';
-import { getRoles } from './lib/get_roles';
-
-function hasRole(roles: Array<{ name: string }>, roleName: string) {
-  return roles.some((role) => role.name === roleName);
-}
+import { getRole } from './lib/get_roles';
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -19,21 +15,21 @@ export async function proxy(request: NextRequest) {
   const isAdminRoute = pathname.startsWith('/admin-dashboard');
 
   if (isPersonalRoute || isAdminRoute) {
-    const roles = await getRoles();
+    const role = await getRole();
 
-    if (roles.length === 0) {
+    if (!role) {
       return NextResponse.redirect(new URL('/sign-in', request.url));
     }
 
-    if (isAdminRoute && !hasRole(roles, 'ADMIN')) {
+    if (isAdminRoute && role.name !== 'ADMIN') {
       return NextResponse.redirect(new URL('/', request.url));
     }
 
-    if (isPersonalRoute && !hasRole(roles, 'USER')) {
+    if (isPersonalRoute && role.name !== 'USER' && role.name !== 'ADMIN') {
       return NextResponse.redirect(new URL('/', request.url));
     }
   }
-  
+
   return NextResponse.next();
 }
 

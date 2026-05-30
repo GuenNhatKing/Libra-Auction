@@ -9,7 +9,7 @@ export interface UserInfo {
     avatarUrl: string,
     emailStatus: EmailStatus,
     accountStatus: AccountStatus,
-    roles: Role[]
+    role: Role
 }
 
 export interface Role {

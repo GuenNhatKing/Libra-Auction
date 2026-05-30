@@ -27,8 +27,7 @@ public class AdminController {
     private boolean isAdminUser(String userId) {
         Optional<io.github.guennhatking.libra_auction.models.person.Customer> user = customerService.findById(userId);
         if (user.isEmpty()) return false;
-        return user.get().getRoles() != null && user.get().getRoles().stream()
-                .anyMatch(r -> "ADMIN".equalsIgnoreCase(r.getName()));
+        return user.get().getRole() != null && "ADMIN".equalsIgnoreCase(user.get().getRole().getName());
     }
 
     @GetMapping("/users/pending")

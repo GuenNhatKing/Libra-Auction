@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 const auctionStatusConfig: Record<AuctionStatus, { label: string; classes: string }> = {
     NOT_STARTED: { label: "Upcoming", classes: "bg-blue-600/90 text-white" },
     IN_PROGRESS: { label: "Live", classes: "bg-emerald-500/90 text-white" },
+    PAUSED: { label: "Paused", classes: "bg-yellow-500/90 text-white" },
     ENDED: { label: "Ended", classes: "bg-gray-600/90 text-white" },
     CANCELLED: { label: "Cancelled", classes: "bg-red-500/90 text-white" },
 };
@@ -17,7 +18,7 @@ export default function AuctionCard({ auctionCard }: { auctionCard: Auction }) {
     const [now, setNow] = useState(() => Date.now());
 
     const isLive = auctionCard.auction_status === "IN_PROGRESS";
-    const status = auctionStatusConfig[auctionCard.auction_status];
+    const status = auctionStatusConfig[auctionCard.auction_status] ?? { label: 'Unknown', classes: 'bg-gray-50 text-gray-500 border-gray-100' };
 
     useEffect(() => {
         const timerId = window.setInterval(() => {

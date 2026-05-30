@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 public class TokenService {
@@ -31,16 +30,10 @@ public class TokenService {
     }
 
     public JwtResponse generateTokens(Customer user) throws Exception {
-        List<String> roleNames = user.getRoles() == null
-                ? Collections.emptyList()
-                : user.getRoles().stream()
-                        .filter(Objects::nonNull)
-                        .map(Role::getName)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
+        String roleName = user.getRole() != null ? user.getRole().getName() : null;
 
-        String accessToken = jwtRSA.createToken(user.getId(), roleNames, TokenType.ACCESS, accessTokenExpiration);
-        String refreshToken = jwtRSA.createToken(user.getId(), roleNames, TokenType.REFRESH, refreshTokenExpiration);
+        String accessToken = jwtRSA.createToken(user.getId(), roleName, TokenType.ACCESS, accessTokenExpiration);
+        String refreshToken = jwtRSA.createToken(user.getId(), roleName, TokenType.REFRESH, refreshTokenExpiration);
 
         return new JwtResponse(
             accessToken,
@@ -66,8 +59,8 @@ public class TokenService {
         }
 
         String userId = jwtRSA.extractClaim(refreshToken, "sub");
-        List<String> roles = parseRolesClaim(jwtRSA.extractClaim(refreshToken, "roles"));
-        return jwtRSA.createToken(userId, roles, TokenType.ACCESS, accessTokenExpiration);
+        String role = jwtRSA.extractClaim(refreshToken, "role");
+        return jwtRSA.createToken(userId, role, TokenType.ACCESS, accessTokenExpiration);
     }
 
     public boolean validateToken(String token) throws Exception {
@@ -76,30 +69,5 @@ public class TokenService {
 
     public String extractUserId(String token) throws Exception {
         return jwtRSA.extractClaim(token, "sub");
-    }
-
-    private List<String> parseRolesClaim(String rawRoles) {
-        if (rawRoles == null) {
-            return Collections.emptyList();
-        }
-
-        String cleaned = rawRoles.trim();
-        if (cleaned.isEmpty() || "[]".equals(cleaned)) {
-            return Collections.emptyList();
-        }
-
-        if (cleaned.startsWith("[") && cleaned.endsWith("]")) {
-            cleaned = cleaned.substring(1, cleaned.length() - 1);
-        }
-
-        if (cleaned.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        return java.util.Arrays.stream(cleaned.split(","))
-                .map(String::trim)
-                .map(role -> role.replace("\"", ""))
-                .filter(role -> !role.isEmpty())
-                .collect(Collectors.toList());
     }
 }

@@ -1,11 +1,10 @@
 package io.github.guennhatking.libra_auction.viewmodels.request;
 
 import java.time.LocalDate;
-import java.util.Set;
 
-import com.cloudinary.provisioning.Account.Role;
-
+import io.github.guennhatking.libra_auction.models.account.Role;
 import io.github.guennhatking.libra_auction.validators.DobConstraint;
+
 public record CustomerUpdateRequest(
     String password,
     String fullName,
@@ -13,6 +12,6 @@ public record CustomerUpdateRequest(
     @DobConstraint(min = 18, message = "INVALID_DOB")
     LocalDate dob,
 
-    Set<Role> roles
+    Role role
 ) {
 }

@@ -60,9 +60,8 @@ public class AuctionController {
         if (user.isEmpty()) {
             return false;
         }
-        return user.get().getRoles() != null &&
-                user.get().getRoles().stream()
-                        .anyMatch(role -> "ADMIN".equalsIgnoreCase(role.getName()));
+        return user.get().getRole() != null &&
+                "ADMIN".equalsIgnoreCase(user.get().getRole().getName());
     }
 
     @GetMapping("/public/categories/{categoryId}/auctions")

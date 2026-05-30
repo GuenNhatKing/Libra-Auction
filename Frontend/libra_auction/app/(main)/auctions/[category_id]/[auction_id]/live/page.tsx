@@ -35,7 +35,7 @@ export default async function LivePage(props: {
   return (
     <>
       <BreadCrumb breadcrumbItems={breadcrumb_items} />
-      <LiveAuctionView auction={auction} backendServerUrl={backendServerUrl} />
+      <LiveAuctionView auction={auction} backendServerUrl={backendServerUrl} role="user" />
       <AuctionQuestionsSection auctionId={auction.auction_id} />
     </>
   );

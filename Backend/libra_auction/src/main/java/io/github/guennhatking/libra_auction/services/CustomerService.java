@@ -214,7 +214,7 @@ public class CustomerService {
         Role defaultRole = roleRepository.findById("USER")
                 .orElseGet(() -> roleRepository.save(new Role("USER", "User")));
 
-        user.setRoles(new ArrayList<>(List.of(defaultRole)));
+        user.setRole(defaultRole);
         return customerRepository.save(user);
     }
 }

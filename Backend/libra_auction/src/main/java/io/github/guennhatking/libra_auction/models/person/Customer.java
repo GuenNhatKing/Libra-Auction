@@ -17,7 +17,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 
 @Entity
@@ -36,8 +37,9 @@ public class Customer {
     protected String avatarUrl;
     protected String email;
 
-    @ManyToMany
-    private List<Role> roles;
+    @ManyToOne
+    @JoinColumn(name = "role_name")
+    private Role role;
 
     @Enumerated(EnumType.STRING)
     protected EmailStatus emailStatus;
@@ -86,8 +88,8 @@ public class Customer {
         return email;
     }
 
-    public List<Role> getRoles() {
-        return roles;
+    public Role getRole() {
+        return role;
     }
 
     public EmailStatus getEmailStatus() {
@@ -131,8 +133,8 @@ public class Customer {
         this.email = email;
     }
 
-    public void setRoles(List<Role> roles) {
-        this.roles = roles;
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     public void setEmailStatus(EmailStatus emailStatus) {

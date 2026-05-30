@@ -37,7 +37,7 @@ export const ProfileSidebar = ({ user }: { user: UserInfo }) => {
         <p className="text-base text-gray-500 mt-1">{user.email}</p>
         
         <span className="mt-4 px-4 py-1.5 bg-[var(--accent-color)]/30 text-[var(--secondary-color)] text-sm font-bold rounded-full">
-          {user.roles[0]?.name || "Member"}
+          {user.role?.name || "Member"}
         </span>
       </div>
 

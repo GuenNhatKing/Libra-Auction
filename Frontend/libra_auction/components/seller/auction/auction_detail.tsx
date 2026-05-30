@@ -20,6 +20,7 @@ const approvalStatusConfig: Record<ApprovalStatus, { label: string; classes: str
 const auctionStatusConfig: Record<AuctionStatus, { label: string; classes: string }> = {
   NOT_STARTED: { label: "Upcoming", classes: "bg-blue-50 text-blue-600 border-blue-100" },
   IN_PROGRESS: { label: "Live", classes: "bg-green-50 text-green-600 border-green-100" },
+  PAUSED: { label: "Paused", classes: "bg-yellow-50 text-yellow-600 border-yellow-100" },
   ENDED: { label: "Ended", classes: "bg-gray-50 text-gray-500 border-gray-100" },
   CANCELLED: { label: "Cancelled", classes: "bg-red-50 text-red-600 border-red-100" },
 };
@@ -55,12 +56,12 @@ export const AuctionDetail = ({ data }: AuctionDetailProps) => {
             <span>
               Status: {" "}
             </span>
-              <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-lg border ${approvalStatusConfig[data.approval_status].classes}`}>
-              {approvalStatusConfig[data.approval_status].label}
+              <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-lg border ${approvalStatusConfig[data.approval_status]?.classes ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>
+              {approvalStatusConfig[data.approval_status]?.label ?? data.approval_status ?? "Unknown"}
             </span>
               {data.approval_status === "APPROVED" && (
-                <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-lg border ${auctionStatusConfig[data.auction_status].classes}`}>
-                  {auctionStatusConfig[data.auction_status].label}
+                <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-lg border ${auctionStatusConfig[data.auction_status]?.classes ?? "bg-gray-50 text-gray-500 border-gray-100"}`}>
+                  {auctionStatusConfig[data.auction_status]?.label ?? data.auction_status ?? "Unknown"}
                 </span>
               )}
           </div>
