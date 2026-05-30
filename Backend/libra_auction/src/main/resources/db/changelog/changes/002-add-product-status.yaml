@@ -1,0 +1,16 @@
+databaseChangeLog:
+- changeSet:
+    id: 002-add-product-status
+    author: nhatking
+    changes:
+    - addColumn:
+        tableName: product
+        columns:
+        - column:
+            name: status
+            type: VARCHAR(20)
+            defaultValue: "AVAILABLE"
+            constraints:
+              nullable: false
+    - sql:
+        sql: "UPDATE product SET status = 'AVAILABLE' WHERE status IS NULL"

@@ -14,7 +14,14 @@ export const ProductDetail = ({ data }: { data: Product }) => {
                     {data.category_name}
                 </nav>
 
-                <h1 className="text-3xl font-bold text-gray-800 mb-4">{data.product_name}</h1>
+                <div className="flex items-center gap-3 mb-4">
+                    <h1 className="text-3xl font-bold text-gray-800">{data.product_name}</h1>
+                    {data.status === "SOLD" && (
+                        <span className="text-sm font-medium text-red-700 bg-red-100 px-3 py-1 rounded-lg">
+                            Đã bán
+                        </span>
+                    )}
+                </div>
 
                 <div className="flex items-center gap-6 mb-6 pb-6 border-b border-gray-50">
                     <div>

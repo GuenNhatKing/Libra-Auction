@@ -23,6 +23,12 @@ export const ProductItem = ({ product, onView, onEdit, onDelete }: ProductItemPr
               {product.category_name}
             </span>
 
+            {product.status === "SOLD" && (
+              <span className="text-xs font-medium text-red-700 bg-red-100 px-2 py-0.5 rounded-lg">
+                Đã bán
+              </span>
+            )}
+
             <span className="text-sm text-gray-500 ml-1">
               Quantity: <b className="text-gray-900">{product.quantity}</b>
             </span>

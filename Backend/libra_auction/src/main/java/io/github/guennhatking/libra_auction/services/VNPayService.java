@@ -16,6 +16,8 @@ import io.github.guennhatking.libra_auction.repositories.person.CustomerReposito
 import io.github.guennhatking.libra_auction.repositories.transaction.DepositTransactionRepository;
 import io.github.guennhatking.libra_auction.repositories.transaction.TransactionRepository;
 import io.github.guennhatking.libra_auction.repositories.transaction.PaymentTransactionRepository;
+import io.github.guennhatking.libra_auction.repositories.product.ProductRepository;
+import io.github.guennhatking.libra_auction.enums.product.ProductStatus;
 import io.github.guennhatking.libra_auction.utils.VNPayUtil;
 import io.github.guennhatking.libra_auction.viewmodels.request.VNPayDepositRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.VNPayPaymentRequest;
@@ -50,6 +52,7 @@ public class VNPayService {
     private final CustomerRepository customerRepository;
     private final AuctionRepository auctionRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
+    private final ProductRepository productRepository;
 
     public VNPayService(VNPayProperties vnPayProperties,
             TransactionRepository transactionRepository,
@@ -57,13 +60,15 @@ public class VNPayService {
             CustomerRepository customerRepository,
             DepositTransactionRepository depositTransactionRepository,
             AuctionParticipationInfoRepository participationInfoRepository,
-            AuctionRepository auctionRepository) {
+            AuctionRepository auctionRepository,
+            ProductRepository productRepository) {
         this.vnPayProperties = vnPayProperties;
         this.customerRepository = customerRepository;
         this.depositTransactionRepository = depositTransactionRepository;
         this.participationInfoRepository = participationInfoRepository;
         this.auctionRepository = auctionRepository;
         this.paymentTransactionRepository = paymentTransactionRepository;
+        this.productRepository = productRepository;
     }
 
     @Transactional
@@ -358,6 +363,11 @@ public class VNPayService {
             payment.setPartnerTransactionId(request.vnp_TransactionNo());
 
             paymentTransactionRepository.save(payment);
+
+            // Danh dau san pham da ban
+            var product = payment.getAuctionResult().getAuction().getProduct();
+            product.setStatus(ProductStatus.SOLD);
+            productRepository.save(product);
 
             return true;
         } else {

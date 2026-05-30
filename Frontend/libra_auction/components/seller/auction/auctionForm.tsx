@@ -70,7 +70,10 @@ export default function AuctionForm({ products }: { products: Product[] }) {
         {/* STEP 1 */}
         {step === 1 && (
           <div className="space-y-4">
-            {products.map((p) => (
+            {products.filter(p => p.status !== "SOLD").length === 0 && (
+              <p className="text-gray-500 text-center py-8">Không có sản phẩm khả dụng để tạo phiên đấu giá.</p>
+            )}
+            {products.filter(p => p.status !== "SOLD").map((p) => (
               <div
                 key={p.product_id}
                 onClick={() => handleChange("productId", p.product_id)}

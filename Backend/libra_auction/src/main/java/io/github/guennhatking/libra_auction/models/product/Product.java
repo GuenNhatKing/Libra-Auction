@@ -2,6 +2,8 @@ package io.github.guennhatking.libra_auction.models.product;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -11,6 +13,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.OneToMany;
 import java.util.List;
 
+import io.github.guennhatking.libra_auction.enums.product.ProductStatus;
 import io.github.guennhatking.libra_auction.models.auction.Auction;
 import io.github.guennhatking.libra_auction.models.person.Customer;
 
@@ -51,6 +54,9 @@ public class Product {
 
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    private ProductStatus status = ProductStatus.AVAILABLE;
 
     // CONSTRUCTOR
     public Product() {
@@ -100,6 +106,10 @@ public class Product {
         return attributes;
     }
 
+    public ProductStatus getStatus() {
+        return status;
+    }
+
     // SETTER
     public void setId(String id) {
         this.id = id;
@@ -135,5 +145,9 @@ public class Product {
 
     public void setAttributes(List<ProductAttribute> attributes) {
         this.attributes = attributes;
+    }
+
+    public void setStatus(ProductStatus status) {
+        this.status = status;
     }
 }

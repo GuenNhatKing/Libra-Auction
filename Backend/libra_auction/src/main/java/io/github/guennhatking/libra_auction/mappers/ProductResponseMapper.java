@@ -21,6 +21,7 @@ public interface ProductResponseMapper {
     @Mapping(source = "description", target = "description")
     @Mapping(source = "category.id", target = "category_id")
     @Mapping(source = "category.name", target = "category_name")
+    @Mapping(source = "status", target = "status")
     @Mapping(source = "images", target = "images")
     @Mapping(source = ".", target = "attributes", qualifiedByName = "resolveAllAttributes")
     ProductResponse toProductResponse(Product product);

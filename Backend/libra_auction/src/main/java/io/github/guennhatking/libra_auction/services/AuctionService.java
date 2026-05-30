@@ -2,6 +2,7 @@ package io.github.guennhatking.libra_auction.services;
 
 import io.github.guennhatking.libra_auction.enums.auction.ApprovalStatus;
 import io.github.guennhatking.libra_auction.enums.auction.AuctionStatus;
+import io.github.guennhatking.libra_auction.enums.product.ProductStatus;
 import io.github.guennhatking.libra_auction.mappers.AuctionMapper;
 import io.github.guennhatking.libra_auction.mappers.ProductResponseMapper;
 import io.github.guennhatking.libra_auction.models.auction.Auction;
@@ -92,6 +93,10 @@ public class AuctionService {
         public AuctionResponse createAuction(AuctionCreateRequest request, String userId) {
                 Product product = productRepository.findById(request.productId())
                                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+
+                if (product.getStatus() == ProductStatus.SOLD) {
+                        throw new IllegalArgumentException("Sản phẩm đã được bán, không thể tạo phiên đấu giá mới");
+                }
 
                 Customer creator = customerRepository.findById(userId)
                                 .orElseThrow(() -> new IllegalArgumentException("User not found"));

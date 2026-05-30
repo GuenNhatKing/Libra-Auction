@@ -7,6 +7,7 @@ export interface Product {
   category_name: string;
   quantity: number;
   description: string;
+  status?: string;
   images: string[];
   attributes: Attribute[];
 }
