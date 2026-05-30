@@ -45,7 +45,7 @@ export const AuctionDeleteConfirm = ({ auction, onDelete, onCancel }: AuctionDel
             </div>
             <div>
               <p className="text-[10px] text-gray-400 uppercase font-bold">Deposit</p>
-              <p className="text-sm font-bold text-(--secondary-color)">{auction.tien_coc.toLocaleString()} VND</p>
+              <p className="text-sm font-bold text-(--secondary-color)">{auction.deposit_amount.toLocaleString()} VND</p>
             </div>
             <div>
               <p className="text-[10px] text-gray-400 uppercase font-bold text-right">Status</p>

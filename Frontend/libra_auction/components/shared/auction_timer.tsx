@@ -79,7 +79,7 @@ export default function AuctionTimer({
 
   return (
     <div className="flex items-center justify-center gap-3">
-      <div className={`${sizeClasses[size]} ${getColorClass()} font-mono`}>
+      <div className={`${sizeClasses[size]} ${getColorClass()} font-mono`} suppressHydrationWarning>
         {isPaused ? (
           <span className="flex items-center gap-2">
             <span className="animate-pulse">⏸</span>

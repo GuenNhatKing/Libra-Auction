@@ -1,4 +1,5 @@
 export function CurrencyFormat(amount: number) {
+    if (amount == null) return '0₫';
     const currency_str = amount.toString();
     const result_parts = [];
     for(let i = currency_str.length; i > 0; i = i - 3) {

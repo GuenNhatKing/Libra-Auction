@@ -153,7 +153,7 @@ export default function AuctionInfoSection({
                       Deposit
                     </div>
                     <div className="text-2xl font-bold text-gray-900">
-                      {CurrencyFormat(autionInfos.tien_coc)}
+                      {CurrencyFormat(autionInfos.deposit_amount)}
                     </div>
                   </div>
 
