@@ -231,31 +231,16 @@ export default function LiveAuctionView({
     setShowConfirm(false);
     setIsBidding(true);
     try {
-      // Optimistic update - update UI immediately
-      setCurrentBid(value);
-      setBids((prev) => [
-        {
-          bidderName: "Bạn",
-          amount: value,
-          time: new Date().toLocaleTimeString("vi-VN"),
-          status: "SUCCESS",
-        },
-        ...prev,
-      ]);
-      setTotalBids((prev) => prev + 1);
-      setHighestBidder("Bạn");
-      setIsHighestBidder(true);
-      setBidValue("");
-      addNotification(`Đã đặt giá ${CurrencyFormat(value)}`);
-
       auctionSocket.send("/app/bid", {
         auctionId: auction.auction_id,
         bidAmount: value,
         bidderName: "You",
       });
+      setBidValue("");
+      addNotification(`Đã gửi yêu cầu đặt giá ${CurrencyFormat(value)}, đang chờ xác nhận...`);
     } catch (err) {
       console.error(err);
-      addNotification("Lỗi khi đặt giá");
+      addNotification("Lỗi khi gửi đặt giá");
     } finally {
       setIsBidding(false);
     }
