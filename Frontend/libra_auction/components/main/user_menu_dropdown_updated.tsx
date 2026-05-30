@@ -58,13 +58,12 @@ export default function UserMenuDropdown({
 
             <div className="border-t border-gray-100 my-1"></div>
 
-            <Link 
-              href="/api/sign-out" 
-              className="block px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition"
-              onClick={() => setIsOpen(false)}
+            <button
+              className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition"
+              onClick={() => { window.location.href = "/api/sign-out"; }}
             >
               Sign out
-            </Link>
+            </button>
           </div>
         </>
       )}
