@@ -153,27 +153,31 @@ public class AuctionStateTransitionService {
             }
 
             // Calculate paused duration and extend end time
+            long finalEndTimeMs = 0;
             Long pauseStartMs = auctionStateRedisService.getPauseStartTime(auctionId);
             if (pauseStartMs != null) {
                 long pausedDurationMs = System.currentTimeMillis() - pauseStartMs;
                 Long currentEndTimeMs = auctionStateRedisService.getAuctionEndTime(auctionId);
                 if (currentEndTimeMs != null) {
-                    long newEndTimeMs = currentEndTimeMs + pausedDurationMs;
+                    finalEndTimeMs = currentEndTimeMs + pausedDurationMs;
                     OffsetDateTime newEndTime = OffsetDateTime.ofInstant(
-                        java.time.Instant.ofEpochMilli(newEndTimeMs), ZoneOffset.ofHours(7));
+                        java.time.Instant.ofEpochMilli(finalEndTimeMs), ZoneOffset.ofHours(7));
                     auctionStateRedisService.extendAuctionEnd(auctionId, newEndTime);
-                    logger.info("Auction {} resumed, extended end time by {} ms", auctionId, pausedDurationMs);
+                    logger.info("Auction {} resumed, extended end time by {} ms, newEndTime={}", auctionId, pausedDurationMs, finalEndTimeMs);
                 }
+            } else {
+                // Fallback: read from Redis
+                Long stored = auctionStateRedisService.getAuctionEndTime(auctionId);
+                finalEndTimeMs = stored != null ? stored : 0;
             }
             auctionStateRedisService.clearPaused(auctionId);
 
             auction.setAuctionStatus(AuctionStatus.IN_PROGRESS);
             auctionRepository.save(auction);
 
-            logger.info("Auction {} resumed", auctionId);
-            // Get new end time and send to frontend
-            Long newEndTimeMs = auctionStateRedisService.getAuctionEndTime(auctionId);
-            String endTimeField = newEndTimeMs != null ? ",\"newEndTime\":" + newEndTimeMs : "";
+            logger.info("Auction {} resumed, sending newEndTime={}", auctionId, finalEndTimeMs);
+            // Send directly calculated endTime, not read from Redis
+            String endTimeField = finalEndTimeMs > 0 ? ",\"newEndTime\":" + finalEndTimeMs : "";
             sendAuctionStatusUpdateWithExtra(auctionId, "IN_PROGRESS", endTimeField);
         } catch (Exception e) {
             logger.error("Error resuming auction {}: {}", auctionId, e.getMessage(), e);

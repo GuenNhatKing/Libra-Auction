@@ -21,18 +21,20 @@ export default function AuctionTimer({
     isPaused ? 0 : Math.max(0, endTimeMs - Date.now())
   );
 
-  // Reset timer when endTimeMs changes (server sent newEndTime after resume)
-  useEffect(() => {
-    if (!isPaused) {
-      setTimeLeftMs(Math.max(0, endTimeMs - Date.now()));
-    }
-  }, [endTimeMs, isPaused]);
-
+  // Reset timer immediately when endTimeMs or isPaused changes
   useEffect(() => {
     if (isPaused) {
-      // Don't tick when paused - freeze display
+      // When paused, don't update timeLeftMs - keep it frozen
       return;
     }
+    // Calculate remaining from the server-provided endTimeMs
+    const remaining = Math.max(0, endTimeMs - Date.now());
+    setTimeLeftMs(remaining);
+  }, [endTimeMs, isPaused]);
+
+  // Tick every second when not paused
+  useEffect(() => {
+    if (isPaused) return;
 
     const interval = setInterval(() => {
       const remaining = Math.max(0, endTimeMs - Date.now());

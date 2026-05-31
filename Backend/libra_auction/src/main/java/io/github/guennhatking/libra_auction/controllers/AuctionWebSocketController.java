@@ -21,7 +21,6 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * WebSocket Controller for handling auction bids
@@ -36,9 +35,7 @@ public class AuctionWebSocketController {
     private final AuctionWebSocketNotificationService auctionWebSocketNotificationService;
     private final AuctionParticipationInfoRepository participationInfoRepository;
     private final CustomerRepository customerRepository;
-
-    // In-memory storage for bid history per auction
-    private static final Map<String, List<BidResponse>> auctionBids = new ConcurrentHashMap<>();
+    private final BidHistoryService bidHistoryService;
 
     // Configuration
     private static final int FINAL_MINUTES_WINDOW = 5;
@@ -49,12 +46,14 @@ public class AuctionWebSocketController {
             AuctionStateRedisService auctionStateRedisService,
             AuctionWebSocketNotificationService auctionWebSocketNotificationService,
             AuctionParticipationInfoRepository participationInfoRepository,
-            CustomerRepository customerRepository) {
+            CustomerRepository customerRepository,
+            BidHistoryService bidHistoryService) {
         this.auctionRepository = auctionRepository;
         this.auctionStateRedisService = auctionStateRedisService;
         this.auctionWebSocketNotificationService = auctionWebSocketNotificationService;
         this.participationInfoRepository = participationInfoRepository;
         this.customerRepository = customerRepository;
+        this.bidHistoryService = bidHistoryService;
     }
 
     /**
@@ -148,7 +147,7 @@ public class AuctionWebSocketController {
 
         // Create and store bid response
         BidResponse bidResponse = createBidResponse(bidMessage, "SUCCESS");
-        recordBid(bidMessage.auctionId(), bidResponse);
+        bidHistoryService.recordBid(bidResponse);
 
         AuctionLog log = new AuctionLog();
         log.setAuction(auction);
@@ -182,13 +181,6 @@ public class AuctionWebSocketController {
                 status);
     }
 
-    /**
-     * Helper: Record bid in history
-     */
-    private void recordBid(String auctionId, BidResponse bidResponse) {
-        auctionBids.computeIfAbsent(auctionId, k -> new ArrayList<>())
-                .add(bidResponse);
-    }
 
     /**
      * Helper: Broadcast bid to all auction participants
@@ -224,19 +216,6 @@ public class AuctionWebSocketController {
         auctionWebSocketNotificationService.sendBidUpdate(auctionId, errorResponse);
     }
 
-    /**
-     * Get bid history for an auction (for viewing past bids)
-     */
-    public List<BidResponse> getBidHistory(String auctionId) {
-        return auctionBids.getOrDefault(auctionId, new ArrayList<>());
-    }
-
-    /**
-     * Clear auction data (cleanup after auction ends)
-     */
-    public void clearAuctionData(String auctionId) {
-        auctionBids.remove(auctionId);
-    }
 
     /**
      * Check if auction is within the final minutes and extend if needed
