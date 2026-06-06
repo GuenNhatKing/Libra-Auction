@@ -22,6 +22,7 @@ import io.github.guennhatking.libra_auction.utils.VNPayUtil;
 import io.github.guennhatking.libra_auction.viewmodels.request.VNPayDepositRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.VNPayPaymentRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.VerifyPaymentRequest;
+import io.github.guennhatking.libra_auction.viewmodels.response.UserTransactionResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.VNPayPaymentResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.VNPayTransactionResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -433,5 +434,77 @@ public class VNPayService {
         return depositTransactionRepository
                 .findByDepositorIdAndAuctionIdAndStatus(userId, auctionId, TransactionStatus.SUCCESS)
                 .isPresent();
+    }
+
+    @Transactional(readOnly = true)
+    public long getWalletBalance(String userId) {
+        long paymentsIn = paymentTransactionRepository.findByReceiver_IdOrderByCreatedAtDesc(userId).stream()
+                .filter(p -> p.getTransactionStatus() == TransactionStatus.SUCCESS)
+                .mapToLong(Transaction::getAmount)
+                .sum();
+
+        long paymentsOut = paymentTransactionRepository.findBySender_IdOrderByCreatedAtDesc(userId).stream()
+                .filter(p -> p.getTransactionStatus() == TransactionStatus.SUCCESS)
+                .mapToLong(Transaction::getAmount)
+                .sum();
+
+        long refundedDeposits = depositTransactionRepository.findByDepositorIdOrderByCreatedAtDesc(userId).stream()
+                .filter(d -> d.getTransactionStatus() == TransactionStatus.REFUNDED
+                        || d.getRefundTime() != null)
+                .mapToLong(Transaction::getAmount)
+                .sum();
+
+        return Math.max(0, paymentsIn - paymentsOut + refundedDeposits);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserTransactionResponse> getTransactionsByUserId(String userId) {
+        List<UserTransactionResponse> transactions = new ArrayList<>();
+
+        depositTransactionRepository.findByDepositorIdOrderByCreatedAtDesc(userId)
+                .forEach(deposit -> transactions.add(toUserTransactionResponse(deposit, false)));
+
+        paymentTransactionRepository.findBySender_IdOrderByCreatedAtDesc(userId)
+                .forEach(payment -> transactions.add(toUserTransactionResponse(payment, false)));
+
+        paymentTransactionRepository.findByReceiver_IdOrderByCreatedAtDesc(userId)
+                .forEach(payment -> transactions.add(toUserTransactionResponse(payment, true)));
+
+        transactions.sort((a, b) -> b.createdAt().compareTo(a.createdAt()));
+        return transactions;
+    }
+
+    private UserTransactionResponse toUserTransactionResponse(Transaction transaction, boolean incoming) {
+        String description = "";
+        String details = "";
+
+        if (transaction.getTransactionType() == TransactionType.DEPOSIT) {
+            if (!(transaction instanceof DepositTransaction deposit)) {
+                throw new RuntimeException("Giao dich dat coc khong hop le");
+            }
+            description = "Dat coc dau gia";
+            AuctionParticipationInfo info = deposit.getParticipationInfo();
+            details = "Phien dau gia: " + info.getAuction().getId() + ", San pham: "
+                    + info.getAuction().getProduct().getName();
+        } else if (transaction.getTransactionType() == TransactionType.PAYMENT) {
+            if (!(transaction instanceof PaymentTransaction payment)) {
+                throw new RuntimeException("Giao dich thanh toan khong hop le");
+            }
+            description = incoming ? "Nhan thanh toan dau gia" : "Thanh toan dau gia";
+            details = "Phien dau gia: " + payment.getAuctionResult().getAuction().getId() + ", San pham: "
+                    + payment.getAuctionResult().getAuction().getProduct().getName();
+        }
+
+        return new UserTransactionResponse(
+                transaction.getId(),
+                transaction.getPartnerTransactionId() != null ? transaction.getPartnerTransactionId()
+                        : transaction.getId(),
+                transaction.getAmount(),
+                description,
+                details,
+                transaction.getTransactionStatus(),
+                transaction.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                transaction.getTransactionType(),
+                incoming);
     }
 }

@@ -10,6 +10,7 @@ import io.github.guennhatking.libra_auction.repositories.account.RoleRepository;
 import io.github.guennhatking.libra_auction.repositories.account.AccountOAuthRepository;
 import io.github.guennhatking.libra_auction.repositories.account.AccountPasswordRepository;
 import io.github.guennhatking.libra_auction.repositories.person.CustomerRepository;
+import io.github.guennhatking.libra_auction.viewmodels.request.CustomerProfileUpdateRequest;
 import io.github.guennhatking.libra_auction.viewmodels.response.ImageUploadedResponse;
 
 import org.springframework.stereotype.Service;
@@ -114,6 +115,19 @@ public class CustomerService {
 
     public Optional<Customer> findById(String userId) {
         return customerRepository.findById(userId);
+    }
+
+    @Transactional
+    public Customer updateProfile(String userId, CustomerProfileUpdateRequest request) {
+        Customer customer = customerRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        customer.setFullName(request.fullName());
+        customer.setPhoneNumber(request.phoneNumber());
+        customer.setIdentityNumber(request.identityNumber());
+        customer.setAvatarUrl(request.avatarUrl());
+
+        return customerRepository.save(customer);
     }
 
     public Optional<AccountPassword> findPasswordAccountByUsername(String username) {

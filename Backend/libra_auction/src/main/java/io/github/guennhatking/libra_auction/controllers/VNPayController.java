@@ -6,8 +6,10 @@ import io.github.guennhatking.libra_auction.viewmodels.request.VNPayDepositReque
 import io.github.guennhatking.libra_auction.viewmodels.request.VNPayPaymentRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.VerifyPaymentRequest;
 import io.github.guennhatking.libra_auction.viewmodels.response.ServerAPIResponse;
+import io.github.guennhatking.libra_auction.viewmodels.response.UserTransactionResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.VNPayPaymentResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.VNPayTransactionResponse;
+import io.github.guennhatking.libra_auction.viewmodels.response.WalletBalanceResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -135,5 +137,38 @@ public class VNPayController {
         }
         boolean paid = vnPayService.isDepositPaid(userDetails.getUserId(), auctionId);
         return ResponseEntity.ok(ServerAPIResponse.success(paid));
+    }
+
+    @GetMapping("/user/{userId}/balance")
+    public ResponseEntity<ServerAPIResponse<WalletBalanceResponse>> getWalletBalance(
+            @AuthenticationPrincipal JwtUserDetails userDetails,
+            @PathVariable String userId) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error("Authentication required"));
+        }
+        if (!userDetails.getUserId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ServerAPIResponse.error("Access denied"));
+        }
+
+        long balance = vnPayService.getWalletBalance(userId);
+        return ResponseEntity.ok(ServerAPIResponse.success(new WalletBalanceResponse(balance)));
+    }
+
+    @GetMapping("/user/{userId}/transactions")
+    public ResponseEntity<ServerAPIResponse<java.util.List<UserTransactionResponse>>> getUserTransactions(
+            @AuthenticationPrincipal JwtUserDetails userDetails,
+            @PathVariable String userId) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error("Authentication required"));
+        }
+        if (!userDetails.getUserId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ServerAPIResponse.error("Access denied"));
+        }
+
+        return ResponseEntity.ok(ServerAPIResponse.success(vnPayService.getTransactionsByUserId(userId)));
     }
 }
