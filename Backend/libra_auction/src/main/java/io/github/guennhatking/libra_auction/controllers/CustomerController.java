@@ -9,6 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,6 +19,7 @@ import io.github.guennhatking.libra_auction.models.person.Customer;
 import io.github.guennhatking.libra_auction.security.JwtUserDetails;
 import io.github.guennhatking.libra_auction.services.CustomerService;
 import io.github.guennhatking.libra_auction.viewmodels.request.ChangePasswordRequest;
+import io.github.guennhatking.libra_auction.viewmodels.request.CustomerProfileUpdateRequest;
 import io.github.guennhatking.libra_auction.viewmodels.response.CustomerResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.ServerAPIResponse;
 import jakarta.validation.Valid;
@@ -34,7 +36,18 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ServerAPIResponse<CustomerResponse>> getUserInfo(@PathVariable String id) {
+    public ResponseEntity<ServerAPIResponse<CustomerResponse>> getUserInfo(
+            @AuthenticationPrincipal JwtUserDetails principal,
+            @PathVariable String id) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error("Authentication required"));
+        }
+        if (!principal.getUserId().equals(id)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ServerAPIResponse.error("Access denied"));
+        }
+
         Optional<Customer> user = userService.findById(id);
 
         if (user.isPresent()) {
@@ -42,6 +55,29 @@ public class CustomerController {
             return ResponseEntity.status(HttpStatus.OK).body(ServerAPIResponse.success(userResponse));
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ServerAPIResponse.error("User not found"));
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ServerAPIResponse<CustomerResponse>> updateUserProfile(
+            @AuthenticationPrincipal JwtUserDetails principal,
+            @PathVariable String id,
+            @Valid @RequestBody CustomerProfileUpdateRequest request) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error("Authentication required"));
+        }
+        if (!principal.getUserId().equals(id)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ServerAPIResponse.error("Access denied"));
+        }
+
+        try {
+            Customer updatedUser = userService.updateProfile(id, request);
+            CustomerResponse userResponse = userMapper.toResponse(updatedUser);
+            return ResponseEntity.ok(ServerAPIResponse.success(userResponse));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ServerAPIResponse.error(e.getMessage()));
         }
     }
 

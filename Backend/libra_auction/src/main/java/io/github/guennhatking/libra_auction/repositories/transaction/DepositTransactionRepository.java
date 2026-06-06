@@ -1,5 +1,6 @@
 package io.github.guennhatking.libra_auction.repositories.transaction;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,4 +17,6 @@ public interface DepositTransactionRepository extends JpaRepository<DepositTrans
             @Param("userId") String userId,
             @Param("auctionId") String auctionId,
             @Param("status") TransactionStatus status);
+
+    List<DepositTransaction> findByDepositorIdOrderByCreatedAtDesc(String depositorId);
 }

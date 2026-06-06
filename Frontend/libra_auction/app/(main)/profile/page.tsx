@@ -1,25 +1,37 @@
-import { InfoCard } from "@/components/main/profile/info_card";
+import { UserDashboard } from "@/components/main/profile/UserDashboard";
 import { getIdFromToken } from "@/lib/get_id_from_token";
 import { fetchUserInfo } from "@/services/fetch_user_info";
-import { UserInfo } from "@/types/user_info";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
+
+function DashboardFallback() {
+  return (
+    <div className="animate-pulse space-y-6">
+      <div className="h-10 bg-gray-200 rounded w-1/3"></div>
+      <div className="h-12 bg-gray-200 rounded"></div>
+      <div className="h-64 bg-gray-200 rounded"></div>
+    </div>
+  );
+}
 
 export default async function ProfilePage() {
-    const user_id = await getIdFromToken();
-    let user = undefined;
-    if (user_id) {
-        user = await fetchUserInfo(user_id);
-    }
+  const user_id = await getIdFromToken();
 
-    return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="border-b border-gray-100 pb-4 mb-6">
-                <h1 className="text-2xl font-bold text-[var(--secondary-color)]">My Profile</h1>
-                <p className="text-gray-500 text-sm mt-1">Manage security settings and personal profile information</p>
-            </div>
+  if (!user_id) {
+    redirect("/sign-in");
+  }
 
-            {/* Existing InfoCard component */}
-            {user && <InfoCard user={user} />}
+  let user;
+  try {
+    user = await fetchUserInfo(user_id);
+  } catch (error) {
+    console.error("Error fetching user info:", error);
+    redirect("/sign-in");
+  }
 
-        </div>
-    );
+  return (
+    <Suspense fallback={<DashboardFallback />}>
+      {user && <UserDashboard user={user} />}
+    </Suspense>
+  );
 }
