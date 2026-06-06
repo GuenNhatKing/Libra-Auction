@@ -8,6 +8,7 @@ import io.github.guennhatking.libra_auction.models.auction.AuctionParticipationI
 import io.github.guennhatking.libra_auction.models.person.Customer;
 import io.github.guennhatking.libra_auction.repositories.auction.AuctionResultRepository;
 import io.github.guennhatking.libra_auction.repositories.auction.AuctionRepository;
+import io.github.guennhatking.libra_auction.repositories.person.CustomerRepository;
 import io.github.guennhatking.libra_auction.repositories.product.ProductRepository;
 import io.github.guennhatking.libra_auction.viewmodels.response.BidResponse;
 import org.slf4j.Logger;
@@ -36,6 +37,7 @@ public class AuctionStateTransitionService {
     private final EmailNotificationService emailNotificationService;
     private final AuctionStateRedisService auctionStateRedisService;
     private final ProductRepository productRepository;
+    private final CustomerRepository customerRepository;
 
     public AuctionStateTransitionService(
             AuctionRepository auctionRepository,
@@ -44,7 +46,8 @@ public class AuctionStateTransitionService {
             SimpMessagingTemplate messagingTemplate,
             EmailNotificationService emailNotificationService,
             AuctionStateRedisService auctionStateRedisService,
-            ProductRepository productRepository) {
+            ProductRepository productRepository,
+            CustomerRepository customerRepository) {
         this.auctionRepository = auctionRepository;
         this.auctionResultRepository = auctionResultRepository;
         this.bidHistoryService = bidHistoryService;
@@ -52,6 +55,7 @@ public class AuctionStateTransitionService {
         this.emailNotificationService = emailNotificationService;
         this.auctionStateRedisService = auctionStateRedisService;
         this.productRepository = productRepository;
+        this.customerRepository = customerRepository;
     }
 
     /**
@@ -214,21 +218,25 @@ public class AuctionStateTransitionService {
             // Find the winner (latest bid from history)
             BidResponse latestBidResponse = bidHistoryService.getLatestBid(auctionId);
 
-            // Create AuctionResult (Auction Result)
+            // Create AuctionResult
             AuctionResult result = new AuctionResult();
             result.setAuction(auction);
             result.setEndTime(OffsetDateTime.now(ZoneOffset.ofHours(7)));
 
-            if (latestBidResponse != null) {
-                // There is a winner - set the winner and price
-                // Note: We're using the BidResponse, not database record
-                // In production, you should query Customer by email from latestBidResponse.bidderId
-                result.setWinningPrice(latestBidResponse.bidAmount());
-
-                logger.info("Auction {} ended with winner bid: {} VND",
-                    auctionId, latestBidResponse.bidAmount());
+            Customer winner = null;
+            if (latestBidResponse != null && latestBidResponse.bidderId() != null) {
+                // Find winner Customer from DB
+                winner = customerRepository.findById(latestBidResponse.bidderId()).orElse(null);
+                if (winner != null) {
+                    result.setWinner(winner);
+                    result.setWinningPrice(latestBidResponse.bidAmount());
+                    logger.info("Auction {} ended with winner: {} ({}), bid: {} VND",
+                        auctionId, winner.getFullName(), winner.getId(), latestBidResponse.bidAmount());
+                } else {
+                    result.setWinningPrice(latestBidResponse.bidAmount());
+                    logger.warn("Auction {} winner not found in DB: {}", auctionId, latestBidResponse.bidderId());
+                }
             } else {
-                // No bids placed - auction ends with no winner
                 logger.info("Auction {} ended with no bids", auctionId);
             }
 
@@ -241,11 +249,27 @@ public class AuctionStateTransitionService {
 
             // Send email notifications
             try {
-                if (latestBidResponse != null) {
-                    // Send winner notification (to bidder email)
-                    logger.info("Sending winner notification to {}", latestBidResponse.bidderId());
-                }
+                // Notify seller
                 emailNotificationService.sendAuctionEndedNotification(auction);
+
+                // Notify winner
+                if (winner != null) {
+                    emailNotificationService.sendWinnerNotification(auction, winner);
+                }
+
+                // Notify all participants (losers)
+                if (auction.getParticipants() != null) {
+                    for (AuctionParticipationInfo participant : auction.getParticipants()) {
+                        Customer bidder = participant.getParticipant();
+                        if (bidder != null && (winner == null || !bidder.getId().equals(winner.getId()))) {
+                            try {
+                                emailNotificationService.sendAuctionLostNotification(auction, bidder);
+                            } catch (Exception e) {
+                                logger.error("Failed to send lost email to {}", bidder.getId(), e);
+                            }
+                        }
+                    }
+                }
             } catch (Exception e) {
                 logger.error("Failed to send auction end email notifications", e);
             }

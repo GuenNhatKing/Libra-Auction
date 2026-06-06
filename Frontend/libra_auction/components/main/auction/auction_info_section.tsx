@@ -243,6 +243,30 @@ export default function AuctionInfoSection({
                       <p className="text-rose-600 text-sm mt-1">Lý do: {autionInfos.failure_reason}</p>
                     )}
                   </div>
+                ) : autionInfos.auction_status === "ENDED" && autionInfos.winner_id ? (
+                  <div className={`rounded-2xl p-5 text-center border ${
+                    isCreator
+                      ? "bg-blue-50 border-blue-200"
+                      : "bg-emerald-50 border-emerald-200"
+                  }`}>
+                    {isCreator ? (
+                      <>
+                        <p className="text-blue-700 font-bold text-lg">Phiên đấu giá đã kết thúc</p>
+                        <p className="text-blue-600 text-sm mt-1">Người thắng: {autionInfos.winner_name}</p>
+                        <p className="text-blue-600 text-sm">Giá thắng: {CurrencyFormat(autionInfos.winning_price || autionInfos.current_price)}</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-emerald-700 font-bold text-lg">Người thắng: {autionInfos.winner_name}</p>
+                        <p className="text-emerald-600 text-sm mt-1">Giá thắng: {CurrencyFormat(autionInfos.winning_price || autionInfos.current_price)}</p>
+                      </>
+                    )}
+                  </div>
+                ) : autionInfos.auction_status === "ENDED" ? (
+                  <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 text-center">
+                    <p className="text-gray-600 font-bold text-lg">Phiên đấu giá đã kết thúc</p>
+                    <p className="text-gray-500 text-sm mt-1">Không có người thắng</p>
+                  </div>
                 ) : isLive ? (
                   <Link
                     href={`/auctions/${autionInfos.category_id}/${autionInfos.auction_id}/live`}

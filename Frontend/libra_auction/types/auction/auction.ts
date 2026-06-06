@@ -28,5 +28,8 @@ export interface Auction {
         total_participants: number,
         failure_reason?: string,
         completed_at?: string,
-        creator_id?: string
+        creator_id?: string,
+        winner_id?: string,
+        winner_name?: string,
+        winning_price?: number
 }

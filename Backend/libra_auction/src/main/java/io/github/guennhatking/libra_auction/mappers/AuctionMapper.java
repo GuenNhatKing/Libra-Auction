@@ -42,6 +42,9 @@ public interface AuctionMapper {
     @Mapping(source = "failureReason", target = "failure_reason")
     @Mapping(source = "completedAt", target = "completed_at")
     @Mapping(source = "creator.id", target = "creator_id")
+    @Mapping(source = ".", target = "winner_id", qualifiedByName = "resolveWinnerId")
+    @Mapping(source = ".", target = "winner_name", qualifiedByName = "resolveWinnerName")
+    @Mapping(source = ".", target = "winning_price", qualifiedByName = "resolveWinningPrice")
     AuctionResponse toAuctionResponse(Auction session);
 
     List<AuctionResponse> toAuctionResponseList(List<Auction> sessions);
@@ -99,5 +102,26 @@ public interface AuctionMapper {
         return productName != null && !productName.trim().isEmpty()
                 ? productName
                 : "Untitled item";
+    }
+
+    @Named("resolveWinnerId")
+    default String resolveWinnerId(Auction session) {
+        if (session == null || session.getAuctionResult() == null || session.getAuctionResult().getWinner() == null)
+            return null;
+        return session.getAuctionResult().getWinner().getId();
+    }
+
+    @Named("resolveWinnerName")
+    default String resolveWinnerName(Auction session) {
+        if (session == null || session.getAuctionResult() == null || session.getAuctionResult().getWinner() == null)
+            return null;
+        return session.getAuctionResult().getWinner().getFullName();
+    }
+
+    @Named("resolveWinningPrice")
+    default Long resolveWinningPrice(Auction session) {
+        if (session == null || session.getAuctionResult() == null)
+            return null;
+        return session.getAuctionResult().getWinningPrice();
     }
 }

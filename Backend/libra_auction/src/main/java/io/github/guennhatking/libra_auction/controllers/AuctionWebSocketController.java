@@ -6,6 +6,7 @@ import io.github.guennhatking.libra_auction.repositories.auction.AuctionReposito
 import io.github.guennhatking.libra_auction.repositories.person.CustomerRepository;
 import io.github.guennhatking.libra_auction.services.AuctionStateRedisService;
 import io.github.guennhatking.libra_auction.services.AuctionWebSocketNotificationService;
+import io.github.guennhatking.libra_auction.services.BidHistoryService;
 import io.github.guennhatking.libra_auction.viewmodels.request.BidMessage;
 import io.github.guennhatking.libra_auction.viewmodels.response.BidResponse;
 import io.github.guennhatking.libra_auction.models.auction.AuctionLog;

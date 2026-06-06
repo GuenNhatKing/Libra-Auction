@@ -199,6 +199,44 @@ public class EmailNotificationService {
         }
     }
 
+    public void sendWinnerNotification(Auction auction, Customer winner) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(winner.getEmail());
+            String productName = auction.getProduct() != null ? auction.getProduct().getName() : "N/A";
+            message.setSubject("[" + auctionName + "] Chuc mung! Ban da thang dau gia");
+            message.setText("Xin chao " + winner.getFullName() + ",\n\n" +
+                    "Chuc mung ban da thang phien dau gia '" + productName + "'!\n\n" +
+                    "Gia thang: " + auction.getCurrentPrice() + " VND\n\n" +
+                    "Vui long dang nhap he thong de tien hanh thanh toan.\n\n" +
+                    "Tran trong,\n" + auctionName);
+            mailSender.send(message);
+            logger.info("Winner email sent to {} for auction {}", winner.getEmail(), auction.getId());
+        } catch (Exception e) {
+            logger.error("Error sending winner email: {}", e.getMessage(), e);
+        }
+    }
+
+    public void sendAuctionLostNotification(Auction auction, Customer bidder) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(bidder.getEmail());
+            String productName = auction.getProduct() != null ? auction.getProduct().getName() : "N/A";
+            message.setSubject("[" + auctionName + "] Phien dau gia da ket thuc");
+            message.setText("Xin chao " + bidder.getFullName() + ",\n\n" +
+                    "Phien dau gia '" + productName + "' da ket thuc.\n\n" +
+                    "Rat tiec ban da khong phai la nguoi thang cuoc. " +
+                    "Tien coc se duoc hoan tra theo quy dinh.\n\n" +
+                    "Tran trong,\n" + auctionName);
+            mailSender.send(message);
+            logger.info("Auction lost email sent to {} for auction {}", bidder.getEmail(), auction.getId());
+        } catch (Exception e) {
+            logger.error("Error sending auction lost email: {}", e.getMessage(), e);
+        }
+    }
+
     // ==================== Email Body Templates ====================
 
     private String buildAuctionStartedEmailBody(String productName, String auctionId, String startTime) {

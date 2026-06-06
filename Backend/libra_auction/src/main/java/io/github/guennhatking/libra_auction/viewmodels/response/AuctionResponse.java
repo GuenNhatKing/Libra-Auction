@@ -34,5 +34,9 @@ public record AuctionResponse(
         String failure_reason,
         OffsetDateTime completed_at,
 
-        String creator_id) {
+        String creator_id,
+
+        String winner_id,
+        String winner_name,
+        Long winning_price) {
 }

@@ -323,6 +323,35 @@ export default function LiveAuctionView({
           </div>
         )}
 
+        {/* Winner Banner */}
+        {isEnded && auction.winner_id && (
+          <div className={`mb-6 rounded-2xl p-6 text-center border ${
+            currentUserId && auction.winner_id === currentUserId
+              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+              : "bg-gray-50 text-gray-600 border-gray-200"
+          }`}>
+            {currentUserId && auction.winner_id === currentUserId ? (
+              <>
+                <p className="text-2xl font-bold mb-2">Chúc mừng! Bạn đã thắng đấu giá!</p>
+                <p className="text-lg">Giá thắng: <span className="font-bold">{CurrencyFormat(auction.winning_price || auction.current_price)}</span></p>
+                <p className="text-sm mt-2 opacity-70">Vui lòng vào trang đăng ký để thanh toán</p>
+              </>
+            ) : (
+              <>
+                <p className="text-lg font-semibold">Người thắng: {auction.winner_name || "Unknown"}</p>
+                <p className="text-sm mt-1">Giá thắng: {CurrencyFormat(auction.winning_price || auction.current_price)}</p>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* No winner banner */}
+        {isEnded && !auction.winner_id && auction.total_bids === 0 && (
+          <div className="mb-6 rounded-2xl p-5 text-center bg-gray-50 text-gray-600 border border-gray-200">
+            <p className="text-lg font-semibold">Phiên đấu giá kết thúc không có lượt đặt giá</p>
+          </div>
+        )}
+
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 p-8 lg:p-12">
             {/* Left Column - Product & History */}
