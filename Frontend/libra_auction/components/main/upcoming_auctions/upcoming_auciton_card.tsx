@@ -14,8 +14,8 @@ export default function NewListingsCard({
             <Image
               src={card.image_src}
               alt=""
-              layout="fill"
-              className="h-full object-cover"
+              fill
+              className="object-cover"
             />
           </div>
         </div>

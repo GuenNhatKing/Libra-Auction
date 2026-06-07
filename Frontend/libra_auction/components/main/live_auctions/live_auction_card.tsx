@@ -15,8 +15,8 @@ export default function LiveAuctionCard({
             <Image
               src={card.thumbnail}
               alt=""
-              layout="fill"
-              className="h-full object-cover"
+              fill
+              className="object-cover"
             />
           </div>
         </div>
