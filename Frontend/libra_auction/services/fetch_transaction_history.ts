@@ -1,6 +1,5 @@
 'use server';
-import { getJWTTokenInfo } from "@/lib/get_jwt_token_info";
-import { ServerAPICall } from "@/lib/server_API_call";
+import { ServerAPIAuthedCall } from "@/lib/server_API_authed_call";
 
 export interface UserTransactionResponse {
   transactionId: string;
@@ -17,20 +16,14 @@ export interface UserTransactionResponse {
 export async function fetchTransactionHistory(
   userId: string
 ): Promise<UserTransactionResponse[]> {
-  const jwtTokenInfo = await getJWTTokenInfo();
-  if (!jwtTokenInfo.token) {
-    throw new Error("User's credentials not found");
-  }
 
   const request: RequestInit = {
     method: "GET",
-    headers: {
-      Authorization: "Bearer " + jwtTokenInfo.token,
-    },
+    headers: {},
     cache: "no-store",
   };
 
-  const res = await ServerAPICall<UserTransactionResponse[]>(
+  const res = await ServerAPIAuthedCall<UserTransactionResponse[]>(
     "/api/payments/vnpay/user/" + userId + "/transactions",
     request
   );
@@ -40,20 +33,14 @@ export async function fetchTransactionHistory(
 }
 
 export async function fetchWalletBalance(userId: string): Promise<number> {
-  const jwtTokenInfo = await getJWTTokenInfo();
-  if (!jwtTokenInfo.token) {
-    throw new Error("User's credentials not found");
-  }
 
   const request: RequestInit = {
     method: "GET",
-    headers: {
-      Authorization: "Bearer " + jwtTokenInfo.token,
-    },
+    headers: {},
     cache: "no-store",
   };
 
-  const res = await ServerAPICall<{ balance: number }>(
+  const res = await ServerAPIAuthedCall<{ balance: number }>(
     "/api/payments/vnpay/user/" + userId + "/balance",
     request
   );

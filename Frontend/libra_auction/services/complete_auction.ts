@@ -1,20 +1,13 @@
 'use server';
-import { getJWTTokenInfo } from "@/lib/get_jwt_token_info";
-import { ServerAPICall } from "@/lib/server_API_call";
+import { ServerAPIAuthedCall } from "@/lib/server_API_authed_call";
 
 export async function completeAuction(auctionId: string): Promise<boolean> {
-    const jwtTokenInfo = await getJWTTokenInfo();
-    if (!jwtTokenInfo.token) {
-        throw new Error("Admin credentials not found");
-    }
 
     const request: RequestInit = {
         method: "POST",
-        headers: {
-            "Authorization": "Bearer " + jwtTokenInfo.token,
-        },
+        headers: {},
     };
-    const res = await ServerAPICall<null>(`/api/admin/auctions/${auctionId}/complete`, request);
+    const res = await ServerAPIAuthedCall<null>(`/api/admin/auctions/${auctionId}/complete`, request);
     if (res.isSuccess) {
         return true;
     }

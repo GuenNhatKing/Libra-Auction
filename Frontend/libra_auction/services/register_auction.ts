@@ -1,23 +1,18 @@
 'use server';
 import { getJWTTokenInfo } from "@/lib/get_jwt_token_info";
-import { ServerAPICall } from "@/lib/server_API_call";
+import { ServerAPIAuthedCall } from "@/lib/server_API_authed_call";
 import { AuctionRegistration } from "@/types/auction/auction_registration";
 
 export async function registerForAuction(auctionId: string): Promise<AuctionRegistration> {
-    const jwtTokenInfo = await getJWTTokenInfo();
-    if (!jwtTokenInfo.token) {
-        throw new Error("User's credentials not found");
-    }
 
     const request: RequestInit = {
         method: "POST",
         headers: {
-            "Authorization": "Bearer " + jwtTokenInfo.token,
             "Content-Type": "application/json",
         },
         body: JSON.stringify({ auctionId }),
     };
-    const res = await ServerAPICall<AuctionRegistration>("/api/auction-registrations", request);
+    const res = await ServerAPIAuthedCall<AuctionRegistration>("/api/auction-registrations", request);
     if (res.isSuccess && res.data) {
         return res.data;
     }
@@ -32,11 +27,9 @@ export async function checkRegistration(userId: string, auctionId: string): Prom
 
     const request: RequestInit = {
         method: "GET",
-        headers: {
-            "Authorization": "Bearer " + jwtTokenInfo.token,
-        },
+        headers: {},
     };
-    const res = await ServerAPICall<AuctionRegistration>(
+    const res = await ServerAPIAuthedCall<AuctionRegistration>(
         `/api/auction-registrations/user/${userId}/auction/${auctionId}`,
         request
     );

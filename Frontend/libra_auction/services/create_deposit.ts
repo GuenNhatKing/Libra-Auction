@@ -1,26 +1,21 @@
 'use server';
 import { getJWTTokenInfo } from "@/lib/get_jwt_token_info";
-import { ServerAPICall } from "@/lib/server_API_call";
+import { ServerAPIAuthedCall } from "@/lib/server_API_authed_call";
 
 interface VNPayPaymentResponse {
     paymentUrl: string;
 }
 
 export async function createDeposit(auctionId: string): Promise<string> {
-    const jwtTokenInfo = await getJWTTokenInfo();
-    if (!jwtTokenInfo.token) {
-        throw new Error("User's credentials not found");
-    }
 
     const request: RequestInit = {
         method: "POST",
         headers: {
-            "Authorization": "Bearer " + jwtTokenInfo.token,
             "Content-Type": "application/json",
         },
         body: JSON.stringify({ auctionId }),
     };
-    const res = await ServerAPICall<VNPayPaymentResponse>("/api/payments/vnpay/create-deposit", request);
+    const res = await ServerAPIAuthedCall<VNPayPaymentResponse>("/api/payments/vnpay/create-deposit", request);
     if (res.isSuccess && res.data) {
         return res.data.paymentUrl;
     }
@@ -35,11 +30,9 @@ export async function isDepositPaid(auctionId: string): Promise<boolean> {
 
     const request: RequestInit = {
         method: "GET",
-        headers: {
-            "Authorization": "Bearer " + jwtTokenInfo.token,
-        },
+        headers: {},
     };
-    const res = await ServerAPICall<boolean>(`/api/payments/vnpay/deposit/status/${auctionId}`, request);
+    const res = await ServerAPIAuthedCall<boolean>(`/api/payments/vnpay/deposit/status/${auctionId}`, request);
     if (res.isSuccess && res.data !== undefined) {
         return res.data;
     }

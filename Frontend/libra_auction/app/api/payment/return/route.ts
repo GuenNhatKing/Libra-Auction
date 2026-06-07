@@ -1,5 +1,6 @@
 import { getJWTTokenInfo } from "@/lib/get_jwt_token_info";
-import { ServerAPICall } from "@/lib/server_API_call";
+
+import { ServerAPIAuthedCall } from "@/lib/server_API_authed_call";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -15,7 +16,6 @@ export async function GET(req: NextRequest) {
         const requestConfig: RequestInit = {
             method: "POST",
             headers: {
-                "Authorization": "Bearer " + jwtTokenInfo.token,
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(paramsObj),
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
             auctionId = depositMatch[1].trim();
         }
 
-        const res = await ServerAPICall<boolean | null>(endpoint, requestConfig);
+        const res = await ServerAPIAuthedCall<boolean | null>(endpoint, requestConfig);
 
         const status = (res.isSuccess && res.data) ? "success" : "failed";
 

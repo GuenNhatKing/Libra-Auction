@@ -1,22 +1,15 @@
 'use server';
-import { getJWTTokenInfo } from "@/lib/get_jwt_token_info";
-import { ServerAPICall } from "@/lib/server_API_call";
+import { ServerAPIAuthedCall } from "@/lib/server_API_authed_call";
 import { Auction } from "@/types/auction/auction";
 import { PageResponse } from "@/types/page_response";
 
 export async function fetchAuctions(): Promise<Auction[]> {
-    const jwtTokenInfo = await getJWTTokenInfo();
-    if (!jwtTokenInfo.token) {
-        throw new Error("User's credentials not found");
-    }
 
     const request: RequestInit = {
         method: "GET",
-        headers: {
-            "Authorization": "Bearer " + jwtTokenInfo.token
-        }
+        headers: {}
     }
-    const res = await ServerAPICall<PageResponse<Auction>>("/api/auctions", request);
+    const res = await ServerAPIAuthedCall<PageResponse<Auction>>("/api/auctions", request);
     if (res.isSuccess && res.data) {
         console.log(res.data);
         return res.data.content;

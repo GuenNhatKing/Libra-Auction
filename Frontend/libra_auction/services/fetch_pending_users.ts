@@ -1,7 +1,6 @@
 'use server';
 
-import { getJWTTokenInfo } from "@/lib/get_jwt_token_info";
-import { ServerAPICall } from "@/lib/server_API_call";
+import { ServerAPIAuthedCall } from "@/lib/server_API_authed_call";
 import { PageResponse } from "@/types/page_response";
 import { PendingUser } from "@/types/admin/pending_user";
 
@@ -30,21 +29,15 @@ function buildUsersQuery(page: number, pageSize: number, filters: AdminUserFilte
 }
 
 async function getAuthorizedRequest(method: "GET" | "POST"): Promise<RequestInit> {
-    const jwtTokenInfo = await getJWTTokenInfo();
-    if (!jwtTokenInfo.token) {
-        throw new Error("User's credentials not found");
-    }
 
     return {
         method,
-        headers: {
-            "Authorization": "Bearer " + jwtTokenInfo.token
-        }
+        headers: {}
     };
 }
 
 async function fetchUsersByPath(path: string, request: RequestInit, page: number, pageSize: number): Promise<PageResponse<PendingUser>> {
-    const res = await ServerAPICall<PageResponse<PendingUser>>(path, request);
+    const res = await ServerAPIAuthedCall<PageResponse<PendingUser>>(path, request);
 
     if (res.isSuccess && res.data) {
         return res.data;
@@ -92,7 +85,7 @@ export async function fetchPendingUsers(page: number = 0, pageSize: number = 20)
 
 export async function updateAdminUserAction(userId: string, action: "approve" | "reject" | "lock" | "unlock"): Promise<PendingUser> {
     const request = await getAuthorizedRequest("POST");
-    const res = await ServerAPICall<PendingUser>(`/api/admin/users/${userId}/${action}`, request);
+    const res = await ServerAPIAuthedCall<PendingUser>(`/api/admin/users/${userId}/${action}`, request);
 
     if (res.isSuccess && res.data) {
         return res.data;
