@@ -370,16 +370,6 @@ export function EditProfileContent({
                   className="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
                 />
               </div>
-
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Role</label>
-                <input
-                  type="text"
-                  value={initialData?.roleName || "—"}
-                  disabled
-                  className="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
-                />
-              </div>
             </div>
           </div>
         </div>
