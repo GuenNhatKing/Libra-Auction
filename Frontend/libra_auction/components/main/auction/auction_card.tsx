@@ -109,7 +109,11 @@ export default function AuctionCard({ auctionCard }: { auctionCard: Auction }) {
             </div>
 
             <div className="p-4 flex flex-col grow">
-                <h3 className="font-bold text-gray-800 line-clamp-2 leading-tight mb-3">
+                {/* Thay đổi từ line-clamp-2 thành truncate block để ép về 1 dòng và thêm tooltip title khi hover */}
+                <h3 
+                    className="font-bold text-gray-800 truncate block leading-tight mb-3"
+                    title={auctionCard.product_name}
+                >
                     {auctionCard.product_name}
                 </h3>
 
