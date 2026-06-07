@@ -4,33 +4,61 @@ import { useEffect, useState } from "react";
 import { getErrorMessage } from "@/lib/app_error";
 import { fetchPendingUsers } from "@/services/fetch_pending_users";
 import { fetchPendingAuctions } from "@/services/fetch_pending_auctions";
+import { fetchLiveAuctions } from "@/services/fetch_live_auctions";
 
 interface PendingData {
   pendingUsers: number;
   pendingAuctions: number;
+  liveAuctions: number;
+}
+
+function StatCard({
+  label,
+  value,
+  valueClassName,
+}: {
+  label: string;
+  value: number | string;
+  valueClassName: string;
+}) {
+  return (
+    <div className="bg-white rounded-xl border border-[#AFD3E2] p-5 shadow-sm shadow-[#AFD3E2]/20">
+      <p className="text-xs font-semibold text-[#5A7184] uppercase">{label}</p>
+      <p className={`text-2xl font-bold mt-1 ${valueClassName}`}>{value}</p>
+    </div>
+  );
 }
 
 export default function AdminDashboardPage() {
   const [pendingData, setPendingData] = useState<PendingData>({
     pendingUsers: 0,
     pendingAuctions: 0,
+    liveAuctions: 0,
   });
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPendingData = async () => {
       try {
-        const [usersResponse, auctionsResponse] = await Promise.all([
+        setLoading(true);
+        setError(null);
+
+        const [usersResponse, auctionsResponse, liveAuctionsResponse] = await Promise.all([
           fetchPendingUsers(0, 1),
           fetchPendingAuctions(0, 1),
+          fetchLiveAuctions(),
         ]);
 
         setPendingData({
           pendingUsers: usersResponse.totalElements,
           pendingAuctions: auctionsResponse.totalElements,
+          liveAuctions: liveAuctionsResponse.length,
         });
       } catch (error) {
         setError(getErrorMessage(error, "Failed to fetch pending dashboard data."));
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -42,52 +70,41 @@ export default function AdminDashboardPage() {
       {error ? (
         <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</p>
       ) : null}
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total Revenue Card */}
-        <div className="bg-white rounded-xl border border-[#AFD3E2] p-5 shadow-sm shadow-[#AFD3E2]/20">
-          <p className="text-xs font-semibold text-[#5A7184] uppercase">Total Revenue</p>
-          <p className="text-2xl font-bold text-[#146C94] mt-1">45.2M</p>
+      <div className="rounded-2xl border border-[#AFD3E2] bg-linear-to-r from-white to-[#F6FBFC] p-6 shadow-sm shadow-[#AFD3E2]/20">
+        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#5A7184]">Admin Overview</p>
+            <h2 className="mt-1 text-2xl font-bold text-[#146C94]">Auction moderation and live operations</h2>
+            <p className="mt-2 max-w-2xl text-sm text-[#5A7184]">
+              Follow pending approvals and the current live auction queue from one place.
+            </p>
+          </div>
+
         </div>
 
-        {/* Total Transactions Card */}
-        <div className="bg-white rounded-xl border border-[#AFD3E2] p-5 shadow-sm shadow-[#AFD3E2]/20">
-          <p className="text-xs font-semibold text-[#5A7184] uppercase">Total Transactions</p>
-          <p className="text-2xl font-bold text-[#146C94] mt-1">2,547</p>
-        </div>
-
-        {/* Successful Auctions Card */}
-        <div className="bg-white rounded-xl border border-[#AFD3E2] p-5 shadow-sm shadow-[#AFD3E2]/20">
-          <p className="text-xs font-semibold text-[#5A7184] uppercase">Successful Auctions</p>
-          <p className="text-2xl font-bold text-[#146C94] mt-1">1,823</p>
-        </div>
-
-        {/* New Users Card */}
-        <div className="bg-white rounded-xl border border-[#AFD3E2] p-5 shadow-sm shadow-[#AFD3E2]/20">
-          <p className="text-xs font-semibold text-[#5A7184] uppercase">New Users</p>
-          <p className="text-2xl font-bold text-[#146C94] mt-1">342</p>
-        </div>
-      </div>
-
-      {/* Pending Approvals Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Pending Users Card */}
-        <div className="bg-white rounded-xl border border-[#AFD3E2] p-5 shadow-sm shadow-[#AFD3E2]/20">
-          <p className="text-xs font-semibold text-[#5A7184] uppercase">Pending Users</p>
-          <p className="text-2xl font-bold text-orange-600 mt-1">{pendingData.pendingUsers}</p>
-        </div>
-
-        {/* Pending Auctions Card */}
-        <div className="bg-white rounded-xl border border-[#AFD3E2] p-5 shadow-sm shadow-[#AFD3E2]/20">
-          <p className="text-xs font-semibold text-[#5A7184] uppercase">Pending Auctions</p>
-          <p className="text-2xl font-bold text-orange-600 mt-1">{pendingData.pendingAuctions}</p>
+        <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
+          <StatCard
+            label="Pending Users"
+            value={pendingData.pendingUsers}
+            valueClassName="text-orange-600"
+          />
+          <StatCard
+            label="Pending Auctions"
+            value={pendingData.pendingAuctions}
+            valueClassName="text-orange-600"
+          />
+          <StatCard
+            label="Live Auctions"
+            value={pendingData.liveAuctions}
+            valueClassName="text-emerald-600"
+          />
         </div>
       </div>
 
       <div className="bg-white rounded-xl border border-[#AFD3E2] p-6 shadow-sm shadow-[#AFD3E2]/20">
         <h3 className="text-lg font-bold text-[#146C94] mb-2">Admin Overview</h3>
         <p className="text-sm text-[#5A7184]">
-          This overview now reflects only live backend approval queues.
+          Use the dashboard cards above to monitor approval queues and the current live auction workload.
         </p>
       </div>
     </div>
