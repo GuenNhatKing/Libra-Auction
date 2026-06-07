@@ -382,7 +382,7 @@ export default function LiveAuctionView({
                 <p className="text-base text-gray-500 line-clamp-3">{auction.description}</p>
               </div>
 
-              <div className="bg-[#F2F8FA] rounded-2xl border border-[#AFD3E2] p-6 shadow-sm shadow-[#AFD3E2]/20">
+              <div className="bg-[#F2F8FA]/50 rounded-2xl border border-[#AFD3E2] p-6 shadow-sm shadow-[#AFD3E2]/20">
                 <h3 className="text-lg font-bold text-[#146C94] mb-4">Session notifications</h3>
                 <div className="max-h-60 overflow-auto space-y-1">
                   {notifications.length === 0 ? (
@@ -408,14 +408,14 @@ export default function LiveAuctionView({
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-2xl border border-[#AFD3E2] bg-[#F2F8FA] p-5 text-center shadow-sm shadow-[#AFD3E2]/20">
+                <div className="rounded-2xl border border-[#AFD3E2] bg-[#F2F8FA]/50 p-5 text-center shadow-sm shadow-[#AFD3E2]/20">
                   <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5A7184]">Highest bidder</p>
                   <div className="mt-3 flex min-h-16 flex-col items-center justify-center rounded-xl border border-[#D8EEF4] bg-[#EAF4F7] px-4 py-3">
                     <p className="max-w-full truncate text-xl font-bold text-[#146C94]">{highestBidder}</p>
                     {isHighestBidder && <p className="text-xs text-amber-700 font-semibold mt-1">You are leading</p>}
                   </div>
                 </div>
-                <div className="rounded-2xl border border-[#AFD3E2] bg-[#F2F8FA] p-5 text-center shadow-sm shadow-[#AFD3E2]/20">
+                <div className="rounded-2xl border border-[#AFD3E2] bg-[#F2F8FA]/50 p-5 text-center shadow-sm shadow-[#AFD3E2]/20">
                   <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5A7184]">Time remaining</p>
                   <div className="mt-3 flex min-h-16 items-center justify-center rounded-xl border border-[#D8EEF4] bg-[#EAF4F7] px-4 py-3 text-[#146C94]">
                     <AuctionTimer endTimeMs={endTimeMs} remainingTimeMs={remainingTimeMs} isPaused={isPaused} size="sm" />
@@ -424,7 +424,7 @@ export default function LiveAuctionView({
               </div>
 
               {role === "user" && (
-                <div className="bg-[#F2F8FA] rounded-2xl border border-[#AFD3E2] p-6 shadow-sm shadow-[#AFD3E2]/20">
+                <div className="bg-[#F2F8FA]/50 rounded-2xl border border-[#AFD3E2] p-6 shadow-sm shadow-[#AFD3E2]/20">
                   <label className="block text-lg font-bold text-[#146C94] mb-1">Place your bid</label>
                   <p className="text-sm text-[#5A7184] mb-5">Minimum bid: <span className="font-semibold text-[#19A7CE]">{CurrencyFormat(minimumBid)}</span></p>
                   {canBid ? (
@@ -440,7 +440,7 @@ export default function LiveAuctionView({
                 </div>
               )}
 
-              <div className="bg-[#F2F8FA] rounded-2xl border border-[#AFD3E2] p-6 shadow-sm shadow-[#AFD3E2]/20 flex-1 min-h-0 flex flex-col">
+              <div className="bg-[#F2F8FA]/50 rounded-2xl border border-[#AFD3E2] p-6 shadow-sm shadow-[#AFD3E2]/20 flex-1 min-h-0 flex flex-col">
                 <h3 className="text-lg font-bold text-[#146C94] mb-4 flex-shrink-0">Bid history ({totalBids} bids)</h3>
                 <div className="flex-1 min-h-0 overflow-auto">
                   <BidHistory bids={bids} maxHeight="100%" currentUserId={currentUserId} />
