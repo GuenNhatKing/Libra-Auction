@@ -21,7 +21,7 @@ export default function BidHistory({
   if (bids.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-sm text-[#5A7184]">Chưa có lượt đặt giá nào</p>
+        <p className="text-sm text-[#5A7184]">No bids yet</p>
       </div>
     );
   }
@@ -49,18 +49,18 @@ export default function BidHistory({
               </span>
               {bid.status === "WINNER" && (
                 <span className="px-1.5 py-0.5 bg-yellow-400 text-yellow-900 text-xs font-bold rounded">
-                  THẮNG
+                  WINNER
                 </span>
               )}
               {bid.status === "ERROR" && (
                 <span className="px-1.5 py-0.5 bg-red-400 text-white text-xs font-bold rounded">
-                  LỖI
+                  ERROR
                 </span>
               )}
             </div>
             <p className="text-xs text-[#5A7184] mt-0.5">{bid.time}</p>
           </div>
-          <div className="text-right flex-shrink-0 ml-4">
+          <div className="text-right shrink-0 ml-4">
             <p
               className={`text-sm font-bold ${
                 bid.status === "ERROR"

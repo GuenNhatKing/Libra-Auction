@@ -60,9 +60,9 @@ export default function AuctionTimer({
     return (
       <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-5 text-center">
         <div className={`${sizeClasses[size]} text-amber-700 font-mono`}>
-          <span className="font-sans tracking-[0.22em]">TẠM DỪNG</span>
+          <span className="font-sans tracking-[0.22em]">PAUSED</span>
         </div>
-        <p className="mt-2 text-sm text-amber-700">Phiên đấu giá đang giữ thời gian hiện tại</p>
+        <p className="mt-2 text-sm text-amber-700">The current time is frozen while the auction is paused</p>
       </div>
     );
   }
@@ -83,15 +83,15 @@ export default function AuctionTimer({
     <div className="rounded-2xl border border-[#EAF3F6] bg-[#F8FCFD] px-6 py-5 text-center shadow-inner shadow-white/60">
       <div className={`${sizeClasses[size]} ${getColorClass()} font-mono`} suppressHydrationWarning>
         {timeLeftMs <= 0 ? (
-          <span className="text-rose-600">ĐÃ KẾT THÚC</span>
+            <span className="text-rose-600">ENDED</span>
         ) : (
           timeStr
         )}
       </div>
       <p className="mt-2 text-sm text-[#5A7184]">
         {timeLeftMs <= 0
-          ? "Phiên đấu giá đã kết thúc"
-          : "Đếm ngược theo thời gian thực"}
+          ? "The auction has ended"
+          : "Real-time countdown"}
       </p>
     </div>
   );

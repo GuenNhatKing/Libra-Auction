@@ -57,7 +57,7 @@ export default function AdminControls({
   return (
     <div className="rounded-2xl border border-[#AFD3E2] bg-white p-6 shadow-sm shadow-[#AFD3E2]/20">
       <h3 className="mb-4 text-lg font-bold text-[#146C94]">
-        Điều khiển phiên đấu giá
+        Auction controls
       </h3>
 
       {/* Confirmation Dialog */}
@@ -66,23 +66,23 @@ export default function AdminControls({
           <div className="mx-4 max-w-md rounded-2xl border border-[#AFD3E2] bg-white p-6 shadow-2xl">
             <h4 className="mb-2 text-lg font-bold text-[#146C94]">
               {showConfirm === "end"
-                ? "Kết thúc phiên đấu giá?"
-                : "Hủy phiên đấu giá?"}
+                ? "End this auction?"
+                : "Cancel this auction?"}
             </h4>
             <p className="mb-4 text-sm text-[#5A7184]">
               {showConfirm === "end"
-                ? "Hành động này sẽ kết thúc phiên đấu giá và xác định người thắng. Không thể hoàn tác."
-                : "Phiên đấu giá chưa bắt đầu sẽ bị hủy. Sản phẩm sẽ về trạng thái sẵn sàng."}
+                ? "This will end the auction and determine the winner. This action cannot be undone."
+                : "A not-started auction will be cancelled. The product will return to the ready state."}
             </p>
             {showConfirm === "cancel" && (
               <div className="mb-4">
                 <label className="mb-1 block text-sm font-medium text-[#146C94]">
-                  Lý do hủy <span className="text-red-500">*</span>
+                  Cancellation reason <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   value={cancelReason}
                   onChange={(e) => setCancelReason(e.target.value)}
-                  placeholder="Nhập lý do hủy phiên đấu giá..."
+                  placeholder="Enter a cancellation reason..."
                   rows={3}
                   className="w-full resize-none rounded-xl border border-[#AFD3E2] px-3 py-2 text-sm outline-none focus:border-[#19A7CE] focus:ring-2 focus:ring-[#19A7CE]/20"
                 />
@@ -96,14 +96,14 @@ export default function AdminControls({
                 }}
                 className="rounded-xl border border-[#AFD3E2] px-4 py-2 text-sm font-semibold text-[#5A7184] transition hover:bg-[#F6FBFC]"
               >
-                Hủy
+                Cancel
               </button>
               <button
                 onClick={handleConfirmAction}
                 disabled={showConfirm === "cancel" && !cancelReason.trim()}
                 className="rounded-xl bg-[#146C94] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#0d5a7a] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Xác nhận
+                Confirm
               </button>
             </div>
           </div>
@@ -119,7 +119,7 @@ export default function AdminControls({
             disabled={isLoading}
             className={`${primaryButtonClass} bg-amber-500 text-white hover:bg-amber-600`}
           >
-            Tạm dừng phiên
+            Pause auction
           </button>
         )}
 
@@ -129,7 +129,7 @@ export default function AdminControls({
             disabled={isLoading}
             className={`${primaryButtonClass} bg-emerald-600 text-white hover:bg-emerald-700`}
           >
-            Tiếp tục phiên
+            Resume auction
           </button>
         )}
 
@@ -140,7 +140,7 @@ export default function AdminControls({
             disabled={isLoading}
             className={`${primaryButtonClass} bg-rose-600 text-white hover:bg-rose-700`}
           >
-            Kết thúc phiên
+            End auction
           </button>
         )}
 
@@ -151,15 +151,14 @@ export default function AdminControls({
             disabled={isLoading}
             className={`${primaryButtonClass} border border-rose-300 bg-white text-rose-700 hover:bg-rose-50`}
           >
-            Hủy phiên
+            Cancel auction
           </button>
         )}
 
         {isEnded && (
           <div className="rounded-xl border border-[#EAF3F6] bg-[#F8FCFD] p-4 text-center">
             <p className="text-sm text-[#5A7184]">
-              Phiên đấu giá đã{" "}
-              {currentStatus === "ENDED" ? "kết thúc" : "bị hủy"}
+              The auction has {currentStatus === "ENDED" ? "ended" : "been cancelled"}
             </p>
           </div>
         )}
@@ -168,14 +167,14 @@ export default function AdminControls({
       {/* Send Notification */}
       <div className="border-t border-[#AFD3E2] pt-4">
         <h4 className="mb-2 text-sm font-semibold text-[#146C94]">
-          Gửi thông báo
+          Send notification
         </h4>
         <div className="flex gap-2">
           <input
             type="text"
             value={notificationMessage}
             onChange={(e) => setNotificationMessage(e.target.value)}
-            placeholder="Nhập thông báo..."
+            placeholder="Enter a notification..."
             className="flex-1 rounded-xl border border-[#AFD3E2] px-3 py-2 text-sm outline-none focus:border-[#19A7CE] focus:ring-2 focus:ring-[#19A7CE]/20"
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSendNotification();
@@ -186,7 +185,7 @@ export default function AdminControls({
             disabled={!notificationMessage.trim()}
             className="rounded-xl bg-[#146C94] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#0d5a7a] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Gửi
+            Send
           </button>
         </div>
       </div>

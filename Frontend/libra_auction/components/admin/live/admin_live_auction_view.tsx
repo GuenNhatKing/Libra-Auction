@@ -61,7 +61,7 @@ export default function AdminLiveAuctionView({
 
   const addNotification = useCallback((msg: string) => {
     setNotifications((prev) => [
-      `${new Date().toLocaleTimeString("vi-VN")} - ${msg}`,
+      `${new Date().toLocaleTimeString("en-US")} - ${msg}`,
       ...prev.slice(0, 49),
     ]);
   }, []);
@@ -79,13 +79,17 @@ export default function AdminLiveAuctionView({
       const bid = body as unknown as BidUpdate;
       if (typeof bid.bidAmount === "number") {
         setCurrentPrice(bid.bidAmount);
+        setTotalBids((prev) => prev + 1);
+        if (bid.bidderName) {
+          setHighestBidder(bid.bidderName);
+        }
         setBids((prev) => [
           {
             bidderName: bid.bidderName || "Unknown",
             amount: bid.bidAmount!,
             time: bid.bidTime
-              ? new Date(bid.bidTime).toLocaleTimeString("vi-VN")
-              : new Date().toLocaleTimeString("vi-VN"),
+              ? new Date(bid.bidTime).toLocaleTimeString("en-US")
+              : new Date().toLocaleTimeString("en-US"),
             status: (bid.status as BidEntry["status"]) || "SUCCESS",
           },
           ...prev,
@@ -106,22 +110,22 @@ export default function AdminLiveAuctionView({
         switch (update.type) {
           case "AUCTION_PAUSED":
             setAuctionStatus("PAUSED");
-            addNotification("Phiên đấu giá đã bị tạm dừng");
+            addNotification("The auction has been paused");
             break;
           case "AUCTION_RESUMED":
             setAuctionStatus("IN_PROGRESS");
-            addNotification("Phiên đấu giá đã tiếp tục");
+            addNotification("The auction has resumed");
             break;
           case "AUCTION_ENDED":
             setAuctionStatus("ENDED");
-            addNotification("Phiên đấu giá đã kết thúc");
+            addNotification("The auction has ended");
             break;
           case "AUCTION_CANCELLED":
             setAuctionStatus("CANCELLED");
-            addNotification("Phiên đấu giá đã bị hủy");
+            addNotification("The auction has been cancelled");
             break;
           case "AUCTION_EXTENDED":
-            addNotification("Phiên đấu giá đã được gia hạn");
+            addNotification("The auction has been extended");
             break;
         }
       }
@@ -168,7 +172,7 @@ export default function AdminLiveAuctionView({
       );
     } catch (err) {
       console.error(`Admin command ${command} failed:`, err);
-      addNotification(`Lỗi khi gửi lệnh ${command}`);
+      addNotification(`Failed to send ${command} command`);
     } finally {
       setTimeout(() => setIsActionLoading(false), 1000);
     }
@@ -182,11 +186,9 @@ export default function AdminLiveAuctionView({
         message,
       }
     );
-    addNotification(`Đã gửi thông báo: ${message}`);
+    addNotification(`Notification sent: ${message}`);
   };
 
-  const isEnded =
-    auctionStatus === "ENDED" || auctionStatus === "CANCELLED";
   const isPaused = auctionStatus === "PAUSED";
 
   const statusLabel =
@@ -218,8 +220,8 @@ export default function AdminLiveAuctionView({
               {auction.product_name}
             </h1>
             <p className="text-sm text-[#5A7184]">
-              Auction ID {auction.auction_id} • {auction.category_name} • SL {auction.quantity}
-            </p>
+              # {auction.auction_id}
+            </p>  
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <span className={`inline-flex items-center rounded-full border px-3 py-1.5 text-sm font-semibold ${statusClassName}`}>
@@ -248,20 +250,20 @@ export default function AdminLiveAuctionView({
                   {auction.product_name}
                 </h2>
                 <p className="text-sm text-[#5A7184]">
-                  {auction.category_name} • SL: {auction.quantity}
+                  ID {auction.auction_id} • {auction.category_name} • Quantity {auction.quantity}
                 </p>
                 <p className="text-sm leading-relaxed text-[#5A7184] line-clamp-3">
                   {auction.description}
                 </p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div className="rounded-xl border border-[#EAF3F6] bg-[#F8FCFD] p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#5A7184]">Giá khởi điểm</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#5A7184]">Starting price</p>
                     <p className="mt-2 text-lg font-bold text-[#19A7CE]">
                       {CurrencyFormat(auction.starting_price)}
                     </p>
                   </div>
                   <div className="rounded-xl border border-[#EAF3F6] bg-[#F8FCFD] p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#5A7184]">Bước giá tối thiểu</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#5A7184]">Minimum increment</p>
                     <p className="mt-2 text-lg font-bold text-[#19A7CE]">
                       {CurrencyFormat(auction.min_bid_increment)}
                     </p>
@@ -274,12 +276,8 @@ export default function AdminLiveAuctionView({
           <div className="bg-white rounded-2xl border border-[#AFD3E2] p-6 shadow-sm shadow-[#AFD3E2]/20">
             <div className="mb-4 flex items-end justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#5A7184]">
-                  Thời gian còn lại
-                </p>
-                <p className="mt-1 text-sm text-[#5A7184]">
-                  Cập nhật theo trạng thái phiên đấu giá
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#5A7184]">Time remaining</p>
+                <p className="mt-1 text-sm text-[#5A7184]">Updates based on the auction status</p>
               </div>
             </div>
             <AuctionTimer
@@ -292,7 +290,7 @@ export default function AdminLiveAuctionView({
           {/* Bid History */}
           <div className="bg-white rounded-2xl border border-[#AFD3E2] p-6 shadow-sm shadow-[#AFD3E2]/20">
             <h3 className="text-lg font-bold text-[#146C94] mb-4">
-              Lịch sử trả giá ({totalBids} bids)
+              Bid history ({totalBids} bids)
             </h3>
             <BidHistory bids={bids} maxHeight="400px" />
           </div>
@@ -300,11 +298,11 @@ export default function AdminLiveAuctionView({
           {/* Notifications Log */}
           <div className="bg-white rounded-2xl border border-[#AFD3E2] p-6 shadow-sm shadow-[#AFD3E2]/20">
             <h3 className="text-lg font-bold text-[#146C94] mb-4">
-              Nhật ký thông báo
+              Notification log
             </h3>
             <div className="max-h-48 overflow-auto space-y-1">
               {notifications.length === 0 ? (
-                <p className="text-sm text-[#5A7184]">Chưa có thông báo</p>
+                <p className="text-sm text-[#5A7184]">No notifications yet</p>
               ) : (
                 notifications.map((note, idx) => (
                   <p
@@ -346,40 +344,40 @@ export default function AdminLiveAuctionView({
           {/* Anomaly Alerts */}
           <div className="bg-white rounded-2xl border border-[#AFD3E2] p-6 shadow-sm shadow-[#AFD3E2]/20">
             <h3 className="text-lg font-bold text-[#146C94] mb-4">
-              Cảnh báo bất thường
+              Alerts
             </h3>
             <div className="space-y-2">
               {totalBids > 50 && (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
                   <p className="text-xs font-semibold text-amber-800 uppercase tracking-[0.16em]">
-                    Số lượng bid cao bất thường
+                    Unusually high bid volume
                   </p>
                   <p className="text-xs text-amber-700">
-                    {totalBids} bids - kiểm tra spam
+                    {totalBids} bids - check for spam
                   </p>
                 </div>
               )}
               {isPaused && (
                 <div className="bg-sky-50 border border-sky-200 rounded-xl p-3">
                   <p className="text-xs font-semibold text-sky-800 uppercase tracking-[0.16em]">
-                    Phiên đang tạm dừng
+                    Auction is paused
                   </p>
                   <p className="text-xs text-sky-700">
-                    Admin đã tạm dừng phiên đấu giá
+                    The admin has paused the auction
                   </p>
                 </div>
               )}
               {totalBids === 0 && auctionStatus === "IN_PROGRESS" && (
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
                   <p className="text-xs font-semibold text-slate-600 uppercase tracking-[0.16em]">
-                    Chưa có bid nào
+                    No bids yet
                   </p>
                 </div>
               )}
               {totalBids <= 50 && !isPaused && totalBids > 0 && (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
                   <p className="text-xs font-semibold text-emerald-800 uppercase tracking-[0.16em]">
-                    Hoạt động bình thường
+                    Operating normally
                   </p>
                 </div>
               )}
