@@ -2,6 +2,7 @@ package io.github.guennhatking.libra_auction.controllers;
 
 import io.github.guennhatking.libra_auction.services.BidHistoryService;
 import io.github.guennhatking.libra_auction.viewmodels.response.BidResponse;
+import io.github.guennhatking.libra_auction.viewmodels.response.ServerAPIResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,12 +22,12 @@ public class BidController {
     }
 
     @GetMapping("/{auctionId}/bids")
-    public ResponseEntity<List<BidResponse>> getAuctionBids(@PathVariable String auctionId) {
-        return ResponseEntity.ok(bidHistoryService.getAuctionBids(auctionId));
+    public ResponseEntity<ServerAPIResponse<List<BidResponse>>> getAuctionBids(@PathVariable String auctionId) {
+        return ResponseEntity.ok(ServerAPIResponse.success(bidHistoryService.getAuctionBids(auctionId)));
     }
 
     @GetMapping("/{auctionId}/bids/count")
-    public ResponseEntity<Integer> getAuctionBidsCount(@PathVariable String auctionId) {
-        return ResponseEntity.ok(bidHistoryService.getAuctionBidsCount(auctionId));
+    public ResponseEntity<ServerAPIResponse<Integer>> getAuctionBidsCount(@PathVariable String auctionId) {
+        return ResponseEntity.ok(ServerAPIResponse.success(bidHistoryService.getAuctionBidsCount(auctionId)));
     }
 }

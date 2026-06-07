@@ -153,10 +153,17 @@ class AuctionSocket {
     const entry = this.subscriptions.get(destination);
     if (!entry) return;
 
+    entry.callback(this.parseBody(body));
+  }
+
+  private parseBody(body: string) {
+    const normalizedBody = body.replace(/\u0000+$/g, "").trim();
+    if (!normalizedBody) return null;
+
     try {
-      entry.callback(body ? JSON.parse(body) : null);
+      return JSON.parse(normalizedBody);
     } catch {
-      entry.callback(body);
+      return normalizedBody;
     }
   }
 

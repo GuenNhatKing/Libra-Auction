@@ -45,6 +45,7 @@ public interface AuctionMapper {
     @Mapping(source = ".", target = "winner_id", qualifiedByName = "resolveWinnerId")
     @Mapping(source = ".", target = "winner_name", qualifiedByName = "resolveWinnerName")
     @Mapping(source = ".", target = "winning_price", qualifiedByName = "resolveWinningPrice")
+    @Mapping(target = "remaining_time", ignore = true)
     AuctionResponse toAuctionResponse(Auction session);
 
     List<AuctionResponse> toAuctionResponseList(List<Auction> sessions);

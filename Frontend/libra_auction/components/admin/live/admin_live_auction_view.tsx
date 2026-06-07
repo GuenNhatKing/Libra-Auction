@@ -16,25 +16,76 @@ type StatusUpdate = {
   auctionId?: string;
   status?: string;
   message?: string;
-  newEndTime?: string;
+  newEndTime?: string | number;
+  remainingTime?: string | number;
   timestamp?: string;
 };
 
 type BidUpdate = {
   auctionId?: string;
-  bidAmount?: number;
+  bidAmount?: string | number;
   bidderId?: string;
   bidderName?: string;
   bidTime?: string;
   status?: string;
-  currentPrice?: number;
-  current_price?: number;
+  currentPrice?: string | number;
+  current_price?: string | number;
 };
 
 type LiveNotificationItem = LiveNotification;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function parseSocketRecord(body: unknown) {
+  if (isRecord(body)) return body;
+  if (typeof body !== "string") return null;
+
+  const normalizedBody = body.replace(/\u0000+$/g, "").trim();
+  if (!normalizedBody) return null;
+
+  try {
+    const parsed = JSON.parse(normalizedBody);
+    return isRecord(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeSpringIsoDate(value: string) {
+  return value.replace(/\.(\d{3})\d+(Z|[+-]\d{2}:?\d{2})$/, ".$1$2");
+}
+
+function toTimestamp(value: Date | string | number | undefined) {
+  if (value instanceof Date) return value.getTime();
+  if (typeof value === "number") return value;
+  if (typeof value === "string") return new Date(normalizeSpringIsoDate(value)).getTime();
+  return NaN;
+}
+
+function formatTime(value?: string) {
+  const timestamp = toTimestamp(value);
+  return Number.isNaN(timestamp)
+    ? new Date().toLocaleTimeString("en-US")
+    : new Date(timestamp).toLocaleTimeString("en-US");
+}
+
+function toNumber(value: string | number | undefined) {
+  if (typeof value === "number") return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? undefined : parsed;
+  }
+  return undefined;
+}
+
+function statusFromAdminNotification(type?: string) {
+  if (type === "AUCTION_PAUSED") return "PAUSED";
+  if (type === "AUCTION_RESUMED") return "IN_PROGRESS";
+  if (type === "AUCTION_ENDED") return "ENDED";
+  if (type === "AUCTION_CANCELLED") return "CANCELLED";
+  return undefined;
 }
 
 export default function AdminLiveAuctionView({
@@ -49,11 +100,13 @@ export default function AdminLiveAuctionView({
   const [currentPrice, setCurrentPrice] = useState(
     auction.current_price || auction.starting_price || 0
   );
-  const [endTimeMs] = useState(() => {
-    const end =
-      new Date(auction.start_time).getTime() + auction.duration * 1000;
-    return end;
+  const [endTimeMs, setEndTimeMs] = useState(() => {
+    const startTimeMs = toTimestamp(auction.start_time);
+    return startTimeMs + auction.duration * 1000;
   });
+  const [remainingTimeMs, setRemainingTimeMs] = useState<number | null>(
+    auction.auction_status === "PAUSED" ? auction.remaining_time ?? null : null
+  );
   const [auctionStatus, setAuctionStatus] = useState<string>(
     auction.auction_status || "IN_PROGRESS"
   );
@@ -78,8 +131,9 @@ export default function AdminLiveAuctionView({
     ]);
   }, [auction.auction_id]);
 
-  const formatNotificationTime = (value: string) =>
-    new Date(value).toLocaleString("en-US", {
+  const formatNotificationTime = (value: string) => {
+    const timestamp = toTimestamp(value);
+    return (Number.isNaN(timestamp) ? new Date() : new Date(timestamp)).toLocaleString("en-US", {
       year: "numeric",
       month: "short",
       day: "2-digit",
@@ -87,6 +141,7 @@ export default function AdminLiveAuctionView({
       minute: "2-digit",
       second: "2-digit",
     });
+  };
 
   useEffect(() => {
     const bidsTopic = `/topic/auction/${auction.auction_id}/bids`;
@@ -97,10 +152,12 @@ export default function AdminLiveAuctionView({
     auctionSocket.connect(backendServerUrl);
 
     auctionSocket.subscribe(bidsTopic, (body: unknown) => {
-      if (!isRecord(body)) return;
-      const bid = body as unknown as BidUpdate;
-      if (typeof bid.bidAmount === "number") {
-        setCurrentPrice(bid.bidAmount);
+      const record = parseSocketRecord(body);
+      if (!record) return;
+      const bid = record as unknown as BidUpdate;
+      const bidAmount = toNumber(bid.bidAmount);
+      if (bidAmount !== undefined) {
+        setCurrentPrice(bidAmount);
         setTotalBids((prev) => prev + 1);
         if (bid.bidderName) {
           setHighestBidder(bid.bidderName);
@@ -108,10 +165,8 @@ export default function AdminLiveAuctionView({
         setBids((prev) => [
           {
             bidderName: bid.bidderName || "Unknown",
-            amount: bid.bidAmount!,
-            time: bid.bidTime
-              ? new Date(bid.bidTime).toLocaleTimeString("en-US")
-              : new Date().toLocaleTimeString("en-US"),
+            amount: bidAmount,
+            time: bid.bidTime ? formatTime(bid.bidTime) : new Date().toLocaleTimeString("en-US"),
             status: (bid.status as BidEntry["status"]) || "SUCCESS",
           },
           ...prev,
@@ -120,10 +175,26 @@ export default function AdminLiveAuctionView({
     });
 
     auctionSocket.subscribe(statusTopic, (body: unknown) => {
-      if (!isRecord(body)) return;
-      const update = body as StatusUpdate;
+      const record = parseSocketRecord(body);
+      if (!record) return;
+      const update = record as StatusUpdate;
       if (update.status) {
         setAuctionStatus(update.status);
+        if (update.status === "PAUSED" && update.remainingTime !== undefined) {
+          const parsedRemainingTime = toNumber(update.remainingTime);
+          if (parsedRemainingTime !== undefined) {
+            setRemainingTimeMs(parsedRemainingTime);
+          }
+        }
+        if (update.status === "IN_PROGRESS") {
+          setRemainingTimeMs(null);
+        }
+      }
+      if (update.newEndTime !== undefined) {
+        const newEndTimeMs = toTimestamp(update.newEndTime);
+        if (!Number.isNaN(newEndTimeMs) && newEndTimeMs > 0) {
+          setEndTimeMs(newEndTimeMs);
+        }
       }
       if (update.message) {
         addNotification(update.message, update.timestamp);
@@ -131,19 +202,28 @@ export default function AdminLiveAuctionView({
     });
 
     auctionSocket.subscribe(genericTopic, (body: unknown) => {
-      if (!isRecord(body)) return;
-      const bid = body as unknown as BidUpdate;
-      const price = bid.currentPrice ?? bid.current_price;
-      if (typeof price === "number") {
+      const record = parseSocketRecord(body);
+      if (!record) return;
+      const bid = record as unknown as BidUpdate;
+      const price = toNumber(bid.currentPrice ?? bid.current_price);
+      if (price !== undefined) {
         setCurrentPrice(price);
       }
     });
 
     auctionSocket.subscribe(adminTopic, (body: unknown) => {
-      if (!isRecord(body)) return;
-      const msg = body as { type?: string; message?: string };
+      const record = parseSocketRecord(body);
+      if (!record) return;
+      const msg = record as { type?: string; message?: string; timestamp?: string };
+      const nextStatus = statusFromAdminNotification(msg.type);
+      if (nextStatus) {
+        setAuctionStatus(nextStatus);
+        if (nextStatus === "IN_PROGRESS") {
+          setRemainingTimeMs(null);
+        }
+      }
       if (msg.message) {
-        addNotification(msg.message);
+        addNotification(msg.message, msg.timestamp);
       }
     });
 
@@ -279,6 +359,7 @@ export default function AdminLiveAuctionView({
             </div>
             <AuctionTimer
               endTimeMs={endTimeMs}
+              remainingTimeMs={remainingTimeMs}
               isPaused={isPaused}
               size="lg"
             />

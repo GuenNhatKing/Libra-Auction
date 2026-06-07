@@ -58,7 +58,10 @@ export default function DepositPaymentSection({
                     Đăng ký hoàn tất!
                 </h3>
                 <p className="text-green-600 mb-4">
-                    Bạn đã thanh toán tiền cọc thành công. Bạn có thể tham gia đấu giá khi phiên bắt đầu.
+                    Bạn đã thanh toán tiền cọc thành công.
+                </p>                
+                <p className="text-green-600 mb-4">
+                    Bạn có thể tham gia đấu giá khi phiên bắt đầu.
                 </p>
                 <a
                     href={`/auctions/${auction.category_id}/${auction.auction_id}/live`}

@@ -31,7 +31,7 @@ public class BidHistoryService {
 
     @Transactional(readOnly = true)
     public BidResponse getLatestBid(String auctionId) {
-        return auctionLogRepository.findFirstByAuction_IdOrderByTimestampDesc(auctionId)
+        return auctionLogRepository.findLatestBidWithBidder(auctionId)
             .map(log -> toBidResponse(auctionId, log))
             .orElse(null);
     }

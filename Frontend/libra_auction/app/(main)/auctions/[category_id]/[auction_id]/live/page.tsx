@@ -1,6 +1,7 @@
 import { getErrorStatus } from "@/lib/app_error";
 import BreadCrumb from "@/components/main/auction/breadcrumb";
 import { fetchPublicAuction } from "@/services/fetch_public_auction";
+import { fetchLiveNotifications } from "@/services/fetch_live_notifications"; 
 import { checkRegistration } from "@/services/register_auction";
 import { getIdFromToken } from "@/lib/get_id_from_token";
 import { notFound } from "next/navigation";
@@ -11,6 +12,8 @@ export default async function LivePage(props: {
 }) {
   const params = await props.params;
   const auctionId = params.auction_id;
+  
+  // 1. Fetch thông tin chi tiết phiên đấu giá
   let auction;
   try {
     auction = await fetchPublicAuction(auctionId);
@@ -19,13 +22,19 @@ export default async function LivePage(props: {
     throw error;
   }
 
+  // 2. Fetch danh sách thông báo quá khứ lưu trong Database (Sửa lỗi trống log khi F5)
+  const liveNotifications = await fetchLiveNotifications(auctionId).catch(() => []);
+
   const backendServerUrl = process.env.PUBLIC_BACKEND_SERVER_URL || process.env.BACKEND_SERVER_URL || '';
 
-  // Check if current user is registered and not the creator
+  // 3. Kiểm tra thông tin định danh và quyền hạn của người dùng hiện tại
   let isRegistered = false;
   let isCreator = false;
+  let currentUserId: string | null = null;
+  
   try {
     const userId = await getIdFromToken();
+    currentUserId = userId;
     if (userId) {
       if (auction.creator_id && auction.creator_id === userId) {
         isCreator = true;
@@ -34,9 +43,10 @@ export default async function LivePage(props: {
       isRegistered = !!registration;
     }
   } catch {
-    // Not logged in or error
+    // Không đăng nhập hoặc xảy ra lỗi token thì bỏ qua
   }
 
+  // 4. Cấu trúc thanh điều hướng Breadcrumb
   const breadcrumb_items = [
     {
       id: auction.category_id,
@@ -64,6 +74,8 @@ export default async function LivePage(props: {
         role="user"
         isRegistered={isRegistered}
         isCreator={isCreator}
+        currentUserId={currentUserId}
+        initialNotifications={liveNotifications} 
       />
     </>
   );

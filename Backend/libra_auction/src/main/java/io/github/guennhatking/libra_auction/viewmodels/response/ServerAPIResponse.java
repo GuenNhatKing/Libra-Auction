@@ -10,8 +10,10 @@ public record ServerAPIResponse<T>(boolean isSuccess, String errorMessage, T dat
 
     // Constructor cho trường hợp thành công
     public static <T> ServerAPIResponse<T> success(T data) {
-        System.out.println("Type of data: " + data.getClass().getSimpleName()); // In ra dữ liệu để kiểm tra
-        System.out.println("Data: " + data); // In ra dữ liệu để kiểm tra
+        if (data != null) {
+            System.out.println("Type of data: " + data.getClass().getSimpleName()); // In ra dữ liệu để kiểm tra
+            System.out.println("Data: " + data); // In ra dữ liệu để kiểm tra
+        }
         return new ServerAPIResponse<>(true, null, data);
     }
 }

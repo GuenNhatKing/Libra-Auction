@@ -31,5 +31,6 @@ export interface Auction {
         creator_id?: string,
         winner_id?: string,
         winner_name?: string,
-        winning_price?: number
+        winning_price?: number,
+        remaining_time?: number
 }

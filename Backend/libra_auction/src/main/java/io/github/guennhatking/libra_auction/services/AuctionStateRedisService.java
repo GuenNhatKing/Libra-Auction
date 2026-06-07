@@ -3,6 +3,7 @@ package io.github.guennhatking.libra_auction.services;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -16,7 +17,7 @@ public class AuctionStateRedisService {
     private static final String AUCTION_START_KEY = "auction:start:queue";
     private static final String AUCTION_END_KEY = "auction:end:queue";
     private static final String AUCTION_END_TIME_KEY = "auction:end:time";
-    private static final String AUCTION_PAUSED_KEY = "auction:paused";
+    private static final String AUCTION_REMAINING_TIME_KEY = "auction:remaining:time";
 
     private final RedisTemplate<String, String> redisTemplate;
 
@@ -67,7 +68,18 @@ public class AuctionStateRedisService {
      */
     public Set<String> getAuctionsToEnd(OffsetDateTime beforeTime) {
         long timestamp = convertToMillis(beforeTime);
-        return redisTemplate.opsForZSet().rangeByScore(AUCTION_END_KEY, 0, timestamp);
+        Set<String> dueAuctionIds = redisTemplate.opsForZSet().rangeByScore(AUCTION_END_KEY, 0, timestamp);
+        Set<String> readyToEnd = new HashSet<>();
+        if (dueAuctionIds == null) {
+            return readyToEnd;
+        }
+
+        for (String auctionId : dueAuctionIds) {
+            if (getRemainingTime(auctionId) == null) {
+                readyToEnd.add(auctionId);
+            }
+        }
+        return readyToEnd;
     }
 
     /**
@@ -139,34 +151,33 @@ public class AuctionStateRedisService {
     }
 
     /**
-     * Mark an auction as paused and record the pause start time
+     * Store remaining time while an auction is paused.
      *
      * @param auctionId The auction ID
-     * @param pauseTime The time when pause started
+     * @param remainingTimeMs Remaining time in milliseconds
      */
-    public void setPaused(String auctionId, OffsetDateTime pauseTime) {
-        long timestamp = convertToMillis(pauseTime);
-        redisTemplate.opsForHash().put(AUCTION_PAUSED_KEY, auctionId, String.valueOf(timestamp));
+    public void setRemainingTime(String auctionId, long remainingTimeMs) {
+        redisTemplate.opsForHash().put(AUCTION_REMAINING_TIME_KEY, auctionId, String.valueOf(Math.max(0, remainingTimeMs)));
     }
 
     /**
-     * Check if an auction is currently paused
+     * Check if an auction has frozen remaining time.
      *
      * @param auctionId The auction ID
-     * @return true if paused, false otherwise
+     * @return true if remaining time exists, false otherwise
      */
-    public boolean isPaused(String auctionId) {
-        return redisTemplate.opsForHash().hasKey(AUCTION_PAUSED_KEY, auctionId);
+    public boolean hasRemainingTime(String auctionId) {
+        return redisTemplate.opsForHash().hasKey(AUCTION_REMAINING_TIME_KEY, auctionId);
     }
 
     /**
-     * Get the pause start time for an auction
+     * Get frozen remaining time for an auction.
      *
      * @param auctionId The auction ID
-     * @return The pause start time in milliseconds, or null if not paused
+     * @return Remaining time in milliseconds, or null if not paused
      */
-    public Long getPauseStartTime(String auctionId) {
-        Object val = redisTemplate.opsForHash().get(AUCTION_PAUSED_KEY, auctionId);
+    public Long getRemainingTime(String auctionId) {
+        Object val = redisTemplate.opsForHash().get(AUCTION_REMAINING_TIME_KEY, auctionId);
         if (val != null) {
             return Long.parseLong(val.toString());
         }
@@ -174,12 +185,12 @@ public class AuctionStateRedisService {
     }
 
     /**
-     * Clear the paused state for an auction
+     * Clear frozen remaining time for an auction.
      *
      * @param auctionId The auction ID
      */
-    public void clearPaused(String auctionId) {
-        redisTemplate.opsForHash().delete(AUCTION_PAUSED_KEY, auctionId);
+    public void clearRemainingTime(String auctionId) {
+        redisTemplate.opsForHash().delete(AUCTION_REMAINING_TIME_KEY, auctionId);
     }
 
     /**
@@ -190,7 +201,7 @@ public class AuctionStateRedisService {
     public void cleanupAuction(String auctionId) {
         removeAuctionStartEvent(auctionId);
         removeAuctionEndEvent(auctionId);
-        clearPaused(auctionId);
+        clearRemainingTime(auctionId);
     }
 
     /**

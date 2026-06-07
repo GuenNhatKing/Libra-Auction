@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 interface AuctionTimerProps {
   endTimeMs: number;
+  remainingTimeMs?: number | null;
   isPaused: boolean;
   onTick?: (timeLeftMs: number) => void;
   onEnd?: () => void;
@@ -12,25 +13,30 @@ interface AuctionTimerProps {
 
 export default function AuctionTimer({
   endTimeMs,
+  remainingTimeMs,
   isPaused,
   onTick,
   onEnd,
   size = "md",
 }: AuctionTimerProps) {
   const [timeLeftMs, setTimeLeftMs] = useState(() =>
-    isPaused ? 0 : Math.max(0, endTimeMs - Date.now())
+    isPaused && remainingTimeMs !== undefined && remainingTimeMs !== null
+      ? Math.max(0, remainingTimeMs)
+      : Math.max(0, endTimeMs - Date.now())
   );
 
-  // Reset timer immediately when endTimeMs or isPaused changes
+  // Reset timer immediately when endTimeMs, remainingTimeMs, or isPaused changes
   useEffect(() => {
     if (isPaused) {
-      // When paused, don't update timeLeftMs - keep it frozen
+      if (remainingTimeMs !== undefined && remainingTimeMs !== null) {
+        setTimeLeftMs(Math.max(0, remainingTimeMs));
+        onTick?.(Math.max(0, remainingTimeMs));
+      }
       return;
     }
-    // Calculate remaining from the server-provided endTimeMs
     const remaining = Math.max(0, endTimeMs - Date.now());
     setTimeLeftMs(remaining);
-  }, [endTimeMs, isPaused]);
+  }, [endTimeMs, remainingTimeMs, isPaused, onTick]);
 
   // Tick every second when not paused
   useEffect(() => {
@@ -56,22 +62,22 @@ export default function AuctionTimer({
     lg: "text-5xl font-bold tracking-[0.18em]",
   };
 
-  if (isPaused) {
-    return (
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-5 text-center">
-        <div className={`${sizeClasses[size]} text-amber-700 font-mono`}>
-          <span className="font-sans tracking-[0.22em]">PAUSED</span>
-        </div>
-        <p className="mt-2 text-sm text-amber-700">The current time is frozen while the auction is paused</p>
-      </div>
-    );
-  }
-
   const hours = Math.floor(timeLeftMs / (1000 * 60 * 60));
   const minutes = Math.floor((timeLeftMs % (1000 * 60 * 60)) / (1000 * 60));
   const seconds = Math.floor((timeLeftMs % (1000 * 60)) / 1000);
   const pad = (n: number) => n.toString().padStart(2, "0");
   const timeStr = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+
+  if (isPaused) {
+    return (
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-5 text-center">
+        <div className={`${sizeClasses[size]} text-amber-700 font-mono`} suppressHydrationWarning>
+          {timeStr}
+        </div>
+        <p className="mt-2 text-sm text-amber-700">PAUSED - The current time is frozen while the auction is paused</p>
+      </div>
+    );
+  }
 
   const getColorClass = () => {
     if (timeLeftMs <= 60 * 1000) return "text-red-600";

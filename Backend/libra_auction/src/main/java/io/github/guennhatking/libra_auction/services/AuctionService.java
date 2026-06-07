@@ -65,7 +65,7 @@ public class AuctionService {
                 if (session.getApprovalStatus() != ApprovalStatus.APPROVED) {
                         throw new IllegalArgumentException("Auction session not found");
                 }
-                return auctionMapper.toAuctionResponse(session);
+                return withRemainingTime(auctionMapper.toAuctionResponse(session));
         }
 
         @Transactional(readOnly = true)
@@ -73,7 +73,7 @@ public class AuctionService {
                 Auction session = auctionRepository.findByIdAndCreator_Id(id, userId)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
 
-                return auctionMapper.toAuctionResponse(session);
+                return withRemainingTime(auctionMapper.toAuctionResponse(session));
         }
 
         @Transactional(readOnly = true)
@@ -86,7 +86,7 @@ public class AuctionService {
                 if (session.getApprovalStatus() != ApprovalStatus.APPROVED) {
                         throw new IllegalArgumentException("Auction not found in this category");
                 }
-                return auctionMapper.toAuctionResponse(session);
+                return withRemainingTime(auctionMapper.toAuctionResponse(session));
         }
 
         @Transactional
@@ -324,5 +324,41 @@ public class AuctionService {
 
                 // Return product response
                 return productResponseMapper.toProductResponse(product);
+        }
+
+        private AuctionResponse withRemainingTime(AuctionResponse response) {
+                Long remainingTime = auctionStateRedisService.getRemainingTime(response.auction_id());
+                if (remainingTime == null) {
+                        return response;
+                }
+
+                return new AuctionResponse(
+                                response.category_id(),
+                                response.category_name(),
+                                response.auction_id(),
+                                response.auction_name(),
+                                response.auction_status(),
+                                response.approval_status(),
+                                response.start_time(),
+                                response.duration(),
+                                response.starting_price(),
+                                response.current_price(),
+                                response.deposit_amount(),
+                                response.min_bid_increment(),
+                                response.product_id(),
+                                response.product_name(),
+                                response.quantity(),
+                                response.description(),
+                                response.images(),
+                                response.attributes(),
+                                response.total_bids(),
+                                response.total_participants(),
+                                response.failure_reason(),
+                                response.completed_at(),
+                                response.creator_id(),
+                                response.winner_id(),
+                                response.winner_name(),
+                                response.winning_price(),
+                                remainingTime);
         }
 }

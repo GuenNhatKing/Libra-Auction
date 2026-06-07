@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -123,14 +125,16 @@ public class AuctionStateTransitionService {
                 return;
             }
 
-            // Record pause start time in Redis
-            auctionStateRedisService.setPaused(auctionId, OffsetDateTime.now(ZoneOffset.ofHours(7)));
+            Long currentEndTimeMs = auctionStateRedisService.getAuctionEndTime(auctionId);
+            long nowMs = System.currentTimeMillis();
+            long remainingTimeMs = currentEndTimeMs != null ? Math.max(0, currentEndTimeMs - nowMs) : 0;
+            auctionStateRedisService.setRemainingTime(auctionId, remainingTimeMs);
 
             auction.setAuctionStatus(AuctionStatus.PAUSED);
             auctionRepository.save(auction);
 
-            logger.info("Auction {} paused", auctionId);
-            sendAuctionStatusUpdate(auctionId, "PAUSED");
+            logger.info("Auction {} paused with remainingTimeMs={}", auctionId, remainingTimeMs);
+            sendAuctionStatusUpdateWithExtra(auctionId, "PAUSED", null, remainingTimeMs);
         } catch (Exception e) {
             logger.error("Error pausing auction {}: {}", auctionId, e.getMessage(), e);
         }
@@ -156,33 +160,25 @@ public class AuctionStateTransitionService {
                 return;
             }
 
-            // Calculate paused duration and extend end time
+            Long remainingTimeMs = auctionStateRedisService.getRemainingTime(auctionId);
             long finalEndTimeMs = 0;
-            Long pauseStartMs = auctionStateRedisService.getPauseStartTime(auctionId);
-            if (pauseStartMs != null) {
-                long pausedDurationMs = System.currentTimeMillis() - pauseStartMs;
-                Long currentEndTimeMs = auctionStateRedisService.getAuctionEndTime(auctionId);
-                if (currentEndTimeMs != null) {
-                    finalEndTimeMs = currentEndTimeMs + pausedDurationMs;
-                    OffsetDateTime newEndTime = OffsetDateTime.ofInstant(
-                        java.time.Instant.ofEpochMilli(finalEndTimeMs), ZoneOffset.ofHours(7));
-                    auctionStateRedisService.extendAuctionEnd(auctionId, newEndTime);
-                    logger.info("Auction {} resumed, extended end time by {} ms, newEndTime={}", auctionId, pausedDurationMs, finalEndTimeMs);
-                }
+            if (remainingTimeMs != null) {
+                finalEndTimeMs = System.currentTimeMillis() + remainingTimeMs;
+                OffsetDateTime newEndTime = OffsetDateTime.ofInstant(
+                    java.time.Instant.ofEpochMilli(finalEndTimeMs), ZoneOffset.ofHours(7));
+                auctionStateRedisService.extendAuctionEnd(auctionId, newEndTime);
+                logger.info("Auction {} resumed with remainingTimeMs={}, newEndTime={}", auctionId, remainingTimeMs, finalEndTimeMs);
             } else {
-                // Fallback: read from Redis
                 Long stored = auctionStateRedisService.getAuctionEndTime(auctionId);
                 finalEndTimeMs = stored != null ? stored : 0;
             }
-            auctionStateRedisService.clearPaused(auctionId);
+            auctionStateRedisService.clearRemainingTime(auctionId);
 
             auction.setAuctionStatus(AuctionStatus.IN_PROGRESS);
             auctionRepository.save(auction);
 
             logger.info("Auction {} resumed, sending newEndTime={}", auctionId, finalEndTimeMs);
-            // Send directly calculated endTime, not read from Redis
-            String endTimeField = finalEndTimeMs > 0 ? ",\"newEndTime\":" + finalEndTimeMs : "";
-            sendAuctionStatusUpdateWithExtra(auctionId, "IN_PROGRESS", endTimeField);
+            sendAuctionStatusUpdateWithExtra(auctionId, "IN_PROGRESS", finalEndTimeMs > 0 ? finalEndTimeMs : null, null);
         } catch (Exception e) {
             logger.error("Error resuming auction {}: {}", auctionId, e.getMessage(), e);
         }
@@ -275,7 +271,7 @@ public class AuctionStateTransitionService {
             }
 
             // Send WebSocket notification
-            sendAuctionStatusUpdate(auctionId, AuctionStatus.ENDED.toString());
+            sendAuctionEndStatusUpdate(auctionId, winner, latestBidResponse);
 
         } catch (Exception e) {
             logger.error("Error ending auction {}: {}", auctionId, e.getMessage(), e);
@@ -357,20 +353,60 @@ public class AuctionStateTransitionService {
      * @param status The new status
      */
     private void sendAuctionStatusUpdate(String auctionId, String status) {
-        sendAuctionStatusUpdateWithExtra(auctionId, status, "");
+        sendAuctionStatusUpdateWithExtra(auctionId, status, null, null);
+    }
+
+    private void sendAuctionEndStatusUpdate(String auctionId, Customer winner, BidResponse latestBidResponse) {
+        try {
+            Map<String, Object> notification = new HashMap<>();
+            notification.put("type", "STATUS_CHANGE");
+            notification.put("auctionId", auctionId);
+            notification.put("status", AuctionStatus.ENDED.toString());
+            notification.put("timestamp", OffsetDateTime.now(ZoneOffset.ofHours(7)));
+            if (winner != null) {
+                notification.put("winnerId", winner.getId());
+                notification.put("winnerName", winner.getFullName());
+            } else if (latestBidResponse != null && latestBidResponse.bidderName() != null) {
+                notification.put("winnerId", latestBidResponse.bidderId());
+                notification.put("winnerName", latestBidResponse.bidderName());
+            }
+            if (latestBidResponse != null && latestBidResponse.bidAmount() != null) {
+                notification.put("winningPrice", latestBidResponse.bidAmount());
+            }
+
+            messagingTemplate.convertAndSend(
+                "/topic/auction/" + auctionId + "/status",
+                (Object) notification
+            );
+        } catch (Exception e) {
+            logger.error("Failed to send auction end WebSocket notification for auction {}", auctionId, e);
+        }
     }
 
     /**
-     * Send auction status update via WebSocket with extra JSON fields
+     * Send auction status update via WebSocket with optional timing fields.
      * @param auctionId The auction ID
      * @param status The new status
-     * @param extraFields Additional JSON fields (e.g., ",\"newEndTime\":12345")
+     * @param newEndTimeMs Recalculated end time in milliseconds, when available
+     * @param remainingTimeMs Frozen remaining time in milliseconds, when paused
      */
-    private void sendAuctionStatusUpdateWithExtra(String auctionId, String status, String extraFields) {
+    private void sendAuctionStatusUpdateWithExtra(String auctionId, String status, Long newEndTimeMs, Long remainingTimeMs) {
         try {
+            Map<String, Object> notification = new HashMap<>();
+            notification.put("type", "STATUS_CHANGE");
+            notification.put("auctionId", auctionId);
+            notification.put("status", status);
+            notification.put("timestamp", OffsetDateTime.now(ZoneOffset.ofHours(7)));
+            if (newEndTimeMs != null) {
+                notification.put("newEndTime", newEndTimeMs);
+            }
+            if (remainingTimeMs != null) {
+                notification.put("remainingTime", remainingTimeMs);
+            }
+
             messagingTemplate.convertAndSend(
                 "/topic/auction/" + auctionId + "/status",
-                "{\"auctionId\":\"" + auctionId + "\",\"status\":\"" + status + "\",\"timestamp\":\"" + OffsetDateTime.now(ZoneOffset.ofHours(7)) + "\"" + extraFields + "}"
+                (Object) notification
             );
         } catch (Exception e) {
             logger.error("Failed to send WebSocket notification for auction {}", auctionId, e);

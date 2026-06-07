@@ -58,10 +58,6 @@ public class AuctionSchedulerService {
             if (!auctionsToEnd.isEmpty()) {
                 for (String auctionId : auctionsToEnd) {
                     try {
-                        // Skip if auction is paused - endTime will be extended when resumed
-                        if (auctionStateRedisService.isPaused(auctionId)) {
-                            continue;
-                        }
                         auctionStateTransitionService.endAuction(auctionId);
                         auctionStateRedisService.removeAuctionEndEvent(auctionId);
                     } catch (Exception e) {
