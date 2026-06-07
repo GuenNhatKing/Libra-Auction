@@ -5,15 +5,13 @@ export async function ServerAPICall<T>(path: string, request: RequestInit): Prom
     let res: Response;
     try {
         res = await fetch(process.env.BACKEND_SERVER_URL + path, request);
-    } catch (networkError) {
-        console.error("Network error:", networkError);
+    } catch {
         return {
             status: 503,
             isSuccess: false,
             errorMessage: "Cannot connect to server",
         } as ServerAPIResponse<T>;
     }
-    console.log(res);
     try {
         if(res.status == 204) {
             return {
@@ -29,9 +27,7 @@ export async function ServerAPICall<T>(path: string, request: RequestInit): Prom
             status: res.status
         } as ServerAPIResponse<T>;
     }
-    catch (parseError) {
-        console.error("Parse JSON failed:", parseError);
-        console.error("Response text:", await res.text());
+    catch {
         return {
             status: res.status,
             isSuccess: false,

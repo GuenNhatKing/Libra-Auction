@@ -10,7 +10,6 @@ export async function fetchProduct(product_id: string): Promise<Product> {
     }
     const res = await ServerAPIAuthedCall<Product>("/api/products/" + product_id, request);
     if (res.isSuccess && res.data) {
-        console.log(res.data);
         return res.data;
     }
     throw createAppErrorFromResponse(res, "Failed to fetch product");

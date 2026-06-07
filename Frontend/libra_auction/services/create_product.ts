@@ -17,7 +17,6 @@ export async function createProduct(product: NewProduct): Promise<Product> {
     }
     const res = await ServerAPIAuthedCall<Product>("/api/products", request);
     if (res.isSuccess && res.data) {
-        console.log(res.data);
         return res.data;
     }
     throw createAppErrorFromResponse(res, "Failed to create products");

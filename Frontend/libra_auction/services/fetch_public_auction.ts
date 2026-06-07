@@ -9,7 +9,6 @@ export async function fetchPublicAuction(auction_id: string): Promise<Auction> {
     }
     const res = await ServerAPICall<Auction>("/api/public/auctions/" + auction_id, request);
     if (res.isSuccess && res.data) {
-        console.log(res.data);
         return res.data;
     }
     throw createAppErrorFromResponse(res, "Failed to fetch auction");

@@ -17,7 +17,6 @@ export async function updateProduct(product_id: string, product: NewProduct): Pr
     }
     const res = await ServerAPIAuthedCall<Product>("/api/products/" + product_id, request);
     if (res.isSuccess && res.data) {
-        console.log(res.data);
         return res.data;
     }
     throw createAppErrorFromResponse(res, "Failed to update products");

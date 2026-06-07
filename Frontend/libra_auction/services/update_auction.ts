@@ -17,7 +17,6 @@ export async function updateAuction(auction_id: string, auction: NewAuction): Pr
     }
     const res = await ServerAPIAuthedCall<Auction>("/api/auctions/" + auction_id, request);
     if (res.isSuccess && res.data) {
-        console.log(res.data);
         return res.data;
     }
     throw createAppErrorFromResponse(res, "Failed to update auctions");

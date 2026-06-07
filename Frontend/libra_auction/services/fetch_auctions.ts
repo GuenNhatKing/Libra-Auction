@@ -12,7 +12,6 @@ export async function fetchAuctions(): Promise<Auction[]> {
     }
     const res = await ServerAPIAuthedCall<PageResponse<Auction>>("/api/auctions", request);
     if (res.isSuccess && res.data) {
-        console.log(res.data);
         return res.data.content;
     }
     else if (res.isSuccess) return [];

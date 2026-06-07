@@ -36,12 +36,10 @@ export default function AdminDashboardPage() {
     liveAuctions: 0,
   });
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPendingData = async () => {
       try {
-        setLoading(true);
         setError(null);
 
         const [usersResponse, auctionsResponse, liveAuctionsResponse] = await Promise.all([
@@ -57,8 +55,6 @@ export default function AdminDashboardPage() {
         });
       } catch (error) {
         setError(getErrorMessage(error, "Failed to fetch pending dashboard data."));
-      } finally {
-        setLoading(false);
       }
     };
 

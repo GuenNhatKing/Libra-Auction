@@ -38,7 +38,7 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
         const data: Category[] = await fetchCategories();
         setCategories(data);
       } catch (e) {
-        console.error("Fetch categories error:", e);
+        setError(getErrorMessage(e, "Failed to fetch categories."));
       }
     };
     loadCategories();
@@ -55,7 +55,6 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
   useEffect(() => {
     if (selectedAttrName) {
       fetchAttributeValues(selectedAttrName).then(setAttrValues);
-      setAttrValueSearch("");
     }
   }, [selectedAttrName]);
 
@@ -336,7 +335,10 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
                       <button
                         key={name}
                         type="button"
-                        onClick={() => setSelectedAttrName(name)}
+                        onClick={() => {
+                          setSelectedAttrName(name);
+                          setAttrValueSearch("");
+                        }}
                         className="w-full text-left p-2.5 rounded-lg hover:bg-[#F6F1F1] transition-colors text-sm font-medium"
                       >
                         {name}

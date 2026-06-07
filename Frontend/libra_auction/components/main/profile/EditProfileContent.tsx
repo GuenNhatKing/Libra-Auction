@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { updateUserProfile } from "@/services/update_user_profile";
+import { getErrorMessage } from "@/lib/app_error";
 import { fetchImageUploadConfig } from "@/services/fetch_image_upload_config";
 import { uploadImageToCloudinary } from "@/services/image_upload_to_cloudinary";
 import { UserInfo } from "@/types/user_info";
@@ -107,14 +108,13 @@ export function EditProfileContent({
       const uploadedUrl = await uploadImageToCloudinary(file, uploadConfig);
 
       if (!uploadedUrl) {
-        throw new Error("Unable to upload avatar. Please try again.");
+        setAvatarError("Unable to upload avatar. Please try again.");
+        return;
       }
 
       setFormData((prev) => ({ ...prev, avatarUrl: uploadedUrl }));
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Unable to upload avatar. Please try again.";
-      setAvatarError(message);
+      setAvatarError(getErrorMessage(err, "Unable to upload avatar. Please try again."));
     } finally {
       setAvatarUploading(false);
     }
@@ -139,10 +139,7 @@ export function EditProfileContent({
         onSuccess?.(updatedUser);
       }, 1500);
     } catch (err: unknown) {
-      console.error("Error updating profile:", err);
-      const message =
-        err instanceof Error ? err.message : "An error occurred while updating profile";
-      setSubmitError(message);
+      setSubmitError(getErrorMessage(err, "An error occurred while updating profile"));
     } finally {
       setLoading(false);
     }

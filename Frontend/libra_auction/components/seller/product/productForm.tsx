@@ -47,7 +47,6 @@ export default function ProductForm() {
   useEffect(() => {
     if (selectedAttrName) {
       fetchAttributeValues(selectedAttrName).then(setAttrValues);
-      setAttrValueSearch("");
     }
   }, [selectedAttrName]);
 
@@ -330,7 +329,10 @@ export default function ProductForm() {
                       <button
                         key={name}
                         type="button"
-                        onClick={() => setSelectedAttrName(name)}
+                        onClick={() => {
+                          setSelectedAttrName(name);
+                          setAttrValueSearch("");
+                        }}
                         className="w-full text-left p-2.5 rounded-lg hover:bg-[#F6F1F1] transition-colors text-sm font-medium"
                       >
                         {name}

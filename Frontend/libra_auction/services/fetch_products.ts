@@ -12,7 +12,6 @@ export async function fetchProducts(): Promise<Product[]> {
     }
     const res = await ServerAPIAuthedCall<PageResponse<Product>>("/api/products", request);
     if (res.isSuccess && res.data) {
-        console.log(res.data);
         return res.data.content;
     }
     else if (res.isSuccess) return [];
