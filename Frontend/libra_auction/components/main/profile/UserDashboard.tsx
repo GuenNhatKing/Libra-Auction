@@ -66,7 +66,7 @@ export function UserDashboard({ user }: UserDashboardProps) {
               email: profileUser.email,
               phoneNumber: profileUser.phoneNumber,
               identityNumber: profileUser.identityNumber,
-              avatarUrl: profileUser.avatarUrl,
+              avatarUrl: profileUser.avatarUrl || '/default-avatar.png',
               roleName: profileUser.role?.name,
             }}
             onSuccess={handleProfileUpdated}

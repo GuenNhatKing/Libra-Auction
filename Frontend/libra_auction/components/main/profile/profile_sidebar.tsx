@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { UserInfo } from "@/types/user_info";
+import Image from "next/image";
 import {
   PROFILE_TAB_LABELS,
   ProfileTab,
@@ -94,9 +95,11 @@ export function ProfileSidebar({ user }: { user: UserInfo }) {
     <div className="flex flex-col gap-8">
       <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center text-center">
         <div className="relative mb-5">
-          <img
-            src={user.avatarUrl}
+          <Image
+            src={user.avatarUrl || "/default-avatar.png"}
             alt={user.fullName}
+            width={128}
+            height={128}
             className="w-32 h-32 rounded-full object-cover border-4 border-[var(--accent-color)] shadow-md"
           />
           <div className="absolute bottom-2 right-2 w-6 h-6 bg-green-500 border-[3px] border-white rounded-full"></div>

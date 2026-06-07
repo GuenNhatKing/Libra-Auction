@@ -5,6 +5,7 @@ import { updateUserProfile } from "@/services/update_user_profile";
 import { fetchImageUploadConfig } from "@/services/fetch_image_upload_config";
 import { uploadImageToCloudinary } from "@/services/image_upload_to_cloudinary";
 import { UserInfo } from "@/types/user_info";
+import Image from "next/image";
 
 interface EditProfileContentProps {
   userId: string;
@@ -94,11 +95,6 @@ export function EditProfileContent({
 
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
       setAvatarError("Please choose a JPG, PNG, WEBP, or GIF image.");
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      setAvatarError("Image must be smaller than 5MB.");
       return;
     }
 
@@ -210,15 +206,13 @@ export function EditProfileContent({
               aria-label="Change profile photo"
             >
               <div className="w-36 h-36 rounded-full bg-gradient-to-br from-[var(--primary-color)] to-[var(--secondary-color)] flex items-center justify-center text-white text-4xl font-bold overflow-hidden border-4 border-white shadow-md">
-                {formData.avatarUrl ? (
-                  <img
-                    src={formData.avatarUrl}
-                    alt="Avatar"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  formData.fullName?.charAt(0)?.toUpperCase() || "?"
-                )}
+                <Image
+                  src={formData.avatarUrl || '/default-avatar.png'}
+                  alt="Avatar"
+                  width={144}
+                  height={144}
+                  className="w-full h-full object-cover"
+                />
               </div>
 
               <div className="absolute inset-0 rounded-full bg-black/45 opacity-0 group-hover:opacity-100 group-disabled:opacity-60 transition-opacity flex flex-col items-center justify-center text-white">
@@ -289,9 +283,8 @@ export function EditProfileContent({
                 value={formData.fullName}
                 onChange={handleChange}
                 placeholder="Enter your full name"
-                className={`w-full px-4 py-3 text-lg border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition-all ${
-                  errors.fullName ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-4 py-3 text-lg border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition-all ${errors.fullName ? "border-red-500" : "border-gray-300"
+                  }`}
               />
               {errors.fullName && (
                 <p className="text-xs text-red-500 mt-1">{errors.fullName}</p>
@@ -316,9 +309,8 @@ export function EditProfileContent({
                 value={formData.phoneNumber}
                 onChange={handleChange}
                 placeholder="Enter your phone number"
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition-all ${
-                  errors.phoneNumber ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition-all ${errors.phoneNumber ? "border-red-500" : "border-gray-300"
+                  }`}
               />
               {errors.phoneNumber && (
                 <p className="text-xs text-red-500 mt-1">{errors.phoneNumber}</p>
@@ -335,9 +327,8 @@ export function EditProfileContent({
                 value={formData.identityNumber}
                 onChange={handleChange}
                 placeholder="123456789012"
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition-all ${
-                  errors.identityNumber ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent transition-all ${errors.identityNumber ? "border-red-500" : "border-gray-300"
+                  }`}
               />
               {errors.identityNumber && (
                 <p className="text-xs text-red-500 mt-1">{errors.identityNumber}</p>

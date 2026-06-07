@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { UserInfo } from "@/types/user_info";
 import { fetchUserInfo } from "@/services/fetch_user_info";
+import Image from "next/image";
 
 interface ProfileContentProps {
   userId: string;
@@ -155,15 +156,13 @@ export function ProfileContent({
       <div className="px-6 py-6 border-b border-gray-100">
         <div className="flex items-center gap-4">
           <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[var(--primary-color)] to-[var(--secondary-color)] flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
-            {profile?.avatarUrl ? (
-              <img
-                src={profile.avatarUrl}
-                alt={profile.fullName}
-                className="w-20 h-20 rounded-full object-cover"
-              />
-            ) : (
-              profile?.fullName?.charAt(0)?.toUpperCase() || "?"
-            )}
+            <Image
+              src={profile.avatarUrl || '/default-avatar.png'}
+              alt={profile.fullName}
+              width={80}
+              height={80}
+              className="w-20 h-20 rounded-full object-cover"
+            />
           </div>
           <div>
             <h3 className="text-xl font-semibold text-gray-900">
