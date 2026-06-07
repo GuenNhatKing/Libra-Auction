@@ -529,7 +529,7 @@ export default function AuctionsApprovalPage() {
       {failDialog.isOpen && (
         <>
           <div
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50"
+            className="h-full fixed inset-0 bg-black/30 z-50"
             onClick={() => setFailDialog({ isOpen: false, auctionId: null, reason: "" })}
           />
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
