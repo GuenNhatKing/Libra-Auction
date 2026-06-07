@@ -292,7 +292,7 @@ export default function AdminLiveAuctionView({
             <h3 className="text-lg font-bold text-[#146C94] mb-4">
               Bid history ({totalBids} bids)
             </h3>
-            <BidHistory bids={bids} maxHeight="400px" />
+            <BidHistory bids={bids} maxHeight="20rem" />
           </div>
 
           {/* Notifications Log */}
@@ -300,7 +300,7 @@ export default function AdminLiveAuctionView({
             <h3 className="text-lg font-bold text-[#146C94] mb-4">
               Notification log
             </h3>
-            <div className="max-h-48 overflow-auto space-y-1">
+            <div className="max-h-80 overflow-auto space-y-1">
               {notifications.length === 0 ? (
                 <p className="text-sm text-[#5A7184]">No notifications yet</p>
               ) : (
