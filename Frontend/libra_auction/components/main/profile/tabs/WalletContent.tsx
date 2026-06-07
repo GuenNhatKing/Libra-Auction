@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import {
   UserTransactionResponse,
   fetchTransactionHistory,
-  fetchWalletBalance,
 } from "@/services/fetch_transaction_history";
 
 interface WalletContentProps {
@@ -12,7 +11,6 @@ interface WalletContentProps {
 }
 
 export function WalletContent({ userId }: WalletContentProps) {
-  const [balance, setBalance] = useState<number>(0);
   const [transactions, setTransactions] = useState<UserTransactionResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,12 +22,10 @@ export function WalletContent({ userId }: WalletContentProps) {
         setError(null);
 
         // Fetch wallet balance and transaction history
-        const [walletBalance, transactionList] = await Promise.all([
-          fetchWalletBalance(userId),
+        const [transactionList] = await Promise.all([
           fetchTransactionHistory(userId),
         ]);
 
-        setBalance(walletBalance);
         setTransactions(transactionList);
       } catch (err: any) {
         console.error("Error fetching wallet data:", err);
@@ -130,36 +126,6 @@ export function WalletContent({ userId }: WalletContentProps) {
 
   return (
     <div className="space-y-6">
-      {/* Wallet Balance Card */}
-      <div className="bg-gradient-to-br from-[var(--primary-color)] to-[var(--secondary-color)] rounded-lg shadow-lg p-8 text-white">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <p className="text-sm opacity-90 font-medium">Current Balance</p>
-            <h3 className="text-3xl font-bold mt-2">
-              {balance.toLocaleString("vi-VN")} VND
-            </h3>
-          </div>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-12 w-12 opacity-80"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" />
-          </svg>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="flex gap-3 mt-6 pt-6 border-t border-white border-opacity-30">
-          <button className="flex-1 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-medium py-2 px-4 rounded-lg transition-all">
-            Deposit
-          </button>
-          <button className="flex-1 bg-white bg-opacity-20 hover:bg-opacity-30 text-white font-medium py-2 px-4 rounded-lg transition-all">
-            Withdraw
-          </button>
-        </div>
-      </div>
-
       {/* Transaction History */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-100">
         {/* Header */}

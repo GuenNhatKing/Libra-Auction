@@ -437,27 +437,6 @@ public class VNPayService {
     }
 
     @Transactional(readOnly = true)
-    public long getWalletBalance(String userId) {
-        long paymentsIn = paymentTransactionRepository.findByReceiver_IdOrderByCreatedAtDesc(userId).stream()
-                .filter(p -> p.getTransactionStatus() == TransactionStatus.SUCCESS)
-                .mapToLong(Transaction::getAmount)
-                .sum();
-
-        long paymentsOut = paymentTransactionRepository.findBySender_IdOrderByCreatedAtDesc(userId).stream()
-                .filter(p -> p.getTransactionStatus() == TransactionStatus.SUCCESS)
-                .mapToLong(Transaction::getAmount)
-                .sum();
-
-        long refundedDeposits = depositTransactionRepository.findByDepositorIdOrderByCreatedAtDesc(userId).stream()
-                .filter(d -> d.getTransactionStatus() == TransactionStatus.REFUNDED
-                        || d.getRefundTime() != null)
-                .mapToLong(Transaction::getAmount)
-                .sum();
-
-        return Math.max(0, paymentsIn - paymentsOut + refundedDeposits);
-    }
-
-    @Transactional(readOnly = true)
     public List<UserTransactionResponse> getTransactionsByUserId(String userId) {
         List<UserTransactionResponse> transactions = new ArrayList<>();
 

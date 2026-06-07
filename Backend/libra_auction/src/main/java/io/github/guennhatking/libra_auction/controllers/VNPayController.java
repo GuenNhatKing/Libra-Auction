@@ -139,23 +139,6 @@ public class VNPayController {
         return ResponseEntity.ok(ServerAPIResponse.success(paid));
     }
 
-    @GetMapping("/user/{userId}/balance")
-    public ResponseEntity<ServerAPIResponse<WalletBalanceResponse>> getWalletBalance(
-            @AuthenticationPrincipal JwtUserDetails userDetails,
-            @PathVariable String userId) {
-        if (userDetails == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ServerAPIResponse.error("Authentication required"));
-        }
-        if (!userDetails.getUserId().equals(userId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(ServerAPIResponse.error("Access denied"));
-        }
-
-        long balance = vnPayService.getWalletBalance(userId);
-        return ResponseEntity.ok(ServerAPIResponse.success(new WalletBalanceResponse(balance)));
-    }
-
     @GetMapping("/user/{userId}/transactions")
     public ResponseEntity<ServerAPIResponse<java.util.List<UserTransactionResponse>>> getUserTransactions(
             @AuthenticationPrincipal JwtUserDetails userDetails,

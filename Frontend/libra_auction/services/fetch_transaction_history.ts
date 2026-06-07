@@ -32,20 +32,3 @@ export async function fetchTransactionHistory(
   if (res.isSuccess && res.data) return res.data;
   throw createAppErrorFromResponse(res, "Failed to fetch transaction history");
 }
-
-export async function fetchWalletBalance(userId: string): Promise<number> {
-
-  const request: RequestInit = {
-    method: "GET",
-    headers: {},
-    cache: "no-store",
-  };
-
-  const res = await ServerAPIAuthedCall<{ balance: number }>(
-    "/api/payments/vnpay/user/" + userId + "/balance",
-    request
-  );
-
-  if (res.isSuccess && res.data) return res.data.balance;
-  throw createAppErrorFromResponse(res, "Failed to fetch wallet balance");
-}
