@@ -8,8 +8,8 @@ export default function LiveAuctionCard({
   card: LiveAuction;
 }) {
   return (
-    <div className="flex flex-col size-full rounded-2xl overflow-hidden shadow-2xl">
-      <div className="relative h-(--home-live-auction-section-image-height) shadow-[0_6px_15px_rgba(0,0,0,0.08)]">
+    <div className="flex flex-col h-full rounded-2xl overflow-hidden shadow-2xl">
+      <div className="relative w-full aspect-square shadow-[0_6px_15px_rgba(0,0,0,0.08)]">
         <div className="absolute size-full">
           <div className="relative size-full">
             <Image
