@@ -54,10 +54,7 @@ export default function AdminLiveAuctionView({
   );
   const [bids, setBids] = useState<BidEntry[]>([]);
   const [totalBids, setTotalBids] = useState(auction.total_bids || 0);
-  const [viewerCount, setViewerCount] = useState(0);
-  const [participantCount, setParticipantCount] = useState(
-    auction.total_participants || 0
-  );
+  const [participantCount] = useState(auction.total_participants || 0);
   const [highestBidder, setHighestBidder] = useState("--");
   const [notifications, setNotifications] = useState<string[]>([]);
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -93,19 +90,12 @@ export default function AdminLiveAuctionView({
           },
           ...prev,
         ]);
-        setTotalBids((prev) => prev + 1);
-        setHighestBidder(bid.bidderName || "--");
-      }
-      // Also check for currentPrice in generic format
-      const price = bid.currentPrice ?? bid.current_price;
-      if (typeof price === "number" && price > 0) {
-        setCurrentPrice(price);
       }
     });
 
     auctionSocket.subscribe(statusTopic, (body: unknown) => {
       if (!isRecord(body)) return;
-      const update = body as unknown as StatusUpdate;
+      const update = body as StatusUpdate;
       if (update.status) {
         setAuctionStatus(update.status);
       }
@@ -161,23 +151,6 @@ export default function AdminLiveAuctionView({
       auctionSocket.unsubscribe(adminTopic);
     };
   }, [auction.auction_id, backendServerUrl, addNotification]);
-
-  // Simulate viewer count (in production, this comes from WebSocket)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setViewerCount((prev) => {
-        const delta = Math.floor(Math.random() * 3) - 1;
-        return Math.max(0, prev + delta);
-      });
-    }, 5000);
-    // Set initial viewer count
-    setViewerCount(
-      auction.total_participants
-        ? Math.max(1, Math.floor(auction.total_participants * 1.5))
-        : 3
-    );
-    return () => clearInterval(interval);
-  }, [auction.total_participants]);
 
   const sendAdminCommand = async (
     command: "pause" | "resume" | "end" | "cancel",
@@ -352,7 +325,6 @@ export default function AdminLiveAuctionView({
           <AdminStatsPanel
             currentPrice={currentPrice}
             endTimeMs={endTimeMs}
-            viewerCount={viewerCount}
             participantCount={participantCount}
             totalBids={totalBids}
             highestBidder={highestBidder}

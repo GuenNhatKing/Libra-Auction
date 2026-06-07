@@ -5,7 +5,6 @@ import { CurrencyFormat } from "@/utils/currency_format";
 interface AdminStatsPanelProps {
   currentPrice: number;
   endTimeMs: number;
-  viewerCount: number;
   participantCount: number;
   totalBids: number;
   highestBidder: string;
@@ -14,7 +13,6 @@ interface AdminStatsPanelProps {
 
 export default function AdminStatsPanel({
   currentPrice,
-  viewerCount,
   participantCount,
   totalBids,
   highestBidder,
@@ -46,18 +44,14 @@ export default function AdminStatsPanel({
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-xl border border-[#EAF3F6] bg-[#F8FCFD] p-3 text-center">
-          <p className="text-2xl font-bold text-[#146C94]">{viewerCount}</p>
-          <p className="text-xs text-[#5A7184]">Người xem</p>
-        </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="rounded-xl border border-[#EAF3F6] bg-[#F8FCFD] p-3 text-center">
           <p className="text-2xl font-bold text-[#146C94]">
             {participantCount}
           </p>
           <p className="text-xs text-[#5A7184]">Người tham gia</p>
         </div>
-        <div className="col-span-2 rounded-xl border border-[#EAF3F6] bg-[#F8FCFD] p-3 text-center">
+        <div className="rounded-xl border border-[#EAF3F6] bg-[#F8FCFD] p-3 text-center">
           <p className="text-2xl font-bold text-[#19A7CE]">{totalBids}</p>
           <p className="text-xs text-[#5A7184]">Tổng số bid</p>
         </div>
