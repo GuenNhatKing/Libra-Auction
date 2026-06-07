@@ -270,32 +270,32 @@ export default function AuctionInfoSection({
                 ) : isLive ? (
                   <Link
                     href={`/auctions/${autionInfos.category_id}/${autionInfos.auction_id}/live`}
-                    className="w-full flex items-center justify-center gap-3 bg-green-600 hover:bg-green-700 active:scale-[0.98] text-white text-lg font-bold py-5 px-8 rounded-2xl shadow-lg transition-all duration-200 group"
+                    className="w-full flex items-center justify-center gap-3 bg-red-500 hover:bg-red-600 active:scale-[0.98] text-white text-lg font-bold py-5 px-8 rounded-2xl shadow-lg shadow-red-500/20 transition-all duration-200 group"
                   >
-                    Xem đấu giá trực tiếp
+                    View live auction
                   </Link>
                 ) : isCreator ? (
                   <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-center">
-                    <p className="text-blue-700 font-bold text-lg">Bạn là người tạo phiên đấu giá này</p>
-                    <p className="text-blue-600 text-sm mt-1">Không thể đăng ký tham gia</p>
+                    <p className="text-blue-700 font-bold text-lg">You created this auction</p>
+                    <p className="text-blue-600 text-sm mt-1">You cannot register to participate</p>
                   </div>
                 ) : isRegistered ? (
                   <Link
                     href={`/auctions/${autionInfos.category_id}/${autionInfos.auction_id}/registration`}
-                    className="w-full flex items-center justify-center gap-3 bg-green-600 hover:bg-green-700 active:scale-[0.98] text-white text-lg font-bold py-5 px-8 rounded-2xl shadow-lg transition-all duration-200 group"
+                    className="w-full flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white text-lg font-bold py-5 px-8 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all duration-200 group"
                   >
-                    Xem thông tin đăng ký
+                    View registration details
                   </Link>
                 ) : (
                   <>
                     <button
                       onClick={handleRegisterClick}
-                      className="w-full flex items-center justify-center gap-3 bg-[#19A7CE] hover:bg-[#1591b3] active:scale-[0.98] text-white text-lg font-bold py-5 px-8 rounded-2xl shadow-lg transition-all duration-200 group"
+                      className="w-full flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white text-lg font-bold py-5 px-8 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all duration-200 group"
                     >
-                      Đăng ký tham gia đấu giá
+                      Register for auction
                     </button>
                     <p className="text-center text-sm text-gray-400 mt-4">
-                      Đăng ký là bắt buộc để tham gia. Không mất phí cho đến khi bạn trúng đấu giá.
+                      Registration is required to participate. You will not be charged unless you win the auction.
                     </p>
                   </>
                 )}

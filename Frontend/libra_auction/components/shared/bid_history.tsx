@@ -7,7 +7,7 @@ export interface BidEntry {
   amount: number;
   time: string;
   status: "SUCCESS" | "ERROR" | "WINNER";
-  bidderId?: string; // Nhận thêm ID phục vụ so khớp danh tính
+  bidderId?: string;
 }
 
 interface BidHistoryProps {
@@ -22,11 +22,10 @@ export default function BidHistory({
   currentUserId = null,
 }: BidHistoryProps) {
   
-  // Kiểm tra độ dài mảng bids động thay vì dùng số tĩnh từ cha gửi sang
   if (!bids || bids.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-sm text-[#5A7184]">Chưa có lượt đặt giá nào</p>
+        <p className="text-sm text-[#5A7184]">No bids yet</p>
       </div>
     );
   }
@@ -37,7 +36,6 @@ export default function BidHistory({
       style={maxHeight === "100%" ? { height: "100%" } : { maxHeight }}
     >
       {bids.map((bid, idx) => {
-        // Kiểm tra xem lượt trả giá này có phải của tài khoản hiện tại không
         const isMyBid = currentUserId && bid.bidderId && bid.bidderId === currentUserId;
 
         return (
@@ -45,7 +43,7 @@ export default function BidHistory({
             key={idx}
             className={`flex items-center justify-between p-3 rounded-lg border transition ${
               isMyBid
-                ? "bg-blue-50/70 border-blue-300 ring-1 ring-blue-300/50" // Thêm hiệu ứng highlight riêng cho bạn
+                ? "bg-amber-50/90 border-amber-300 ring-1 ring-amber-300/60 shadow-sm shadow-amber-200/40"
                 : bid.status === "WINNER"
                 ? "bg-yellow-50 border-yellow-200"
                 : bid.status === "ERROR"
@@ -55,8 +53,8 @@ export default function BidHistory({
           >
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className={`text-sm font-semibold truncate ${isMyBid ? "text-blue-700" : "text-[#146C94]"}`}>
-                  {bid.bidderName} {isMyBid && <span className="font-normal text-xs text-blue-500">(Bạn)</span>}
+                <span className={`text-sm font-semibold truncate ${isMyBid ? "text-amber-800" : "text-[#146C94]"}`}>
+                  {bid.bidderName} {isMyBid && <span className="font-normal text-xs text-amber-600">(You)</span>}
                 </span>
                 {bid.status === "WINNER" && (
                   <span className="px-1.5 py-0.5 bg-yellow-400 text-yellow-900 text-xs font-bold rounded">
@@ -79,7 +77,7 @@ export default function BidHistory({
                     : bid.status === "WINNER"
                     ? "text-yellow-700"
                     : isMyBid
-                    ? "text-blue-600"
+                    ? "text-amber-700"
                     : "text-[#19A7CE]"
                 }`}
               >

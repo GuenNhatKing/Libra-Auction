@@ -86,7 +86,7 @@ export default function AuctionTimer({
   };
 
   return (
-    <div className="rounded-2xl border border-[#EAF3F6] bg-[#F8FCFD] px-6 py-5 text-center shadow-inner shadow-white/60">
+    <div className="px-6 py-5 text-center">
       <div className={`${sizeClasses[size]} ${getColorClass()} font-mono`} suppressHydrationWarning>
         {timeLeftMs <= 0 ? (
             <span className="text-rose-600">ENDED</span>
