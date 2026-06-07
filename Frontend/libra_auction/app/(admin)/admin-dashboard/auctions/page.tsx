@@ -31,6 +31,29 @@ type AuctionRow = AdminAuction & {
 };
 
 type AuctionFilter = "ALL" | "PENDING" | "APPROVED" | "REJECTED";
+type AuctionStatusFilter = "ALL" | "NOT_STARTED" | "IN_PROGRESS" | "PAUSED" | "ENDED" | "COMPLETED" | "FAILED" | "CANCELLED";
+
+type AuctionFilters = {
+  searchName: string;
+  approvalStatus: AuctionFilter;
+  auctionStatus: AuctionStatusFilter;
+  minStartingPrice: string;
+  maxStartingPrice: string;
+  category: string;
+  startTimeFrom: string;
+  startTimeTo: string;
+};
+
+const defaultFilters: AuctionFilters = {
+  searchName: "",
+  approvalStatus: "ALL",
+  auctionStatus: "ALL",
+  minStartingPrice: "",
+  maxStartingPrice: "",
+  category: "ALL",
+  startTimeFrom: "",
+  startTimeTo: "",
+};
 
 function resolveAuctionStatus(status: string): "PENDING" | "APPROVED" | "REJECTED" {
   if (status === "APPROVED") return "APPROVED";
@@ -111,7 +134,7 @@ export default function AuctionsApprovalPage() {
     isOpen: false,
     data: null,
   });
-  const [statusFilter, setStatusFilter] = useState<AuctionFilter>("ALL");
+  const [filters, setFilters] = useState<AuctionFilters>(defaultFilters);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
@@ -152,9 +175,33 @@ export default function AuctionsApprovalPage() {
   const approvedCount = useMemo(() => auctions.filter((auction) => auction.status === "APPROVED").length, [auctions]);
   const rejectedCount = useMemo(() => auctions.filter((auction) => auction.status === "REJECTED").length, [auctions]);
 
-  const filteredAuctions = statusFilter === "ALL"
-    ? auctions
-    : auctions.filter((auction) => auction.status === statusFilter);
+  const categoryOptions = useMemo(
+    () => Array.from(new Set(auctions.map((auction) => auction.category).filter(Boolean))).sort(),
+    [auctions]
+  );
+
+  const filteredAuctions = useMemo(() => {
+    const normalizedSearch = filters.searchName.trim().toLowerCase();
+    const minPrice = filters.minStartingPrice ? Number(filters.minStartingPrice) : null;
+    const maxPrice = filters.maxStartingPrice ? Number(filters.maxStartingPrice) : null;
+    const startFrom = filters.startTimeFrom ? new Date(filters.startTimeFrom).getTime() : null;
+    const startTo = filters.startTimeTo ? new Date(filters.startTimeTo).getTime() : null;
+
+    return auctions.filter((auction) => {
+      const auctionStartTime = new Date(auction.start_time).getTime();
+
+      return (
+        (!normalizedSearch || auction.name.toLowerCase().includes(normalizedSearch)) &&
+        (filters.approvalStatus === "ALL" || auction.status === filters.approvalStatus) &&
+        (filters.auctionStatus === "ALL" || auction.auctionStatus === filters.auctionStatus) &&
+        (filters.category === "ALL" || auction.category === filters.category) &&
+        (minPrice === null || auction.startingPrice >= minPrice) &&
+        (maxPrice === null || auction.startingPrice <= maxPrice) &&
+        (startFrom === null || auctionStartTime >= startFrom) &&
+        (startTo === null || auctionStartTime <= startTo)
+      );
+    });
+  }, [auctions, filters]);
 
   const handleApprove = async (auction: AuctionRow) => {
     try {
@@ -231,33 +278,123 @@ export default function AuctionsApprovalPage() {
       </div>
 
       <div className="bg-white rounded-xl border border-[#AFD3E2] p-6 shadow-sm shadow-[#AFD3E2]/20">
-        <h3 className="text-lg font-bold text-[#146C94] mb-4">Filter by Status</h3>
-        <div className="flex gap-3 flex-wrap">
-          {(["ALL", "PENDING", "APPROVED", "REJECTED"] as AuctionFilter[]).map((filter) => (
-            <button
-              key={filter}
-              onClick={() => setStatusFilter(filter)}
-              className={`px-4 py-2 rounded-lg font-semibold text-sm transition ${
-                statusFilter === filter
-                  ? filter === "ALL"
-                    ? "bg-[#19A7CE] text-white shadow-sm shadow-[#19A7CE]/30"
-                    : filter === "PENDING"
-                    ? "bg-amber-500 text-white"
-                    : filter === "APPROVED"
-                    ? "bg-green-600 text-white"
-                    : "bg-red-600 text-white"
-                  : filter === "ALL"
-                  ? "bg-[#F6FBFC] text-[#5A7184] hover:bg-[#EAF7FB]"
-                  : filter === "PENDING"
-                  ? "bg-amber-50 text-amber-800 hover:bg-amber-100"
-                  : filter === "APPROVED"
-                  ? "bg-green-50 text-green-800 hover:bg-green-100"
-                  : "bg-red-50 text-red-800 hover:bg-red-100"
-              }`}
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-bold text-[#146C94]">Auction Filters</h3>
+            <p className="text-sm text-[#5A7184]">Filter by name, status, category, price and start time.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setFilters(defaultFilters)}
+            className="rounded-lg bg-[#EAF7FB] px-4 py-2 text-sm font-semibold text-[#146C94] hover:bg-[#D7EFF7]"
+          >
+            Reset
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <label className="space-y-1.5 text-sm font-semibold text-[#146C94]">
+            Product name
+            <input
+              type="search"
+              value={filters.searchName}
+              onChange={(event) => setFilters((current) => ({ ...current, searchName: event.target.value }))}
+              placeholder="Search by name"
+              className="w-full rounded-lg border border-[#AFD3E2] bg-white px-3 py-2 text-sm font-normal text-[#5A7184] outline-none focus:border-[#19A7CE]"
+            />
+          </label>
+
+          <label className="space-y-1.5 text-sm font-semibold text-[#146C94]">
+            Approval
+            <select
+              value={filters.approvalStatus}
+              onChange={(event) => setFilters((current) => ({ ...current, approvalStatus: event.target.value as AuctionFilter }))}
+              className="w-full rounded-lg border border-[#AFD3E2] bg-white px-3 py-2 text-sm font-normal text-[#5A7184] outline-none focus:border-[#19A7CE]"
             >
-              {filter === "ALL" ? "All" : filter.charAt(0) + filter.slice(1).toLowerCase()} ({filter === "ALL" ? auctions.length : filter === "PENDING" ? pendingCount : filter === "APPROVED" ? approvedCount : rejectedCount})
-            </button>
-          ))}
+              <option value="ALL">All approval statuses</option>
+              <option value="PENDING">Pending</option>
+              <option value="APPROVED">Approved</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </label>
+
+          <label className="space-y-1.5 text-sm font-semibold text-[#146C94]">
+            Auction status
+            <select
+              value={filters.auctionStatus}
+              onChange={(event) => setFilters((current) => ({ ...current, auctionStatus: event.target.value as AuctionStatusFilter }))}
+              className="w-full rounded-lg border border-[#AFD3E2] bg-white px-3 py-2 text-sm font-normal text-[#5A7184] outline-none focus:border-[#19A7CE]"
+            >
+              <option value="ALL">All auction statuses</option>
+              <option value="NOT_STARTED">Not started</option>
+              <option value="IN_PROGRESS">In progress</option>
+              <option value="PAUSED">Paused</option>
+              <option value="ENDED">Ended</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="FAILED">Failed</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+          </label>
+
+          <label className="space-y-1.5 text-sm font-semibold text-[#146C94]">
+            Category
+            <select
+              value={filters.category}
+              onChange={(event) => setFilters((current) => ({ ...current, category: event.target.value }))}
+              className="w-full rounded-lg border border-[#AFD3E2] bg-white px-3 py-2 text-sm font-normal text-[#5A7184] outline-none focus:border-[#19A7CE]"
+            >
+              <option value="ALL">All categories</option>
+              {categoryOptions.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="space-y-1.5 text-sm font-semibold text-[#146C94]">
+            Min starting price
+            <input
+              type="number"
+              min="0"
+              value={filters.minStartingPrice}
+              onChange={(event) => setFilters((current) => ({ ...current, minStartingPrice: event.target.value }))}
+              placeholder="From"
+              className="w-full rounded-lg border border-[#AFD3E2] bg-white px-3 py-2 text-sm font-normal text-[#5A7184] outline-none focus:border-[#19A7CE]"
+            />
+          </label>
+
+          <label className="space-y-1.5 text-sm font-semibold text-[#146C94]">
+            Max starting price
+            <input
+              type="number"
+              min="0"
+              value={filters.maxStartingPrice}
+              onChange={(event) => setFilters((current) => ({ ...current, maxStartingPrice: event.target.value }))}
+              placeholder="To"
+              className="w-full rounded-lg border border-[#AFD3E2] bg-white px-3 py-2 text-sm font-normal text-[#5A7184] outline-none focus:border-[#19A7CE]"
+            />
+          </label>
+
+          <label className="space-y-1.5 text-sm font-semibold text-[#146C94]">
+            Start time from
+            <input
+              type="datetime-local"
+              value={filters.startTimeFrom}
+              onChange={(event) => setFilters((current) => ({ ...current, startTimeFrom: event.target.value }))}
+              className="w-full rounded-lg border border-[#AFD3E2] bg-white px-3 py-2 text-sm font-normal text-[#5A7184] outline-none focus:border-[#19A7CE]"
+            />
+          </label>
+
+          <label className="space-y-1.5 text-sm font-semibold text-[#146C94]">
+            Start time to
+            <input
+              type="datetime-local"
+              value={filters.startTimeTo}
+              onChange={(event) => setFilters((current) => ({ ...current, startTimeTo: event.target.value }))}
+              className="w-full rounded-lg border border-[#AFD3E2] bg-white px-3 py-2 text-sm font-normal text-[#5A7184] outline-none focus:border-[#19A7CE]"
+            />
+          </label>
         </div>
       </div>
 
@@ -304,7 +441,7 @@ export default function AuctionsApprovalPage() {
                         alt={row.name}
                         width={60}
                         height={60}
-                        className="w-16 h-16 rounded-lg object-cover"
+                        className="aspect-square w-16 rounded-lg object-cover"
                         onError={(e) => {
                           e.currentTarget.src = "/default-avatar.png";
                         }}
@@ -319,11 +456,11 @@ export default function AuctionsApprovalPage() {
                     <td className="px-6 py-4 text-sm text-[#5A7184]">{row.startTime}</td>
                     <td className="px-6 py-4 text-sm">{getStatusBadge(row.status)}</td>
                     <td className="px-6 py-4 text-sm">{getAuctionStatusBadge(row.auctionStatus)}</td>
-                    <td className="px-6 py-4 text-sm">
-                      <div className="flex gap-2 flex-wrap">
+                    <td className="px-6 py-4 text-sm align-top">
+                      <div className="flex w-32 flex-col gap-2">
                         <button
                           onClick={() => setSelectedAuction({ isOpen: true, data: row })}
-                          className="px-3 py-1 bg-[#EAF7FB] text-[#146C94] rounded hover:bg-[#D7EFF7] text-xs font-semibold"
+                          className="w-full px-3 py-1.5 bg-[#EAF7FB] text-[#146C94] rounded hover:bg-[#D7EFF7] text-xs font-semibold text-center"
                         >
                           Details
                         </button>
@@ -332,7 +469,7 @@ export default function AuctionsApprovalPage() {
                           (row.auctionStatus === "IN_PROGRESS" || row.auctionStatus === "PAUSED") && (
                             <Link
                               href={`/admin-dashboard/auctions/${row.id}/live`}
-                              className="px-3 py-1 bg-green-50 text-green-700 rounded hover:bg-green-100 text-xs font-semibold inline-flex items-center gap-1"
+                              className="w-full px-3 py-1.5 bg-green-50 text-green-700 rounded hover:bg-green-100 text-xs font-semibold inline-flex items-center justify-center gap-1"
                             >
                               <span className="relative flex h-1.5 w-1.5">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
@@ -342,53 +479,41 @@ export default function AuctionsApprovalPage() {
                             </Link>
                           )}
 
-                        {/* Approve/Reject for PENDING */}
-                        <button
-                          onClick={() => handleApprove(row)}
-                          disabled={actionLoadingId === row.id || row.status !== "PENDING"}
-                          className="px-3 py-1 bg-green-50 text-green-700 rounded hover:bg-green-100 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleReject(row)}
-                          disabled={actionLoadingId === row.id || row.status !== "PENDING"}
-                          className="px-3 py-1 bg-red-50 text-red-700 rounded hover:bg-red-100 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          Reject
-                        </button>
+                        {row.status === "PENDING" && (
+                          <>
+                            <button
+                              onClick={() => handleApprove(row)}
+                              disabled={actionLoadingId === row.id}
+                              className="w-full px-3 py-1.5 bg-green-50 text-green-700 rounded hover:bg-green-100 text-xs font-semibold text-center disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleReject(row)}
+                              disabled={actionLoadingId === row.id}
+                              className="w-full px-3 py-1.5 bg-red-50 text-red-700 rounded hover:bg-red-100 text-xs font-semibold text-center disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
                         {row.status === "APPROVED" && row.auctionStatus === "ENDED" && (
                           <>
                             <button
                               onClick={() => handleComplete(row)}
                               disabled={actionLoadingId === row.id}
-                              className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded hover:bg-emerald-100 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                              className="w-full px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded hover:bg-emerald-100 text-xs font-semibold text-center disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               Complete
                             </button>
                             <button
                               onClick={() => setFailDialog({ isOpen: true, auctionId: row.id, reason: "" })}
                               disabled={actionLoadingId === row.id}
-                              className="px-3 py-1 bg-rose-50 text-rose-700 rounded hover:bg-rose-100 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                              className="w-full px-3 py-1.5 bg-rose-50 text-rose-700 rounded hover:bg-rose-100 text-xs font-semibold text-center disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               Fail
                             </button>
                           </>
-                        )}
-
-                        {/* Show result for COMPLETED/FAILED */}
-                        {row.auctionStatus === "COMPLETED" && (
-                          <span className="px-3 py-1 bg-green-50 text-green-700 rounded text-xs font-semibold">
-                            Completed
-                          </span>
-                        )}
-                        {row.auctionStatus === "FAILED" && (
-                          <span
-                            className="px-3 py-1 bg-red-50 text-red-700 rounded text-xs font-semibold cursor-help"
-                            title={row.failure_reason || "No reason provided"}
-                          >
-                            Failed
-                          </span>
                         )}
                       </div>
                     </td>
