@@ -4,14 +4,16 @@ import { Transaction } from "@/types/transaction_type";
 
 interface TransactionItemProps {
   transaction: Transaction;
-  onView: (id: string) => void;
+  onView?: (id: string) => void;
 }
 
 export const TransactionItem = ({ transaction, onView }: TransactionItemProps) => {
   // Status badge color mapping
-  const statusConfig = {
+  const statusConfig: Record<Transaction["status"], string> = {
     SUCCESS: "text-green-600 bg-green-50 border-green-100",
-    PENDING: "text-amber-600 bg-amber-50 border-amber-100",
+    PROCESSING: "text-amber-600 bg-amber-50 border-amber-100",
+    REFUNDED: "text-blue-600 bg-blue-50 border-blue-100",
+    CANCELLED: "text-gray-600 bg-gray-50 border-gray-100",
     FAILED: "text-red-600 bg-red-50 border-red-100",
   };
 
@@ -35,10 +37,10 @@ export const TransactionItem = ({ transaction, onView }: TransactionItemProps) =
           
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
             <span className="text-sm font-medium text-[var(--secondary-color)]">
-              {transaction.participant_name}
+              {transaction.description || transaction.participant_name}
             </span>
             <span className="text-sm text-gray-500">
-              Amount: <b className="text-gray-900">+{transaction.amount.toLocaleString()} VND</b>
+              Amount: <b className={transaction.direction === "OUTGOING" ? "text-red-600" : "text-gray-900"}>{transaction.direction === "OUTGOING" ? "-" : "+"}{transaction.amount.toLocaleString()} VND</b>
             </span>
             <span className="hidden md:block text-xs text-gray-400">
               {transaction.created_at}
@@ -47,19 +49,21 @@ export const TransactionItem = ({ transaction, onView }: TransactionItemProps) =
         </div>
       </div>
 
-      <div className="flex items-center gap-1">
-        {/* View action - matches the ProductItem icon button style */}
-        <button 
-          onClick={() => onView(transaction.id)}
-          className="p-2 text-gray-400 hover:text-[var(--primary-color)] hover:bg-blue-50 rounded-lg transition-colors"
-          title="View details"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-        </button>
-      </div>
+      {onView && (
+        <div className="flex items-center gap-1">
+          {/* View action - matches the ProductItem icon button style */}
+          <button
+            onClick={() => onView(transaction.id)}
+            className="p-2 text-gray-400 hover:text-[var(--primary-color)] hover:bg-blue-50 rounded-lg transition-colors"
+            title="View details"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

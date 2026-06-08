@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createWinnerPayment } from "@/services/create_winner_payment";
 import {
+  PendingWinnerPaymentResponse,
   UserTransactionResponse,
+  fetchPendingWinnerPayments,
   fetchTransactionHistory,
 } from "@/services/fetch_transaction_history";
 
@@ -16,6 +19,8 @@ function getErrorMessage(error: unknown): string {
 
 export function WalletContent({ userId }: WalletContentProps) {
   const [transactions, setTransactions] = useState<UserTransactionResponse[]>([]);
+  const [pendingPayments, setPendingPayments] = useState<PendingWinnerPaymentResponse[]>([]);
+  const [payingAuctionResultId, setPayingAuctionResultId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,12 +30,14 @@ export function WalletContent({ userId }: WalletContentProps) {
         setLoading(true);
         setError(null);
 
-        // Fetch wallet balance and transaction history
-        const [transactionList] = await Promise.all([
+        // Fetch wallet data
+        const [transactionList, pendingList] = await Promise.all([
           fetchTransactionHistory(userId),
+          fetchPendingWinnerPayments(userId),
         ]);
 
         setTransactions(transactionList);
+        setPendingPayments(pendingList);
       } catch (err: unknown) {
         console.error("Error fetching wallet data:", err);
         setError(getErrorMessage(err));
@@ -85,6 +92,17 @@ export function WalletContent({ userId }: WalletContentProps) {
     );
   }
 
+  const handlePayNow = async (payment: PendingWinnerPaymentResponse) => {
+    setPayingAuctionResultId(payment.auctionResultId);
+    try {
+      const paymentUrl = await createWinnerPayment(payment.auctionId, payment.auctionResultId);
+      window.location.href = paymentUrl;
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
+      setPayingAuctionResultId(null);
+    }
+  };
+
   // Helper function for status badge
   const getStatusBadge = (status: string) => {
     const statusLower = status?.toLowerCase();
@@ -130,6 +148,49 @@ export function WalletContent({ userId }: WalletContentProps) {
 
   return (
     <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <h2 className="text-lg font-semibold text-[var(--secondary-color)]">
+            Pending payments
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Auctions you won and still need to pay
+          </p>
+        </div>
+
+        {pendingPayments.length === 0 ? (
+          <div className="p-6 text-sm text-gray-500">No pending payments.</div>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {pendingPayments.map((payment) => (
+              <div key={payment.auctionResultId} className="flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{payment.auctionName}</p>
+                  <p className="mt-1 text-xs text-gray-500">Product: {payment.productName}</p>
+                  <p className="mt-1 text-xs text-gray-500">Ended at: {payment.endedAt || "N/A"}</p>
+                  <span className="mt-3 inline-flex rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+                    {payment.status}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-3 md:items-end">
+                  <p className="text-lg font-bold text-gray-900">
+                    {payment.amount.toLocaleString("vi-VN")} VND
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => handlePayNow(payment)}
+                    disabled={payingAuctionResultId === payment.auctionResultId}
+                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                  >
+                    {payingAuctionResultId === payment.auctionResultId ? "Creating payment..." : "Pay now"}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Transaction History */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-100">
         {/* Header */}

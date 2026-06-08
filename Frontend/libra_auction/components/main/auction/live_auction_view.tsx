@@ -24,7 +24,7 @@ interface StatusSocketResponse {
   type?: "AUCTION_EXTENDED";
   newEndTime?: string;
   message?: string;
-  status?: "IN_PROGRESS" | "PAUSED" | "ENDED" | "CANCELLED";
+  status?: "IN_PROGRESS" | "PAUSED" | "ENDED" | "CANCELLED" | "COMPLETED" | "FAILED";
   remainingTime?: string | number;
   winnerId?: string;
   winnerName?: string;
@@ -232,6 +232,7 @@ export default function LiveAuctionView({
             break;
           case "ENDED":
             setStatusMessage("Phiên đấu giá đã kết thúc.");
+            setRemainingTimeMs(0);
             setIsHighestBidder(false);
             if (update.winnerId) setWinnerId(update.winnerId);
             if (update.winnerName) setWinnerName(update.winnerName);
@@ -239,8 +240,23 @@ export default function LiveAuctionView({
             addNotification("Phiên đấu giá đã kết thúc");
             break;
           case "CANCELLED":
-            setStatusMessage("Phiên đấu giá đã bị hủy.");
-            addNotification("Phiên đấu giá đã bị hủy");
+          case "COMPLETED":
+          case "FAILED":
+            setRemainingTimeMs(0);
+            setStatusMessage(
+              update.status === "CANCELLED"
+                ? "Phiên đấu giá đã bị hủy."
+                : update.status === "COMPLETED"
+                ? "Phiên đấu giá đã hoàn tất."
+                : "Phiên đấu giá đã thất bại."
+            );
+            addNotification(
+              update.status === "CANCELLED"
+                ? "Phiên đấu giá đã bị hủy"
+                : update.status === "COMPLETED"
+                ? "Phiên đấu giá đã hoàn tất"
+                : "Phiên đấu giá đã thất bại"
+            );
             break;
         }
       }
@@ -314,7 +330,8 @@ export default function LiveAuctionView({
       ? "Bids can only be placed while the auction is live."
       : null;
 
-  const isEnded = auctionStatus === "ENDED" || auctionStatus === "CANCELLED";
+  const terminalStatuses = ["ENDED", "CANCELLED", "COMPLETED", "FAILED"];
+  const isEnded = terminalStatuses.includes(auctionStatus);
   const isPaused = auctionStatus === "PAUSED";
 
   return (
@@ -332,8 +349,9 @@ export default function LiveAuctionView({
           }`}>
             {currentUserId && winnerId === currentUserId ? (
               <>
-                <p className="text-2xl font-bold mb-2">Congratulations! You won this auction!</p>
+                <p className="text-2xl font-bold mb-2">Bạn thắng phiên đấu giá này!</p>
                 <p className="text-lg">Winning price: <span className="font-bold">{CurrencyFormat(winningPrice || currentBid)}</span></p>
+                <p className="mt-3 text-sm font-semibold">Vui lòng vào Profile - Wallet & Transactions để thanh toán.</p>
               </>
             ) : (
               <>
@@ -417,7 +435,7 @@ export default function LiveAuctionView({
                 <div className="rounded-2xl border border-[#AFD3E2] bg-[#F2F8FA]/50 p-5 text-center shadow-sm shadow-[#AFD3E2]/20">
                   <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5A7184]">Time remaining</p>
                   <div className="mt-3 flex min-h-16 items-center justify-center rounded-xl border border-[#D8EEF4] bg-[#EAF4F7] px-4 py-3 text-[#146C94]">
-                    <AuctionTimer endTimeMs={endTimeMs} remainingTimeMs={remainingTimeMs} isPaused={isPaused} size="sm" />
+                    <AuctionTimer endTimeMs={endTimeMs} remainingTimeMs={remainingTimeMs} isPaused={isPaused} isEnded={isEnded} size="sm" />
                   </div>
                 </div>
               </div>

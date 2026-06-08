@@ -3,14 +3,19 @@ package io.github.guennhatking.libra_auction.services;
 import io.github.guennhatking.libra_auction.enums.auction.ApprovalStatus;
 import io.github.guennhatking.libra_auction.enums.auction.AuctionStatus;
 import io.github.guennhatking.libra_auction.enums.product.ProductStatus;
+import io.github.guennhatking.libra_auction.enums.transaction.TransactionStatus;
 import io.github.guennhatking.libra_auction.mappers.AuctionMapper;
 import io.github.guennhatking.libra_auction.mappers.ProductResponseMapper;
 import io.github.guennhatking.libra_auction.models.auction.Auction;
+import io.github.guennhatking.libra_auction.models.auction.AuctionResult;
 import io.github.guennhatking.libra_auction.models.person.Customer;
 import io.github.guennhatking.libra_auction.models.product.Product;
+import io.github.guennhatking.libra_auction.models.transaction.DepositTransaction;
 import io.github.guennhatking.libra_auction.repositories.auction.AuctionRepository;
 import io.github.guennhatking.libra_auction.repositories.person.CustomerRepository;
 import io.github.guennhatking.libra_auction.repositories.product.ProductRepository;
+import io.github.guennhatking.libra_auction.repositories.transaction.DepositTransactionRepository;
+import io.github.guennhatking.libra_auction.repositories.transaction.PaymentTransactionRepository;
 import io.github.guennhatking.libra_auction.viewmodels.request.AuctionCreateRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.AuctionUpdateRequest;
 import io.github.guennhatking.libra_auction.viewmodels.response.AuctionResponse;
@@ -33,19 +38,25 @@ public class AuctionService {
         private final ProductRepository productRepository;
         private final CustomerRepository customerRepository;
         private final AuctionStateRedisService auctionStateRedisService;
+        private final PaymentTransactionRepository paymentTransactionRepository;
+        private final DepositTransactionRepository depositTransactionRepository;
 
         public AuctionService(AuctionRepository auctionRepository,
                         AuctionMapper auctionMapper,
                         ProductResponseMapper productResponseMapper,
                         ProductRepository productRepository,
                         CustomerRepository customerRepository,
-                        AuctionStateRedisService auctionStateRedisService) {
+                        AuctionStateRedisService auctionStateRedisService,
+                        PaymentTransactionRepository paymentTransactionRepository,
+                        DepositTransactionRepository depositTransactionRepository) {
                 this.auctionRepository = auctionRepository;
                 this.auctionMapper = auctionMapper;
                 this.productResponseMapper = productResponseMapper;
                 this.productRepository = productRepository;
                 this.customerRepository = customerRepository;
                 this.auctionStateRedisService = auctionStateRedisService;
+                this.paymentTransactionRepository = paymentTransactionRepository;
+                this.depositTransactionRepository = depositTransactionRepository;
         }
 
         @Transactional(readOnly = true)
@@ -236,6 +247,21 @@ public class AuctionService {
                         throw new IllegalStateException("Auction must be ENDED to complete");
                 }
 
+                AuctionResult auctionResult = auction.getAuctionResult();
+                if (auctionResult == null || auctionResult.getWinner() == null) {
+                        throw new IllegalStateException("Auction must have a winner before it can be completed");
+                }
+
+                boolean winnerPaymentSucceeded = paymentTransactionRepository
+                                .findByAuctionResult_IdAndSender_IdAndTransactionStatus(
+                                                auctionResult.getId(),
+                                                auctionResult.getWinner().getId(),
+                                                TransactionStatus.SUCCESS)
+                                .isPresent();
+                if (!winnerPaymentSucceeded) {
+                        throw new IllegalStateException("Winner must complete payment before auction can be completed");
+                }
+
                 // Mark product as SOLD
                 Product product = auction.getProduct();
                 if (product != null) {
@@ -269,6 +295,8 @@ public class AuctionService {
                         product.setStatus(ProductStatus.AVAILABLE);
                         productRepository.save(product);
                 }
+
+                refundCompletedDeposits(auction);
 
                 auction.setAuctionStatus(AuctionStatus.FAILED);
                 auction.setFailureReason(reason);
@@ -342,6 +370,20 @@ public class AuctionService {
                 return productResponseMapper.toProductResponse(product);
         }
 
+        private void refundCompletedDeposits(Auction auction) {
+                depositTransactionRepository
+                                .findByParticipationInfo_Auction_IdAndTransactionStatus(
+                                                auction.getId(),
+                                                TransactionStatus.SUCCESS)
+                                .forEach(this::refundDeposit);
+        }
+
+        private void refundDeposit(DepositTransaction deposit) {
+                deposit.setTransactionStatus(TransactionStatus.REFUNDED);
+                deposit.setRefundTime(OffsetDateTime.now(ZoneOffset.ofHours(7)));
+                depositTransactionRepository.save(deposit);
+        }
+
         private AuctionResponse withRuntimeTiming(AuctionResponse response) {
                 Long redisEndTimeMs = auctionStateRedisService.getAuctionEndTime(response.auction_id());
                 OffsetDateTime endTime = redisEndTimeMs != null
@@ -384,6 +426,7 @@ public class AuctionService {
                                 response.winner_id(),
                                 response.winner_name(),
                                 response.winning_price(),
+                                response.auction_result_id(),
                                 remainingTime);
         }
 }

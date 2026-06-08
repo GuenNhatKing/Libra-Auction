@@ -1,5 +1,6 @@
 package io.github.guennhatking.libra_auction.services;
 
+import io.github.guennhatking.libra_auction.enums.auction.AuctionStatus;
 import io.github.guennhatking.libra_auction.enums.transaction.TransactionType;
 import io.github.guennhatking.libra_auction.enums.transaction.TransactionStatus;
 import io.github.guennhatking.libra_auction.models.auction.AuctionResult;
@@ -11,17 +12,17 @@ import io.github.guennhatking.libra_auction.models.transaction.DepositTransactio
 import io.github.guennhatking.libra_auction.models.transaction.PaymentTransaction;
 import io.github.guennhatking.libra_auction.properties.VNPayProperties;
 import io.github.guennhatking.libra_auction.repositories.auction.AuctionRepository;
+import io.github.guennhatking.libra_auction.repositories.auction.AuctionResultRepository;
 import io.github.guennhatking.libra_auction.repositories.auction.AuctionParticipationInfoRepository;
 import io.github.guennhatking.libra_auction.repositories.person.CustomerRepository;
 import io.github.guennhatking.libra_auction.repositories.transaction.DepositTransactionRepository;
 import io.github.guennhatking.libra_auction.repositories.transaction.TransactionRepository;
 import io.github.guennhatking.libra_auction.repositories.transaction.PaymentTransactionRepository;
-import io.github.guennhatking.libra_auction.repositories.product.ProductRepository;
-import io.github.guennhatking.libra_auction.enums.product.ProductStatus;
 import io.github.guennhatking.libra_auction.utils.VNPayUtil;
 import io.github.guennhatking.libra_auction.viewmodels.request.VNPayDepositRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.VNPayPaymentRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.VerifyPaymentRequest;
+import io.github.guennhatking.libra_auction.viewmodels.response.PendingWinnerPaymentResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.UserTransactionResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.VNPayPaymentResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.VNPayTransactionResponse;
@@ -53,7 +54,7 @@ public class VNPayService {
     private final CustomerRepository customerRepository;
     private final AuctionRepository auctionRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
-    private final ProductRepository productRepository;
+    private final AuctionResultRepository auctionResultRepository;
 
     public VNPayService(VNPayProperties vnPayProperties,
             TransactionRepository transactionRepository,
@@ -62,14 +63,14 @@ public class VNPayService {
             DepositTransactionRepository depositTransactionRepository,
             AuctionParticipationInfoRepository participationInfoRepository,
             AuctionRepository auctionRepository,
-            ProductRepository productRepository) {
+            AuctionResultRepository auctionResultRepository) {
         this.vnPayProperties = vnPayProperties;
         this.customerRepository = customerRepository;
         this.depositTransactionRepository = depositTransactionRepository;
         this.participationInfoRepository = participationInfoRepository;
         this.auctionRepository = auctionRepository;
         this.paymentTransactionRepository = paymentTransactionRepository;
-        this.productRepository = productRepository;
+        this.auctionResultRepository = auctionResultRepository;
     }
 
     @Transactional
@@ -85,6 +86,9 @@ public class VNPayService {
 
         Auction auction = auctionRepository.findById(request.auctionId())
                 .orElseThrow(() -> new RuntimeException("Phien dau gia khong ton tai"));
+        if (hasAuctionStarted(auction)) {
+            throw new RuntimeException("Phien dau gia da bat dau, khong the thanh toan dat coc");
+        }
 
         DepositTransaction deposit = new DepositTransaction(auction.getDepositAmount(),
                 user, participationInfo);
@@ -165,7 +169,8 @@ public class VNPayService {
 
         Customer seller = auction.getCreator();
 
-        PaymentTransaction payment = new PaymentTransaction(auction.getCurrentPrice(),
+        long paymentAmount = auctionResult.getWinningPrice() > 0 ? auctionResult.getWinningPrice() : auction.getCurrentPrice();
+        PaymentTransaction payment = new PaymentTransaction(paymentAmount,
                 user, seller, auctionResult);
 
         payment.setCreatedAt(OffsetDateTime.now(ZoneOffset.ofHours(7)));
@@ -176,12 +181,12 @@ public class VNPayService {
 
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
-        String vnp_OrderInfo = "Dat coc dau gia: " + request.auctionId();
+        String vnp_OrderInfo = "Thanh toan dau gia: " + request.auctionId();
         String vnp_TxnRef = payment.getId();
         String vnp_IpAddr = getClientIp(servletRequest);
         String vnp_TmnCode = vnPayProperties.getTmnCode();
 
-        long amount = auction.getDepositAmount() * 100; // VNPay tinh theo don vi xu (nhan 100)
+        long amount = paymentAmount * 100; // VNPay tinh theo don vi xu (nhan 100)
 
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", vnp_Version);
@@ -286,6 +291,13 @@ public class VNPayService {
             return deposit.getTransactionStatus() == TransactionStatus.SUCCESS;
         }
 
+        Auction depositAuction = deposit.getParticipationInfo().getAuction();
+        if (hasAuctionStarted(depositAuction)) {
+            deposit.setTransactionStatus(TransactionStatus.FAILED);
+            depositTransactionRepository.save(deposit);
+            return false;
+        }
+
         // 6. Cap nhat ket qua dua tren ResponseCode
         if ("00".equals(request.vnp_ResponseCode())) {
             // THANH CONG
@@ -365,11 +377,6 @@ public class VNPayService {
 
             paymentTransactionRepository.save(payment);
 
-            // Danh dau san pham da ban
-            var product = payment.getAuctionResult().getAuction().getProduct();
-            product.setStatus(ProductStatus.SOLD);
-            productRepository.save(product);
-
             return true;
         } else {
             payment.setTransactionStatus(TransactionStatus.FAILED);
@@ -429,11 +436,46 @@ public class VNPayService {
         return request.getRemoteAddr();
     }
 
+    private boolean hasAuctionStarted(Auction auction) {
+        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.ofHours(7));
+        return auction.getAuctionStatus() != AuctionStatus.NOT_STARTED || !now.isBefore(auction.getStartTime());
+    }
+
     @Transactional(readOnly = true)
     public boolean isDepositPaid(String userId, String auctionId) {
         return depositTransactionRepository
                 .findByDepositorIdAndAuctionIdAndStatus(userId, auctionId, TransactionStatus.SUCCESS)
                 .isPresent();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PendingWinnerPaymentResponse> getPendingWinnerPayments(String userId) {
+        return auctionResultRepository
+                .findByWinner_IdAndAuction_AuctionStatusOrderByEndTimeDesc(userId, AuctionStatus.ENDED)
+                .stream()
+                .filter(result -> paymentTransactionRepository
+                        .findByAuctionResult_IdAndSender_IdAndTransactionStatus(
+                                result.getId(),
+                                userId,
+                                TransactionStatus.SUCCESS)
+                        .isEmpty())
+                .map(this::toPendingWinnerPaymentResponse)
+                .toList();
+    }
+
+    private PendingWinnerPaymentResponse toPendingWinnerPaymentResponse(AuctionResult result) {
+        Auction auction = result.getAuction();
+        String endedAt = result.getEndTime() == null
+                ? ""
+                : result.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        return new PendingWinnerPaymentResponse(
+                auction.getId(),
+                result.getId(),
+                auction.getProduct() == null ? "Untitled item" : auction.getProduct().getName(),
+                auction.getProduct().getName(),
+                result.getWinningPrice(),
+                "Payment required",
+                endedAt);
     }
 
     @Transactional(readOnly = true)
@@ -447,6 +489,20 @@ public class VNPayService {
                 .forEach(payment -> transactions.add(toUserTransactionResponse(payment, false)));
 
         paymentTransactionRepository.findByReceiver_IdOrderByCreatedAtDesc(userId)
+                .forEach(payment -> transactions.add(toUserTransactionResponse(payment, true)));
+
+        transactions.sort((a, b) -> b.createdAt().compareTo(a.createdAt()));
+        return transactions;
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserTransactionResponse> getAllTransactions() {
+        List<UserTransactionResponse> transactions = new ArrayList<>();
+
+        depositTransactionRepository.findAllByOrderByCreatedAtDesc()
+                .forEach(deposit -> transactions.add(toUserTransactionResponse(deposit, false)));
+
+        paymentTransactionRepository.findAllByOrderByCreatedAtDesc()
                 .forEach(payment -> transactions.add(toUserTransactionResponse(payment, true)));
 
         transactions.sort((a, b) -> b.createdAt().compareTo(a.createdAt()));

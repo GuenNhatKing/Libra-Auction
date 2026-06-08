@@ -40,6 +40,7 @@ public record AuctionResponse(
         String winner_id,
         String winner_name,
         Long winning_price,
+        String auction_result_id,
 
         Long remaining_time) {
 }

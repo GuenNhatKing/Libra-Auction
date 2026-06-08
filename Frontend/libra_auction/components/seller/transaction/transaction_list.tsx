@@ -6,9 +6,10 @@ import { useRouter } from "next/navigation";
 
 interface TransactionListProps {
   transactions: Transaction[];
+  detailsHrefPrefix?: string;
 }
 
-export const TransactionList = ({ transactions }: TransactionListProps) => {
+export const TransactionList = ({ transactions, detailsHrefPrefix }: TransactionListProps) => {
   const router = useRouter();
 
   return (
@@ -30,7 +31,7 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
             <TransactionItem
               key={item.id}
               transaction={item}
-              onView={() => router.push(`/seller-dashboard/transactions/${item.id}`)}
+              onView={detailsHrefPrefix ? () => router.push(`${detailsHrefPrefix}/${item.id}`) : undefined}
             />
           ))
         ) : (

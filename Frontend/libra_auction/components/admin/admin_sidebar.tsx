@@ -6,6 +6,7 @@ const menuItems = [
   { name: 'Dashboard', href: '/admin-dashboard' },
   { name: 'Users', href: '/admin-dashboard/users' },
   { name: 'Auctions', href: '/admin-dashboard/auctions' },
+  { name: 'Transactions', href: '/admin-dashboard/transactions' },
 ];
 
 export default function AdminSidebar() {

@@ -6,8 +6,7 @@ const menuItems = [
   { name: 'Dashboard', href: '/seller-dashboard/' },
   { name: 'Auctions', href: '/seller-dashboard/auctions' },
   { name: 'Products', href: '/seller-dashboard/products' },
-  // TODO: transactions
-  // { name: 'Transactions', href: '/seller-dashboard/transactions' }, 
+  { name: 'Transactions', href: '/seller-dashboard/transactions' },
 ];
 
 export default function Sidebar() {

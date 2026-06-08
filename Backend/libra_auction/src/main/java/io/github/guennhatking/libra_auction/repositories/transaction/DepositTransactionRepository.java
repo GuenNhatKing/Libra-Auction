@@ -18,5 +18,11 @@ public interface DepositTransactionRepository extends JpaRepository<DepositTrans
             @Param("auctionId") String auctionId,
             @Param("status") TransactionStatus status);
 
+    List<DepositTransaction> findByParticipationInfo_Auction_IdAndTransactionStatus(
+            String auctionId,
+            TransactionStatus transactionStatus);
+
     List<DepositTransaction> findByDepositorIdOrderByCreatedAtDesc(String depositorId);
+
+    List<DepositTransaction> findAllByOrderByCreatedAtDesc();
 }

@@ -23,14 +23,16 @@ export async function GET(req: NextRequest) {
 
         // Determine endpoint based on order info
         const orderInfo = searchParams.get("vnp_OrderInfo") || "";
-        const endpoint = "/api/payments/vnpay/deposit/successed";
+        const isWinnerPayment = orderInfo.includes("Thanh toan dau gia");
+        const endpoint = isWinnerPayment
+            ? "/api/payments/vnpay/payment/successed"
+            : "/api/payments/vnpay/deposit/successed";
 
         // Extract auction ID from order info for redirect
         let auctionId = "";
-        // Order format: "Thanh toan tien coc cho dau gia: {auctionId}"
-        const depositMatch = orderInfo.match(/dau gia:\s*(.+)/);
-        if (depositMatch) {
-            auctionId = depositMatch[1].trim();
+        const auctionMatch = orderInfo.match(/dau gia:\s*(.+)/);
+        if (auctionMatch) {
+            auctionId = auctionMatch[1].trim();
         }
 
         const res = await ServerAPIAuthedCall<boolean | null>(endpoint, requestConfig);
@@ -38,8 +40,11 @@ export async function GET(req: NextRequest) {
         const status = (res.isSuccess && res.data) ? "success" : "failed";
 
         if (auctionId) {
+            const handlePath = isWinnerPayment
+                ? `/bff/payment/handle?auctionId=${auctionId}&status=${status}&type=winner`
+                : `/bff/payment/handle?auctionId=${auctionId}&status=${status}`;
             return NextResponse.redirect(
-                new URL(`/bff/payment/handle?auctionId=${auctionId}&status=${status}`, req.url)
+                new URL(handlePath, req.url)
             );
         }
 

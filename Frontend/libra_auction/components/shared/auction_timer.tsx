@@ -6,6 +6,7 @@ interface AuctionTimerProps {
   endTimeMs: number;
   remainingTimeMs?: number | null;
   isPaused: boolean;
+  isEnded?: boolean;
   onTick?: (timeLeftMs: number) => void;
   onEnd?: () => void;
   size?: "sm" | "md" | "lg";
@@ -15,6 +16,7 @@ export default function AuctionTimer({
   endTimeMs,
   remainingTimeMs,
   isPaused,
+  isEnded = false,
   onTick,
   onEnd,
   size = "md",
@@ -27,14 +29,16 @@ export default function AuctionTimer({
 
   // Tick every second when not paused
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || isEnded) return;
 
+    let hasEnded = false;
     const updateTimeLeft = () => {
       const remaining = Math.max(0, endTimeMs - Date.now());
       setTimeLeftMs(remaining);
       onTick?.(remaining);
 
-      if (remaining <= 0) {
+      if (remaining <= 0 && !hasEnded) {
+        hasEnded = true;
         onEnd?.();
       }
     };
@@ -46,7 +50,7 @@ export default function AuctionTimer({
       clearTimeout(timeout);
       clearInterval(interval);
     };
-  }, [isPaused, endTimeMs, onTick, onEnd]);
+  }, [isPaused, isEnded, endTimeMs, onTick, onEnd]);
 
   const sizeClasses = {
     sm: "text-lg font-semibold",
@@ -54,7 +58,9 @@ export default function AuctionTimer({
     lg: "text-5xl font-bold tracking-[0.18em]",
   };
 
-  const displayTimeLeftMs = isPaused && remainingTimeMs !== undefined && remainingTimeMs !== null
+  const displayTimeLeftMs = isEnded
+    ? 0
+    : isPaused && remainingTimeMs !== undefined && remainingTimeMs !== null
     ? Math.max(0, remainingTimeMs)
     : timeLeftMs;
 

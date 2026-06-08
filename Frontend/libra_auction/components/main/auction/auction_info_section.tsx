@@ -260,6 +260,12 @@ export default function AuctionInfoSection({
                         <p className="text-emerald-600 text-sm mt-1">Giá thắng: {CurrencyFormat(autionInfos.winning_price || autionInfos.current_price)}</p>
                       </>
                     )}
+                    <Link
+                      href={`/auctions/${autionInfos.category_id}/${autionInfos.auction_id}/live`}
+                      className="mt-4 flex w-full items-center justify-center gap-3 rounded-2xl bg-gray-800 px-8 py-4 text-base font-bold text-white shadow-lg shadow-gray-900/15 transition-all duration-200 hover:bg-gray-900 active:scale-[0.98]"
+                    >
+                      Open live room
+                    </Link>
                   </div>
                 ) : autionInfos.auction_status === "ENDED" ? (
                   <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 text-center">

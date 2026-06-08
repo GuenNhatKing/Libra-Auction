@@ -1,10 +1,13 @@
 package io.github.guennhatking.libra_auction.controllers;
 
+import io.github.guennhatking.libra_auction.models.person.Customer;
+import io.github.guennhatking.libra_auction.repositories.person.CustomerRepository;
 import io.github.guennhatking.libra_auction.security.JwtUserDetails;
 import io.github.guennhatking.libra_auction.services.VNPayService;
 import io.github.guennhatking.libra_auction.viewmodels.request.VNPayDepositRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.VNPayPaymentRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.VerifyPaymentRequest;
+import io.github.guennhatking.libra_auction.viewmodels.response.PendingWinnerPaymentResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.ServerAPIResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.UserTransactionResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.VNPayPaymentResponse;
@@ -16,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 /**
  * Controller for VNPay payment processing
  */
@@ -23,9 +28,19 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/payments/vnpay")
 public class VNPayController {
     private final VNPayService vnPayService;
+    private final CustomerRepository customerRepository;
 
-    public VNPayController(VNPayService vnPayService) {
+    public VNPayController(VNPayService vnPayService, CustomerRepository customerRepository) {
         this.vnPayService = vnPayService;
+        this.customerRepository = customerRepository;
+    }
+
+    private boolean isAdminUser(String userId) {
+        Optional<Customer> user = customerRepository.findById(userId);
+        if (user.isEmpty()) {
+            return false;
+        }
+        return user.get().getRole() != null && "ADMIN".equalsIgnoreCase(user.get().getRole().getName());
     }
 
     @PostMapping("/create-deposit")
@@ -73,7 +88,6 @@ public class VNPayController {
     public ResponseEntity<ServerAPIResponse<Boolean>> depositSuccessed(
             @AuthenticationPrincipal JwtUserDetails userDetails,
             @Valid @RequestBody VerifyPaymentRequest request) {
-        System.out.println("Received verify payment request: " + request);
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ServerAPIResponse.error("Authentication required"));
@@ -92,7 +106,6 @@ public class VNPayController {
     public ResponseEntity<ServerAPIResponse<Boolean>> paymentSuccessed(
             @AuthenticationPrincipal JwtUserDetails userDetails,
             @Valid @RequestBody VerifyPaymentRequest request) {
-        System.out.println("Received verify payment request: " + request);
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ServerAPIResponse.error("Authentication required"));
@@ -136,6 +149,37 @@ public class VNPayController {
         }
         boolean paid = vnPayService.isDepositPaid(userDetails.getUserId(), auctionId);
         return ResponseEntity.ok(ServerAPIResponse.success(paid));
+    }
+
+    @GetMapping("/admin/transactions")
+    public ResponseEntity<ServerAPIResponse<java.util.List<UserTransactionResponse>>> getAdminTransactions(
+            @AuthenticationPrincipal JwtUserDetails userDetails) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error("Authentication required"));
+        }
+        if (!isAdminUser(userDetails.getUserId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ServerAPIResponse.error("Admin role required"));
+        }
+
+        return ResponseEntity.ok(ServerAPIResponse.success(vnPayService.getAllTransactions()));
+    }
+
+    @GetMapping("/user/{userId}/pending-payments")
+    public ResponseEntity<ServerAPIResponse<java.util.List<PendingWinnerPaymentResponse>>> getPendingWinnerPayments(
+            @AuthenticationPrincipal JwtUserDetails userDetails,
+            @PathVariable String userId) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error("Authentication required"));
+        }
+        if (!userDetails.getUserId().equals(userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ServerAPIResponse.error("Access denied"));
+        }
+
+        return ResponseEntity.ok(ServerAPIResponse.success(vnPayService.getPendingWinnerPayments(userId)));
     }
 
     @GetMapping("/user/{userId}/transactions")

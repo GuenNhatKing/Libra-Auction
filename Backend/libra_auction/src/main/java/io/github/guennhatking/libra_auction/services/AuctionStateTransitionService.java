@@ -2,14 +2,17 @@ package io.github.guennhatking.libra_auction.services;
 
 import io.github.guennhatking.libra_auction.enums.auction.AuctionStatus;
 import io.github.guennhatking.libra_auction.enums.product.ProductStatus;
+import io.github.guennhatking.libra_auction.enums.transaction.TransactionStatus;
 import io.github.guennhatking.libra_auction.models.auction.AuctionResult;
 import io.github.guennhatking.libra_auction.models.auction.Auction;
 import io.github.guennhatking.libra_auction.models.auction.AuctionParticipationInfo;
 import io.github.guennhatking.libra_auction.models.person.Customer;
+import io.github.guennhatking.libra_auction.models.transaction.DepositTransaction;
 import io.github.guennhatking.libra_auction.repositories.auction.AuctionResultRepository;
 import io.github.guennhatking.libra_auction.repositories.auction.AuctionRepository;
 import io.github.guennhatking.libra_auction.repositories.person.CustomerRepository;
 import io.github.guennhatking.libra_auction.repositories.product.ProductRepository;
+import io.github.guennhatking.libra_auction.repositories.transaction.DepositTransactionRepository;
 import io.github.guennhatking.libra_auction.viewmodels.response.BidResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +43,7 @@ public class AuctionStateTransitionService {
     private final AuctionStateRedisService auctionStateRedisService;
     private final ProductRepository productRepository;
     private final CustomerRepository customerRepository;
+    private final DepositTransactionRepository depositTransactionRepository;
 
     public AuctionStateTransitionService(
             AuctionRepository auctionRepository,
@@ -49,7 +53,8 @@ public class AuctionStateTransitionService {
             EmailNotificationService emailNotificationService,
             AuctionStateRedisService auctionStateRedisService,
             ProductRepository productRepository,
-            CustomerRepository customerRepository) {
+            CustomerRepository customerRepository,
+            DepositTransactionRepository depositTransactionRepository) {
         this.auctionRepository = auctionRepository;
         this.auctionResultRepository = auctionResultRepository;
         this.bidHistoryService = bidHistoryService;
@@ -58,6 +63,7 @@ public class AuctionStateTransitionService {
         this.auctionStateRedisService = auctionStateRedisService;
         this.productRepository = productRepository;
         this.customerRepository = customerRepository;
+        this.depositTransactionRepository = depositTransactionRepository;
     }
 
     /**
@@ -246,6 +252,7 @@ public class AuctionStateTransitionService {
             // Change status to ENDED
             auction.setAuctionStatus(AuctionStatus.ENDED);
             auctionRepository.save(auction);
+            refundCompletedDeposits(auction, winner);
 
             // Send email notifications
             try {
@@ -349,6 +356,22 @@ public class AuctionStateTransitionService {
         } catch (Exception e) {
             logger.error("Error cancelling auction {}: {}", auctionId, e.getMessage(), e);
         }
+    }
+
+    private void refundCompletedDeposits(Auction auction, Customer winner) {
+        depositTransactionRepository
+                .findByParticipationInfo_Auction_IdAndTransactionStatus(auction.getId(), TransactionStatus.SUCCESS)
+                .stream()
+                .filter(deposit -> winner == null
+                        || deposit.getDepositor() == null
+                        || !winner.getId().equals(deposit.getDepositor().getId()))
+                .forEach(this::refundDeposit);
+    }
+
+    private void refundDeposit(DepositTransaction deposit) {
+        deposit.setTransactionStatus(TransactionStatus.REFUNDED);
+        deposit.setRefundTime(OffsetDateTime.now(ZoneOffset.ofHours(7)));
+        depositTransactionRepository.save(deposit);
     }
 
     /**

@@ -46,6 +46,7 @@ public interface AuctionMapper {
     @Mapping(source = ".", target = "winner_id", qualifiedByName = "resolveWinnerId")
     @Mapping(source = ".", target = "winner_name", qualifiedByName = "resolveWinnerName")
     @Mapping(source = ".", target = "winning_price", qualifiedByName = "resolveWinningPrice")
+    @Mapping(source = ".", target = "auction_result_id", qualifiedByName = "resolveAuctionResultId")
     @Mapping(target = "remaining_time", ignore = true)
     AuctionResponse toAuctionResponse(Auction session);
 
@@ -118,6 +119,13 @@ public interface AuctionMapper {
         if (session == null || session.getAuctionResult() == null || session.getAuctionResult().getWinner() == null)
             return null;
         return session.getAuctionResult().getWinner().getFullName();
+    }
+
+    @Named("resolveAuctionResultId")
+    default String resolveAuctionResultId(Auction session) {
+        if (session == null || session.getAuctionResult() == null)
+            return null;
+        return session.getAuctionResult().getId();
     }
 
     @Named("resolveWinningPrice")

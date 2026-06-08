@@ -1,6 +1,7 @@
 package io.github.guennhatking.libra_auction.controllers;
 
 import io.github.guennhatking.libra_auction.enums.auction.AuctionStatus;
+import io.github.guennhatking.libra_auction.enums.transaction.TransactionStatus;
 import io.github.guennhatking.libra_auction.models.auction.Auction;
 import io.github.guennhatking.libra_auction.repositories.auction.AuctionRepository;
 import io.github.guennhatking.libra_auction.repositories.person.CustomerRepository;
@@ -11,6 +12,7 @@ import io.github.guennhatking.libra_auction.viewmodels.response.BidResponse;
 import io.github.guennhatking.libra_auction.models.auction.AuctionLog;
 import io.github.guennhatking.libra_auction.models.person.Customer;
 import io.github.guennhatking.libra_auction.repositories.auction.AuctionParticipationInfoRepository;
+import io.github.guennhatking.libra_auction.repositories.transaction.DepositTransactionRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +35,7 @@ public class AuctionWebSocketController {
     private final AuctionStateRedisService auctionStateRedisService;
     private final AuctionWebSocketNotificationService auctionWebSocketNotificationService;
     private final AuctionParticipationInfoRepository participationInfoRepository;
+    private final DepositTransactionRepository depositTransactionRepository;
     private final CustomerRepository customerRepository;
 
     // Configuration
@@ -44,11 +47,13 @@ public class AuctionWebSocketController {
             AuctionStateRedisService auctionStateRedisService,
             AuctionWebSocketNotificationService auctionWebSocketNotificationService,
             AuctionParticipationInfoRepository participationInfoRepository,
+            DepositTransactionRepository depositTransactionRepository,
             CustomerRepository customerRepository) {
         this.auctionRepository = auctionRepository;
         this.auctionStateRedisService = auctionStateRedisService;
         this.auctionWebSocketNotificationService = auctionWebSocketNotificationService;
         this.participationInfoRepository = participationInfoRepository;
+        this.depositTransactionRepository = depositTransactionRepository;
         this.customerRepository = customerRepository;
     }
 
@@ -110,6 +115,17 @@ public class AuctionWebSocketController {
                     .isPresent();
             if (!isRegistered) {
                 sendErrorNotification(bidMessage.auctionId(), "Bạn chưa đăng ký tham gia phiên đấu giá này.");
+                return;
+            }
+
+            boolean isRegistrationCompleted = depositTransactionRepository
+                    .findByDepositorIdAndAuctionIdAndStatus(
+                            bidMessage.bidderId(),
+                            bidMessage.auctionId(),
+                            TransactionStatus.SUCCESS)
+                    .isPresent();
+            if (!isRegistrationCompleted) {
+                sendErrorNotification(bidMessage.auctionId(), "Bạn chưa hoàn tất thanh toán đặt cọc để tham gia phiên đấu giá này.");
                 return;
             }
 

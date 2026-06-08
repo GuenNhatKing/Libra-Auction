@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Auction } from "@/types/auction/auction";
 import { AuctionStatus } from "@/types/status";
@@ -23,6 +24,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 export function AuctionHistoryContent({ userId }: AuctionHistoryContentProps) {
+  const router = useRouter();
   const [auctionHistory, setAuctionHistory] = useState<AuctionHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -195,6 +197,11 @@ export function AuctionHistoryContent({ userId }: AuctionHistoryContentProps) {
     );
   };
 
+  const openAuctionDetail = (auction: Auction) => {
+    if (!auction.category_id) return;
+    router.push(`/auctions/${auction.category_id}/${auction.auction_id}`);
+  };
+
   // Main Table View
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
@@ -227,6 +234,9 @@ export function AuctionHistoryContent({ userId }: AuctionHistoryContentProps) {
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                 Registered Date
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                Action
               </th>
             </tr>
           </thead>
@@ -285,6 +295,25 @@ export function AuctionHistoryContent({ userId }: AuctionHistoryContentProps) {
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500">
                   {new Date(item.registration.registrationTime).toLocaleDateString("vi-VN")}
+                </td>
+                <td className="px-6 py-4">
+                  {item.loading ? (
+                    <span className="inline-block h-9 w-28 animate-pulse rounded bg-gray-200"></span>
+                  ) : item.error || !item.auction ? (
+                    <span className="text-xs text-gray-400">Unavailable</span>
+                  ) : item.auction.category_id ? (
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => openAuctionDetail(item.auction!)}
+                        className="rounded-lg border border-[#146C94] px-3 py-2 text-xs font-semibold text-[#146C94] transition hover:bg-[#146C94] hover:text-white"
+                      >
+                        View details
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-gray-400">Missing category</span>
+                  )}
                 </td>
               </tr>
             ))}
