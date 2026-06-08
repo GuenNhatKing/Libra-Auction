@@ -8,8 +8,8 @@ export async function GET(request: NextRequest, { params }: {
 }) {
     const { provider } = await params;
     const searchParams = request.nextUrl.searchParams;
-    const successUrl = new URL(`/auth-success`, request.url);
-    const failedUrl = new URL(`/auth-failed`, request.url);
+    const successUrl = new URL(`/auth-success`, process.env.NEXT_PUBLIC_FRONTEND_URL);
+    const failedUrl = new URL(`/auth-failed`, process.env.NEXT_PUBLIC_FRONTEND_URL);
     if (provider === 'google') {
         const code = searchParams.get('code')
         try {
