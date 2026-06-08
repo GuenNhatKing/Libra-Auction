@@ -42,7 +42,7 @@ public class DashboardStatsService {
 
     @Transactional(readOnly = true)
     public SellerDashboardStatsResponse getSellerStats(String sellerId) {
-        List<Auction> auctions = auctionRepository.findAll().stream()
+        List<Auction> auctions = auctionRepository.findByDeletedFalse().stream()
                 .filter(auction -> hasCreator(auction, sellerId))
                 .toList();
 
@@ -64,7 +64,7 @@ public class DashboardStatsService {
 
     @Transactional(readOnly = true)
     public AdminDashboardStatsResponse getAdminStats() {
-        List<Auction> auctions = auctionRepository.findAll();
+        List<Auction> auctions = auctionRepository.findByDeletedFalse();
         List<Customer> users = customerRepository.findAll();
 
         return new AdminDashboardStatsResponse(

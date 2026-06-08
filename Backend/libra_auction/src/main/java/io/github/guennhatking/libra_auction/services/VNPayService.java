@@ -84,7 +84,7 @@ public class VNPayService {
                 .findByParticipantIdAndAuctionId(userId, request.auctionId())
                 .orElseThrow(() -> new RuntimeException("Thong tin tham gia khong ton tai"));
 
-        Auction auction = auctionRepository.findById(request.auctionId())
+        Auction auction = auctionRepository.findByIdAndDeletedFalse(request.auctionId())
                 .orElseThrow(() -> new RuntimeException("Phien dau gia khong ton tai"));
         if (hasAuctionStarted(auction)) {
             throw new RuntimeException("Phien dau gia da bat dau, khong the thanh toan dat coc");
@@ -159,7 +159,7 @@ public class VNPayService {
         Customer user = customerRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Nguoi dung khong ton tai"));
 
-        Auction auction = auctionRepository.findById(request.auctionId())
+        Auction auction = auctionRepository.findByIdAndDeletedFalse(request.auctionId())
                 .orElseThrow(() -> new RuntimeException("Phien dau gia khong ton tai"));
 
         AuctionResult auctionResult = auction.getAuctionResult();

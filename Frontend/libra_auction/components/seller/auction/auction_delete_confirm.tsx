@@ -10,12 +10,12 @@ interface AuctionDeleteConfirmProps {
 }
 
 export const AuctionDeleteConfirm = ({ auction, onDelete, onCancel }: AuctionDeleteConfirmProps) => {
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
 
   const handleDelete = async () => {
-    setIsDeleting(true);
+    setIsCanceling(true);
     await onDelete();
-    setIsDeleting(false);
+    setIsCanceling(false);
   };
 
   return (
@@ -27,9 +27,9 @@ export const AuctionDeleteConfirm = ({ auction, onDelete, onCancel }: AuctionDel
         </div>
 
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Confirm auction deletion</h2>
+          <h2 className="text-xl font-bold text-gray-800">Confirm auction cancellation</h2>
           <p className="text-sm text-gray-500 mt-2">
-            Are you sure you want to delete this auction? This action cannot be undone.
+            Are you sure you want to cancel this pending auction? It will no longer appear in the admin approval queue.
           </p>
         </div>
 
@@ -57,17 +57,17 @@ export const AuctionDeleteConfirm = ({ auction, onDelete, onCancel }: AuctionDel
         <div className="flex gap-3 w-full mt-2">
           <button
             onClick={onCancel}
-            disabled={isDeleting}
+            disabled={isCanceling}
             className="flex-1 px-4 py-3 border border-gray-200 text-gray-600 font-bold rounded-xl hover:bg-gray-50 transition-all active:scale-95 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={handleDelete}
-            disabled={isDeleting}
+            disabled={isCanceling}
             className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-all active:scale-95 shadow-lg shadow-red-100 disabled:opacity-50"
           >
-            {isDeleting ? "Deleting..." : "Confirm delete"}
+            {isCanceling ? "Canceling..." : "Confirm cancellation"}
           </button>
         </div>
       </div>

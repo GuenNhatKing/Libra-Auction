@@ -12,11 +12,25 @@ import io.github.guennhatking.libra_auction.models.product.Product;
 public interface AuctionRepository extends JpaRepository<Auction, String> {
     Optional<Auction> findById(String id);
 
+    Optional<Auction> findByIdAndDeletedFalse(String id);
+
     List<Auction> findByAuctionStatus(AuctionStatus auctionStatus);
+
+    List<Auction> findByDeletedFalse();
+
+    List<Auction> findByAuctionStatusAndDeletedFalse(AuctionStatus auctionStatus);
 
     List<Auction> findByProduct(Product product);
 
+    List<Auction> findByProductIn(List<Product> products);
+
+    boolean existsByProduct(Product product);
+
     Optional<Auction> findByIdAndProduct_Category_Id(String id, String categoryId);
 
+    Optional<Auction> findByIdAndProduct_Category_IdAndDeletedFalse(String id, String categoryId);
+
     Optional<Auction> findByIdAndCreator_Id(String id, String userId);
+
+    Optional<Auction> findByIdAndCreator_IdAndDeletedFalse(String id, String userId);
 }

@@ -25,7 +25,7 @@ public class ProductSearchService {
 
     public PageResponse<ProductResponse> searchProducts(ProductSearchRequest criteria) {
         // Get all products
-        List<Product> allProducts = productRepository.findAll();
+        List<Product> allProducts = productRepository.findByLatestVersionTrueAndDeletedFalse();
 
         // Apply filters
         List<Product> filtered = applyFilters(allProducts, criteria);

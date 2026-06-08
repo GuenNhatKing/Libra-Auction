@@ -328,7 +328,7 @@ public class AuctionController {
                 null, null, null, "PENDING_APPROVAL",
                 page, pageSize, "startTime", "DESC");
 
-        PageResponse<AuctionResponse> response = searchService.searchAuctions(request);
+        PageResponse<AuctionResponse> response = searchService.searchPendingAuctions(request);
         return ResponseEntity.ok(ServerAPIResponse.success(response));
     }
 
@@ -449,6 +449,24 @@ public class AuctionController {
 
         AuctionResponse response = auctionService.failAuction(id, userDetails.getUserId(), reason);
         return ResponseEntity.ok(ServerAPIResponse.success(response));
+    }
+
+    @DeleteMapping("/admin/auctions/{id}")
+    public ResponseEntity<ServerAPIResponse<Void>> softDeleteAuctionByAdmin(
+            @AuthenticationPrincipal JwtUserDetails userDetails,
+            @PathVariable String id) {
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error("Authentication required"));
+        }
+        if (!isAdminUser(userDetails.getUserId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ServerAPIResponse.error("Admin role required"));
+        }
+
+        auctionService.softDeleteAuctionByAdmin(id);
+        return ResponseEntity.ok(ServerAPIResponse.success(null));
     }
 
     @PostMapping("/admin/auctions/register-to-scheduler")

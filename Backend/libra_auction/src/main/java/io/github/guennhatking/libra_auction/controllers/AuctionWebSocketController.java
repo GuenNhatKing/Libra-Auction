@@ -67,7 +67,7 @@ public class AuctionWebSocketController {
                 bidMessage.auctionId(), bidMessage.bidAmount(), bidMessage.bidderId(), bidMessage.bidderName());
         try {
             // Validate auction exists
-            Auction auction = auctionRepository.findById(bidMessage.auctionId())
+            Auction auction = auctionRepository.findByIdAndDeletedFalse(bidMessage.auctionId())
                     .orElseThrow(() -> new IllegalArgumentException("Auction not found"));
 
             logger.info("Auction found: id={}, status={}, currentPrice={}, startingPrice={}, minimumBidIncrement={}",
@@ -243,7 +243,7 @@ public class AuctionWebSocketController {
 
                     // Update Redis and DB with new end time
                     auctionStateRedisService.extendAuctionEnd(auctionId, newEndTime);
-                    auctionRepository.findById(auctionId).ifPresent(auction -> {
+                    auctionRepository.findByIdAndDeletedFalse(auctionId).ifPresent(auction -> {
                         auction.setEndTime(newEndTime);
                         auctionRepository.save(auction);
                     });

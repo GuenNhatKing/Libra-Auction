@@ -7,6 +7,7 @@ import io.github.guennhatking.libra_auction.viewmodels.request.AuctionSearchRequ
 import io.github.guennhatking.libra_auction.viewmodels.response.AuctionResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.PageResponse;
 import io.github.guennhatking.libra_auction.enums.auction.ApprovalStatus;
+import io.github.guennhatking.libra_auction.enums.auction.AuctionStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
@@ -26,8 +27,8 @@ public class AuctionSearchService {
     }
 
     public PageResponse<AuctionResponse> searchAuctions(AuctionSearchRequest criteria) {
-        // Get all sessions
-        List<Auction> allSessions = auctionRepository.findAll();
+        // Get all non-deleted sessions
+        List<Auction> allSessions = auctionRepository.findByDeletedFalse();
 
         // Apply filters
         List<Auction> filtered = applyFilters(allSessions, criteria);
@@ -90,7 +91,7 @@ public class AuctionSearchService {
                 baseCriteria.timeStart(),
                 baseCriteria.timeEnd(),
                 baseCriteria.attributes(),
-                baseCriteria.status(),
+                AuctionStatus.NOT_STARTED.toString(),
                 ApprovalStatus.PENDING_APPROVAL.toString(),
                 baseCriteria.page(),
                 baseCriteria.pageSize(),

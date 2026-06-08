@@ -43,7 +43,7 @@ public class AdminAuctionWebSocketController {
     public void pauseAuction(@DestinationVariable String auctionId) {
         logger.info("Admin command: PAUSE auction {}", auctionId);
 
-        Optional<Auction> auctionOpt = auctionRepository.findById(auctionId);
+        Optional<Auction> auctionOpt = auctionRepository.findByIdAndDeletedFalse(auctionId);
         if (auctionOpt.isEmpty()) {
             logger.warn("Auction not found: {}", auctionId);
             return;
@@ -70,7 +70,7 @@ public class AdminAuctionWebSocketController {
     public void resumeAuction(@DestinationVariable String auctionId) {
         logger.info("Admin command: RESUME auction {}", auctionId);
 
-        Optional<Auction> auctionOpt = auctionRepository.findById(auctionId);
+        Optional<Auction> auctionOpt = auctionRepository.findByIdAndDeletedFalse(auctionId);
         if (auctionOpt.isEmpty()) {
             logger.warn("Auction not found: {}", auctionId);
             return;
@@ -97,7 +97,7 @@ public class AdminAuctionWebSocketController {
     public void endAuction(@DestinationVariable String auctionId) {
         logger.info("Admin command: END auction {}", auctionId);
 
-        Optional<Auction> auctionOpt = auctionRepository.findById(auctionId);
+        Optional<Auction> auctionOpt = auctionRepository.findByIdAndDeletedFalse(auctionId);
         if (auctionOpt.isEmpty()) {
             logger.warn("Auction not found: {}", auctionId);
             return;

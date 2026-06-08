@@ -6,6 +6,7 @@ import Link from "next/link";
 import AuctionDetailModal from "@/components/admin/auction_detail_modal";
 import { approveAuction } from "@/services/approve_auction";
 import { completeAuction } from "@/services/complete_auction";
+import { deleteAdminAuction } from "@/services/delete_admin_auction";
 import { failAuction } from "@/services/fail_auction";
 import { fetchApprovedAuctions } from "@/services/fetch_approved_auctions";
 import { fetchPendingAuctions } from "@/services/fetch_pending_auctions";
@@ -255,6 +256,19 @@ export default function AuctionsApprovalPage() {
       setFailDialog({ isOpen: false, auctionId: null, reason: "" });
     } catch (actionError) {
       setError(actionError instanceof Error ? actionError.message : "Failed to mark auction as failed");
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handleAdminDelete = async (auction: AuctionRow) => {
+    if (!confirm(`Xóa phiên đấu giá "${auction.name}" khỏi hệ thống?`)) return;
+    try {
+      setActionLoadingId(auction.id);
+      await deleteAdminAuction(auction.id);
+      setAuctions((current) => current.filter((item) => item.id !== auction.id));
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : "Failed to delete auction");
     } finally {
       setActionLoadingId(null);
     }
@@ -515,6 +529,13 @@ export default function AuctionsApprovalPage() {
                             </button>
                           </>
                         )}
+                        <button
+                          onClick={() => handleAdminDelete(row)}
+                          disabled={actionLoadingId === row.id}
+                          className="w-full px-3 py-1.5 bg-slate-100 text-slate-700 rounded hover:bg-slate-200 text-xs font-semibold text-center disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </td>
                   </tr>

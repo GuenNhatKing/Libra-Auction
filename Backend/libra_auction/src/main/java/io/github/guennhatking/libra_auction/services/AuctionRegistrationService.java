@@ -58,7 +58,7 @@ public class AuctionRegistrationService {
                                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
                 // 2. Kiem tra Phien dau gia
-                Auction auction = auctionRepository.findById(request.auctionId())
+                Auction auction = auctionRepository.findByIdAndDeletedFalse(request.auctionId())
                                 .orElseThrow(() -> new IllegalArgumentException("Auction not found"));
 
                 // 3. Kiem tra admin khong duoc dang ky dau gia

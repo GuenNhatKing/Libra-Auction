@@ -61,6 +61,8 @@ public class Auction {
     private OffsetDateTime createdAt;
     private OffsetDateTime completedAt;
     private String failureReason;
+    private boolean deleted = false;
+    private OffsetDateTime deletedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Product product;
@@ -276,5 +278,21 @@ public class Auction {
 
     public void setFailureReason(String failureReason) {
         this.failureReason = failureReason;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    public OffsetDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(OffsetDateTime deletedAt) {
+        this.deletedAt = deletedAt;
     }
 }

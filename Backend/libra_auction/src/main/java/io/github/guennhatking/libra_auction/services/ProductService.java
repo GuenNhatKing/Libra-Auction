@@ -1,5 +1,7 @@
 package io.github.guennhatking.libra_auction.services;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,7 +9,10 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import io.github.guennhatking.libra_auction.enums.auction.AuctionStatus;
+import io.github.guennhatking.libra_auction.enums.product.ProductStatus;
 import io.github.guennhatking.libra_auction.mappers.ProductResponseMapper;
+import io.github.guennhatking.libra_auction.models.auction.Auction;
 import io.github.guennhatking.libra_auction.models.person.Customer;
 import io.github.guennhatking.libra_auction.models.product.Category;
 import io.github.guennhatking.libra_auction.models.product.ProductImage;
@@ -38,6 +43,7 @@ public class ProductService {
     private final AttributeCombinationRepository attributeCombinationRepository;
     private final ProductResponseMapper productResponseMapper;
     private final CustomerRepository customerRepository;
+    private final AuctionRepository auctionRepository;
 
     public ProductService(CategoryRepository categoryRepository,
             ProductRepository productRepository,
@@ -56,25 +62,25 @@ public class ProductService {
         this.attributeCombinationRepository = attributeCombinationRepository;
         this.productResponseMapper = productResponseMapper;
         this.customerRepository = customerRepository;
+        this.auctionRepository = auctionRepository;
     }
 
     @Transactional(readOnly = true)
     public List<ProductResponse> getProducts() {
-        List<Product> productList = productRepository.findAll().stream().toList();
-        return productResponseMapper.toProductResponseList(productList);
+        return productResponseMapper.toProductResponseList(productRepository.findByLatestVersionTrueAndDeletedFalse());
     }
 
     @Transactional(readOnly = true)
     public ProductResponse getProductById(String id) {
         Product product = productRepository.findById(id)
+                .filter(Product::isLatestVersion)
+                .filter(productItem -> !productItem.isDeleted())
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
         return productResponseMapper.toProductResponse(product);
     }
 
     @Transactional
     public ProductResponse createProduct(ProductCreateRequest request, String userId) {
-        System.out.println("=== SERVICE START ===");
-
         Customer creator = customerRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -88,125 +94,141 @@ public class ProductService {
                 category);
 
         product.setCreator(creator);
+        product.setVersionCreatedAt(OffsetDateTime.now(ZoneOffset.ofHours(7)));
+        product.setLatestVersion(true);
+        product.setDeleted(false);
         Product savedProduct = productRepository.save(product);
+        savedProduct.setRootProductId(savedProduct.getId());
+        savedProduct = productRepository.save(savedProduct);
 
-        // 1. Luu Attributes
-        if (request.attributes() != null) {
-            for (AttributeRequest attr : request.attributes()) {
-                if (attr.isSystem()) {
-                    // Tim StandardizedAttribute trong DB
-                    List<StandardizedAttribute> matches = standardizedAttributeRepository
-                            .findByAttributeName(attr.key());
-                    for (StandardizedAttribute sa : matches) {
-                        if (sa.getAttributeValue().equals(attr.value())) {
-                            AttributeCombination combination = new AttributeCombination(savedProduct, sa);
-                            attributeCombinationRepository.save(combination);
-                            break;
-                        }
-                    }
-                } else {
-                    ProductAttribute entity = new ProductAttribute();
-                    entity.setProduct(savedProduct);
-                    entity.setAttributeName(attr.key());
-                    entity.setAttributeValue(attr.value());
-                    productAttributeRepository.save(entity);
-                }
-            }
-        }
+        saveAttributes(savedProduct, request.attributes());
+        saveImages(savedProduct, request.imageUrls());
 
-        // 2. Luu Hinh anh
-        if (request.imageUrls() != null && !request.imageUrls().isEmpty()) {
-            int order = 0;
-            for (String url : request.imageUrls()) {
-                ProductImage image = new ProductImage(savedProduct, order++, url);
-                productImageRepository.save(image);
-                System.out.println("Saved Image URL: " + url);
-            }
-        }
-
-        System.out.println("=== SERVICE DONE ===");
         return productResponseMapper.toProductResponse(savedProduct);
     }
 
     @Transactional
     public ProductResponse updateProduct(String id, ProductUpdateRequest request, String userId) {
-        System.out.println("=== UPDATE SERVICE START (URL MODE) ===");
-
-        // 1. Tim va kiem tra quyen so huu
         Product product = productRepository.findById(id)
+                .filter(Product::isLatestVersion)
+                .filter(productItem -> !productItem.isDeleted())
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
         if (!userId.equals(product.getCreator().getId())) {
             throw new AccessDeniedException("Ban khong co quyen chinh sua tai san nay");
         }
 
-        // 2. Tim category moi
         Category category = categoryRepository.findById(request.categoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));
 
-        // 3. Update thong tin co ban
-        product.setName(request.name());
-        product.setQuantity(request.quantity());
-        product.setDescription(request.description());
-        product.setCategory(category);
-        Product updatedProduct = productRepository.save(product);
-
-        // 4. XU LY ATTRIBUTES: Xoa cu, them moi
-        productAttributeRepository.deleteByProductId(id);
-        attributeCombinationRepository.deleteAll(
-                attributeCombinationRepository.findAll().stream()
-                        .filter(ac -> ac.getProduct().getId().equals(id))
-                        .toList());
-        if (request.attributes() != null) {
-            for (AttributeRequest attr : request.attributes()) {
-                if (attr.isSystem()) {
-                    List<StandardizedAttribute> matches = standardizedAttributeRepository
-                            .findByAttributeName(attr.key());
-                    for (StandardizedAttribute sa : matches) {
-                        if (sa.getAttributeValue().equals(attr.value())) {
-                            AttributeCombination combination = new AttributeCombination(updatedProduct, sa);
-                            attributeCombinationRepository.save(combination);
-                            break;
-                        }
-                    }
-                } else {
-                    ProductAttribute entity = new ProductAttribute();
-                    entity.setProduct(updatedProduct);
-                    entity.setAttributeName(attr.key());
-                    entity.setAttributeValue(attr.value());
-                    productAttributeRepository.save(entity);
-                }
-            }
+        if (!auctionRepository.existsByProduct(product)) {
+            applyProductUpdate(product, request, category);
+            Product updatedProduct = productRepository.save(product);
+            replaceProductDetails(updatedProduct, request.attributes(), request.imageUrls());
+            return productResponseMapper.toProductResponse(updatedProduct);
         }
 
-        // 5. XU LY HINH ANH
-        System.out.println("=== UPDATE IMAGES ===");
+        product.setLatestVersion(false);
+        productRepository.save(product);
 
-        productImageRepository.deleteByProductId(id);
+        Product newVersion = new Product(request.name(), request.quantity(), request.description(), category);
+        newVersion.setCreator(product.getCreator());
+        newVersion.setStatus(product.getStatus());
+        newVersion.setRootProductId(product.getRootProductId() == null ? product.getId() : product.getRootProductId());
+        newVersion.setVersionCreatedAt(OffsetDateTime.now(ZoneOffset.ofHours(7)));
+        newVersion.setLatestVersion(true);
+        newVersion.setDeleted(false);
+        Product savedNewVersion = productRepository.save(newVersion);
+        replaceProductDetails(savedNewVersion, request.attributes(), request.imageUrls());
 
-        List<String> allImagesToSave = new ArrayList<>();
-        if (request.imageUrls() != null)
-            allImagesToSave.addAll(request.imageUrls());
-
-        int order = 0;
-        for (String url : allImagesToSave) {
-            ProductImage image = new ProductImage(updatedProduct, order++, url);
-            productImageRepository.save(image);
-        }
-
-        System.out.println("=== UPDATE DONE ===");
-        return productResponseMapper.toProductResponse(updatedProduct);
+        return productResponseMapper.toProductResponse(savedNewVersion);
     }
 
     @Transactional
     public void deleteProduct(String id, String userId) {
         Product product = productRepository.findById(id)
+                .filter(Product::isLatestVersion)
+                .filter(productItem -> !productItem.isDeleted())
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
         if (!userId.equals(product.getCreator().getId())) {
             throw new AccessDeniedException("Ban khong co quyen xoa tai san nay");
         }
-        productImageRepository.deleteByProductId(id);
-        productRepository.delete(product);
+        if (product.getStatus() != ProductStatus.AVAILABLE) {
+            throw new IllegalStateException("Chi co the xoa san pham dang available");
+        }
+
+        String rootProductId = product.getRootProductId() == null ? product.getId() : product.getRootProductId();
+        List<Product> versions = productRepository.findByRootProductId(rootProductId);
+        List<Auction> relatedAuctions = auctionRepository.findByProductIn(versions);
+
+        boolean hasCompletedAuction = relatedAuctions.stream()
+                .anyMatch(auction -> auction.getAuctionStatus() == AuctionStatus.COMPLETED);
+        if (hasCompletedAuction) {
+            throw new IllegalStateException("San pham da ban thanh cong khong the xoa");
+        }
+
+        boolean hasNonTerminalAuction = relatedAuctions.stream()
+                .anyMatch(auction -> auction.getAuctionStatus() != AuctionStatus.FAILED);
+        if (hasNonTerminalAuction) {
+            throw new IllegalStateException("Chi co the xoa khi tat ca phien dau gia lien quan da that bai");
+        }
+
+        product.setDeleted(true);
+        product.setDeletedAt(OffsetDateTime.now(ZoneOffset.ofHours(7)));
+        productRepository.save(product);
+    }
+
+    private void applyProductUpdate(Product product, ProductUpdateRequest request, Category category) {
+        product.setName(request.name());
+        product.setQuantity(request.quantity());
+        product.setDescription(request.description());
+        product.setCategory(category);
+    }
+
+    private void replaceProductDetails(Product product, List<AttributeRequest> attributes, List<String> imageUrls) {
+        productAttributeRepository.deleteByProductId(product.getId());
+        attributeCombinationRepository.deleteByProductId(product.getId());
+        productImageRepository.deleteByProductId(product.getId());
+        saveAttributes(product, attributes);
+        saveImages(product, imageUrls);
+    }
+
+    private void saveAttributes(Product product, List<AttributeRequest> attributes) {
+        if (attributes == null) {
+            return;
+        }
+
+        for (AttributeRequest attr : attributes) {
+            if (attr.isSystem()) {
+                List<StandardizedAttribute> matches = standardizedAttributeRepository.findByAttributeName(attr.key());
+                for (StandardizedAttribute sa : matches) {
+                    if (sa.getAttributeValue().equals(attr.value())) {
+                        AttributeCombination combination = new AttributeCombination(product, sa);
+                        attributeCombinationRepository.save(combination);
+                        break;
+                    }
+                }
+            } else {
+                ProductAttribute entity = new ProductAttribute();
+                entity.setProduct(product);
+                entity.setAttributeName(attr.key());
+                entity.setAttributeValue(attr.value());
+                productAttributeRepository.save(entity);
+            }
+        }
+    }
+
+    private void saveImages(Product product, List<String> imageUrls) {
+        List<String> allImagesToSave = new ArrayList<>();
+        if (imageUrls != null) {
+            allImagesToSave.addAll(imageUrls);
+        }
+
+        int order = 0;
+        for (String url : allImagesToSave) {
+            ProductImage image = new ProductImage(product, order++, url);
+            productImageRepository.save(image);
+        }
     }
 }

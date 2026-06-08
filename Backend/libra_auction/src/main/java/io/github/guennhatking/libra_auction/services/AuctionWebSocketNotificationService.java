@@ -40,7 +40,7 @@ public class AuctionWebSocketNotificationService {
             return;
         }
 
-        auctionRepository.findById(auctionId).ifPresent(auction -> {
+        auctionRepository.findByIdAndDeletedFalse(auctionId).ifPresent(auction -> {
             liveNotificationRepository.save(new LiveNotification(auction, content));
         });
     }

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Auction } from "@/types/auction/auction";
 import { AuctionSearchBar } from "./auction_search_bar";
 import { AuctionItem } from "./auction_item";
 import { useRouter } from "next/navigation";
+import { deleteAuction } from "@/services/delete_auction";
 
 interface AuctionListProps {
   auctions: Auction[];
@@ -12,11 +13,31 @@ interface AuctionListProps {
 
 export const AuctionList = ({ auctions }: AuctionListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [visibleAuctions, setVisibleAuctions] = useState(auctions);
+  const [cancelingId, setCancelingId] = useState<string | null>(null);
 
-  const filteredAuctions = auctions.filter((auction) =>
+  useEffect(() => {
+    setVisibleAuctions(auctions);
+  }, [auctions]);
+
+  const filteredAuctions = visibleAuctions.filter((auction) =>
     auction.product_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
   const router = useRouter();
+
+  const handleCancel = async (auctionId: string) => {
+    if (!window.confirm("Cancel this pending auction?")) {
+      return;
+    }
+
+    setCancelingId(auctionId);
+    try {
+      await deleteAuction(auctionId);
+      setVisibleAuctions((current) => current.filter((auction) => auction.auction_id !== auctionId));
+    } finally {
+      setCancelingId(null);
+    }
+  };
 
   return (
     <div className="w-full">
@@ -32,8 +53,8 @@ export const AuctionList = ({ auctions }: AuctionListProps) => {
               key={auction.auction_id}
               auction={auction}
               onView={(id) => router.push(`/seller-dashboard/auctions/${id}`)}
-              onEdit={(id) => router.push(`/seller-dashboard/auctions/${id}/edit`)}
-              onDelete={(id) => router.push(`/seller-dashboard/auctions/${id}/delete`)}
+              onCancel={handleCancel}
+              isCanceling={cancelingId === auction.auction_id}
             />
           ))
         ) : (

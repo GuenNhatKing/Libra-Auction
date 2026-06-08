@@ -10,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import io.github.guennhatking.libra_auction.enums.product.ProductStatus;
@@ -56,6 +57,12 @@ public class Product {
 
     @Enumerated(EnumType.STRING)
     private ProductStatus status = ProductStatus.AVAILABLE;
+
+    private String rootProductId;
+    private OffsetDateTime versionCreatedAt;
+    private boolean latestVersion = true;
+    private boolean deleted = false;
+    private OffsetDateTime deletedAt;
 
     // CONSTRUCTOR
     public Product() {
@@ -109,6 +116,26 @@ public class Product {
         return status;
     }
 
+    public String getRootProductId() {
+        return rootProductId;
+    }
+
+    public OffsetDateTime getVersionCreatedAt() {
+        return versionCreatedAt;
+    }
+
+    public boolean isLatestVersion() {
+        return latestVersion;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public OffsetDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
     // SETTER
     public void setId(String id) {
         this.id = id;
@@ -148,5 +175,25 @@ public class Product {
 
     public void setStatus(ProductStatus status) {
         this.status = status;
+    }
+
+    public void setRootProductId(String rootProductId) {
+        this.rootProductId = rootProductId;
+    }
+
+    public void setVersionCreatedAt(OffsetDateTime versionCreatedAt) {
+        this.versionCreatedAt = versionCreatedAt;
+    }
+
+    public void setLatestVersion(boolean latestVersion) {
+        this.latestVersion = latestVersion;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    public void setDeletedAt(OffsetDateTime deletedAt) {
+        this.deletedAt = deletedAt;
     }
 }

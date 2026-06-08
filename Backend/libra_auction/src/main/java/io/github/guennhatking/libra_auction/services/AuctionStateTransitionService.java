@@ -75,7 +75,7 @@ public class AuctionStateTransitionService {
     @Transactional
     public void startAuction(String auctionId) {
         try {
-            Optional<Auction> auctionOpt = auctionRepository.findById(auctionId);
+            Optional<Auction> auctionOpt = auctionRepository.findByIdAndDeletedFalse(auctionId);
             if (auctionOpt.isEmpty()) {
                 logger.warn("Auction not found: {}", auctionId);
                 return;
@@ -121,7 +121,7 @@ public class AuctionStateTransitionService {
     @Transactional
     public void pauseAuction(String auctionId) {
         try {
-            Optional<Auction> auctionOpt = auctionRepository.findById(auctionId);
+            Optional<Auction> auctionOpt = auctionRepository.findByIdAndDeletedFalse(auctionId);
             if (auctionOpt.isEmpty()) {
                 logger.warn("Auction not found: {}", auctionId);
                 return;
@@ -156,7 +156,7 @@ public class AuctionStateTransitionService {
     @Transactional
     public void resumeAuction(String auctionId) {
         try {
-            Optional<Auction> auctionOpt = auctionRepository.findById(auctionId);
+            Optional<Auction> auctionOpt = auctionRepository.findByIdAndDeletedFalse(auctionId);
             if (auctionOpt.isEmpty()) {
                 logger.warn("Auction not found: {}", auctionId);
                 return;
@@ -205,7 +205,7 @@ public class AuctionStateTransitionService {
     @Transactional
     public void endAuction(String auctionId) {
         try {
-            Optional<Auction> auctionOpt = auctionRepository.findById(auctionId);
+            Optional<Auction> auctionOpt = auctionRepository.findByIdAndDeletedFalse(auctionId);
             if (auctionOpt.isEmpty()) {
                 logger.warn("Auction not found: {}", auctionId);
                 return;
@@ -299,7 +299,7 @@ public class AuctionStateTransitionService {
     @Transactional
     public void cancelAuction(String auctionId, String reason) {
         try {
-            Optional<Auction> auctionOpt = auctionRepository.findById(auctionId);
+            Optional<Auction> auctionOpt = auctionRepository.findByIdAndDeletedFalse(auctionId);
             if (auctionOpt.isEmpty()) {
                 logger.warn("Auction not found: {}", auctionId);
                 return;

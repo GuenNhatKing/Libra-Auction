@@ -7,8 +7,8 @@ import { DateFormat } from "@/utils/date_format";
 interface AuctionItemProps {
     auction: Auction;
     onView: (id: string) => void;
-    onEdit: (id: string) => void;
-    onDelete: (id: string) => void;
+    onCancel: (id: string) => void;
+    isCanceling?: boolean;
 }
 
 const statusConfig: Record<AuctionStatus, { label: string, classes: string }> = {
@@ -27,8 +27,9 @@ const approvalStatusConfig: Record<ApprovalStatus, { label: string; classes: str
     REJECTED: { label: 'Rejected', classes: 'bg-red-50 text-red-700 border-red-100' },
 };
 
-export const AuctionItem = ({ auction, onView, onEdit, onDelete }: AuctionItemProps) => {
+export const AuctionItem = ({ auction, onView, onCancel, isCanceling = false }: AuctionItemProps) => {
     const status = statusConfig[auction.auction_status];
+    const canCancel = auction.approval_status === "PENDING" && auction.auction_status === "NOT_STARTED";
 
     return (
         <div className="bg-white p-4 rounded-2xl border border-gray-100 hover:border-(--accent-color) hover:shadow-sm transition-all flex items-center justify-between group">
@@ -76,23 +77,16 @@ export const AuctionItem = ({ auction, onView, onEdit, onDelete }: AuctionItemPr
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
                 </button>
 
-                {/* Edit Action */}
-                <button
-                    onClick={() => onEdit(auction.auction_id)}
-                    className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                    title="Edit"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" /></svg>
-                </button>
-
-                {/* Delete Action */}
-                <button
-                    onClick={() => onDelete(auction.auction_id)}
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Delete"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" /></svg>
-                </button>
+                {canCancel && (
+                    <button
+                        onClick={() => onCancel(auction.auction_id)}
+                        disabled={isCanceling}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                        title="Cancel pending auction"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                    </button>
+                )}
             </div>
         </div>
     );

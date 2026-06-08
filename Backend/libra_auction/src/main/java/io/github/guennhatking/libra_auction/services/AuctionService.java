@@ -61,7 +61,7 @@ public class AuctionService {
 
         @Transactional(readOnly = true)
         public List<AuctionResponse> getAuctions() {
-                List<Auction> auctionList = auctionRepository.findAll().stream()
+                List<Auction> auctionList = auctionRepository.findByDeletedFalse().stream()
                                 .sorted(Comparator.comparing(Auction::getCreatedAt,
                                                 Comparator.nullsLast(Comparator.reverseOrder())))
                                 .toList();
@@ -70,7 +70,7 @@ public class AuctionService {
 
         @Transactional(readOnly = true)
         public AuctionResponse getAuctionById(String id) {
-                Auction session = auctionRepository.findById(id)
+                Auction session = auctionRepository.findByIdAndDeletedFalse(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
                 // For public endpoint, only return approved auctions
                 if (session.getApprovalStatus() != ApprovalStatus.APPROVED) {
@@ -81,7 +81,7 @@ public class AuctionService {
 
         @Transactional(readOnly = true)
         public AuctionResponse getAuctionById(String id, String userId) {
-                Auction session = auctionRepository.findByIdAndCreator_Id(id, userId)
+                Auction session = auctionRepository.findByIdAndCreator_IdAndDeletedFalse(id, userId)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
 
                 return withRuntimeTiming(auctionMapper.toAuctionResponse(session));
@@ -90,7 +90,7 @@ public class AuctionService {
         @Transactional(readOnly = true)
         public AuctionResponse getAuctionByIdAndCategory(String id, String categoryId) {
                 Auction session = auctionRepository
-                                .findByIdAndProduct_Category_Id(id, categoryId)
+                                .findByIdAndProduct_Category_IdAndDeletedFalse(id, categoryId)
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "Auction not found in this category"));
                 // For public endpoint, only return approved auctions
@@ -103,7 +103,13 @@ public class AuctionService {
         @Transactional
         public AuctionResponse createAuction(AuctionCreateRequest request, String userId) {
                 Product product = productRepository.findById(request.productId())
+                                .filter(Product::isLatestVersion)
+                                .filter(productItem -> !productItem.isDeleted())
                                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+
+                if (!userId.equals(product.getCreator().getId())) {
+                        throw new AccessDeniedException("You do not have permission to create auction for this product");
+                }
 
                 if (product.getStatus() != ProductStatus.AVAILABLE) {
                         throw new IllegalArgumentException("Sản phẩm không ở trạng thái sẵn sàng. Trạng thái hiện tại: " + product.getStatus());
@@ -135,67 +141,58 @@ public class AuctionService {
 
         @Transactional
         public AuctionResponse updateAuction(String id, AuctionUpdateRequest request, String userId) {
-                Customer creator = customerRepository.findById(userId)
-                                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-                Auction session = auctionRepository.findById(id)
+                Auction session = auctionRepository.findByIdAndCreator_IdAndDeletedFalse(id, userId)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
 
-                if (!creator.getId().equals(session.getCreator().getId())) {
+                if (!userId.equals(session.getCreator().getId())) {
                         throw new AccessDeniedException("You do not have permission to edit this auction.");
                 }
 
-                session.setStartTime(request.startTime());
-                session.setDuration(request.duration());
-                session.setEndTime(request.startTime() != null ? request.startTime().plusSeconds(request.duration()) : null);
-                session.setStartingPrice(request.startingPrice());
-                session.setMinimumBidIncrement(request.minimumBidIncrement());
-                session.setDepositAmount(request.depositAmount());
-
-                Auction updatedSession = auctionRepository.save(session);
-
-                // If auction is already approved, update Redis scheduling
-                if (updatedSession.getApprovalStatus() == ApprovalStatus.APPROVED) {
-                        auctionStateRedisService.removeAuctionStartEvent(id);
-                        auctionStateRedisService.removeAuctionEndEvent(id);
-
-                        if (updatedSession.getStartTime() != null) {
-                                auctionStateRedisService.addAuctionStartEvent(updatedSession.getId(), updatedSession.getStartTime());
-                                OffsetDateTime endTime = updatedSession.getEndTime() != null
-                                        ? updatedSession.getEndTime()
-                                        : updatedSession.getStartTime().plusSeconds(updatedSession.getDuration());
-                                auctionStateRedisService.addAuctionEndEvent(updatedSession.getId(), endTime);
-                        }
-                }
-
-                return auctionMapper.toAuctionResponse(updatedSession);
+                throw new IllegalStateException("Auction cannot be edited after creation");
         }
 
         @Transactional
         public void deleteAuction(String id, String userId) {
-                Customer creator = customerRepository.findById(userId)
-                                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-                Auction session = auctionRepository.findById(id)
+                Auction session = auctionRepository.findByIdAndCreator_IdAndDeletedFalse(id, userId)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
 
-                if (!creator.getId().equals(session.getCreator().getId())) {
-                        throw new AccessDeniedException("You do not have permission to delete this auction");
+                if (!userId.equals(session.getCreator().getId())) {
+                        throw new AccessDeniedException("You do not have permission to cancel this auction");
                 }
 
-                // Clean up Redis scheduling when deleting
+                if (session.getApprovalStatus() != ApprovalStatus.PENDING_APPROVAL
+                                || session.getAuctionStatus() != AuctionStatus.NOT_STARTED) {
+                        throw new IllegalStateException("Only pending auctions can be cancelled");
+                }
+
+                session.setAuctionStatus(AuctionStatus.CANCELLED);
                 auctionStateRedisService.removeAuctionStartEvent(id);
                 auctionStateRedisService.removeAuctionEndEvent(id);
+                auctionRepository.save(session);
+        }
 
-                auctionRepository.delete(session);
+        @Transactional
+        public void softDeleteAuctionByAdmin(String id) {
+                Auction session = auctionRepository.findByIdAndDeletedFalse(id)
+                                .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
+
+                session.setDeleted(true);
+                session.setDeletedAt(OffsetDateTime.now(ZoneOffset.ofHours(7)));
+                auctionStateRedisService.removeAuctionStartEvent(id);
+                auctionStateRedisService.removeAuctionEndEvent(id);
+                auctionRepository.save(session);
         }
 
         // ========== ADMIN APPROVAL METHODS ==========
 
         @Transactional
         public AuctionResponse approveAuction(String id, String adminId) {
-                Auction session = auctionRepository.findById(id)
+                Auction session = auctionRepository.findByIdAndDeletedFalse(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
+
+                if (session.getAuctionStatus() == AuctionStatus.CANCELLED) {
+                        throw new IllegalStateException("Cancelled auction cannot be approved");
+                }
 
                 if (session.getApprovalStatus() != ApprovalStatus.PENDING_APPROVAL) {
                         throw new IllegalStateException("Auction is not pending approval");
@@ -221,8 +218,12 @@ public class AuctionService {
 
         @Transactional
         public AuctionResponse rejectAuction(String id, String adminId, String reason) {
-                Auction session = auctionRepository.findById(id)
+                Auction session = auctionRepository.findByIdAndDeletedFalse(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
+
+                if (session.getAuctionStatus() == AuctionStatus.CANCELLED) {
+                        throw new IllegalStateException("Cancelled auction cannot be rejected");
+                }
 
                 if (session.getApprovalStatus() != ApprovalStatus.PENDING_APPROVAL) {
                         throw new IllegalStateException("Auction is not pending approval");
@@ -240,7 +241,7 @@ public class AuctionService {
 
         @Transactional
         public AuctionResponse completeAuction(String id, String adminId) {
-                Auction auction = auctionRepository.findById(id)
+                Auction auction = auctionRepository.findByIdAndDeletedFalse(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction not found"));
 
                 if (auction.getAuctionStatus() != AuctionStatus.ENDED) {
@@ -282,7 +283,7 @@ public class AuctionService {
 
         @Transactional
         public AuctionResponse failAuction(String id, String adminId, String reason) {
-                Auction auction = auctionRepository.findById(id)
+                Auction auction = auctionRepository.findByIdAndDeletedFalse(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction not found"));
 
                 if (auction.getAuctionStatus() != AuctionStatus.ENDED) {
@@ -316,7 +317,7 @@ public class AuctionService {
          * @return Number of auctions registered
          */
         public int registerExistingAuctionsToRedis() {
-                List<Auction> approvedNotStarted = auctionRepository.findByAuctionStatus(AuctionStatus.NOT_STARTED);
+                List<Auction> approvedNotStarted = auctionRepository.findByAuctionStatusAndDeletedFalse(AuctionStatus.NOT_STARTED);
                 int count = 0;
 
                 for (Auction auction : approvedNotStarted) {
@@ -348,7 +349,7 @@ public class AuctionService {
         @Transactional(readOnly = true)
         public ProductResponse getProductFromApprovedAuction(
                         String auctionId, String productId) {
-                Auction session = auctionRepository.findById(auctionId)
+                Auction session = auctionRepository.findByIdAndDeletedFalse(auctionId)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction not found"));
 
                 // Verify auction is approved
