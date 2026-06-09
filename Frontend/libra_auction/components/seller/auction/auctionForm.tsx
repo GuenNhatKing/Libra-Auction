@@ -50,7 +50,7 @@ export default function AuctionForm({ products }: { products: Product[] }) {
         setEmailVerificationSent(true);
         setError(null);
       } else {
-        setError(result.error || "Failed to send verification email");
+        setError(result.message || "Failed to send verification email");
       }
     } catch (err) {
       setError(getErrorMessage(err, "Failed to send verification email"));
