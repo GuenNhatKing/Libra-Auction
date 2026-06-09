@@ -25,13 +25,5 @@ export default async function Page() {
 
   const transactions = (await fetchAdminTransactionHistory()).map(toTransaction);
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
-        <p className="text-sm text-gray-500">Review deposit and winner payment transactions.</p>
-      </div>
-      <TransactionList transactions={transactions} />
-    </div>
-  );
+  return <TransactionList transactions={transactions} />;
 }

@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { Transaction } from "@/types/transaction_type";
+import { TransactionSearchBar } from "./transaction_search_bar";
 import { TransactionItem } from "./transaction_item";
 import { useRouter } from "next/navigation";
 
@@ -10,24 +12,23 @@ interface TransactionListProps {
 }
 
 export const TransactionList = ({ transactions, detailsHrefPrefix }: TransactionListProps) => {
+  const [searchTerm, setSearchTerm] = useState("");
   const router = useRouter();
 
-  return (
-    <div className="w-full space-y-3">
-      {/* Simple desktop header */}
-      <div className="hidden md:flex px-4 py-2 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">
-        <div className="flex-1 flex gap-6">
-          <div className="min-w-[140px]">ID info</div>
-          <div className="flex-1">Participant</div>
-          <div className="hidden lg:block min-w-[150px]">Date</div>
-        </div>
-        <div className="min-w-[200px] text-right pr-28">Amount</div>
-      </div>
+  const filteredTransactions = transactions.filter((t) =>
+    t.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.participant_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (t.description && t.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    t.status.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-      {/* List items */}
-      <div className="flex flex-col gap-2">
-        {transactions.length > 0 ? (
-          transactions.map((item) => (
+  return (
+    <div className="space-y-4">
+      <TransactionSearchBar onSearch={setSearchTerm} />
+
+      <div className="grid grid-cols-1 gap-3">
+        {filteredTransactions.length > 0 ? (
+          filteredTransactions.map((item) => (
             <TransactionItem
               key={item.id}
               transaction={item}
@@ -35,8 +36,11 @@ export const TransactionList = ({ transactions, detailsHrefPrefix }: Transaction
             />
           ))
         ) : (
-          <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-            <p className="text-gray-400 text-sm">No transactions have been made yet.</p>
+          <div className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl border-2 border-dashed border-gray-100">
+            <svg className="w-12 h-12 text-gray-300 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+            <p className="text-gray-400 font-medium">No matching data found</p>
           </div>
         )}
       </div>
