@@ -1,14 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { UserInfo } from "@/types/user_info";
 import Image from "next/image";
-import {
-  PROFILE_TAB_LABELS,
-  ProfileTab,
-  parseProfileTab,
-} from "@/types/profile_tab";
 
 const UserIcon = () => (
   <svg
@@ -112,18 +107,17 @@ const LockIcon = () => (
   </svg>
 );
 
-const menuItems: Array<{ tab: ProfileTab; icon: React.ReactNode }> = [
-  { tab: "profile", icon: <UserIcon /> },
-  { tab: "edit-profile", icon: <EditIcon /> },
-  { tab: "auction-history", icon: <AuctionIcon /> },
-  { tab: "wallet", icon: <WalletIcon /> },
-  { tab: "email-verify", icon: <MailIcon /> },
-  { tab: "change-password", icon: <LockIcon /> },
+const menuItems: Array<{ path: string; label: string; icon: React.ReactNode }> = [
+  { path: "/profile", label: "Profile", icon: <UserIcon /> },
+  { path: "/profile/edit", label: "Edit profile", icon: <EditIcon /> },
+  { path: "/profile/auction-history", label: "Auction history", icon: <AuctionIcon /> },
+  { path: "/profile/wallet", label: "Wallet & transactions", icon: <WalletIcon /> },
+  { path: "/profile/email-verify", label: "Email verification", icon: <MailIcon /> },
+  { path: "/profile/change-password", label: "Change password", icon: <LockIcon /> },
 ];
 
 export function ProfileSidebar({ user }: { user: UserInfo }) {
-  const searchParams = useSearchParams();
-  const activeTab = parseProfileTab(searchParams.get("tab"));
+  const pathname = usePathname();
 
   return (
     <div className="flex flex-col gap-8">
@@ -151,14 +145,12 @@ export function ProfileSidebar({ user }: { user: UserInfo }) {
 
       <nav className="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2">
         {menuItems.map((item) => {
-          const isActive = activeTab === item.tab;
-          const href =
-            item.tab === "profile" ? "/profile" : `/profile?tab=${item.tab}`;
+          const isActive = pathname === item.path;
 
           return (
             <Link
-              key={item.tab}
-              href={href}
+              key={item.path}
+              href={item.path}
               scroll={false}
               className={`flex items-center gap-4 px-5 py-3.5 rounded-xl font-medium text-base transition-colors ${
                 isActive
@@ -173,7 +165,7 @@ export function ProfileSidebar({ user }: { user: UserInfo }) {
               >
                 {item.icon}
               </span>
-              {PROFILE_TAB_LABELS[item.tab]}
+              {item.label}
             </Link>
           );
         })}

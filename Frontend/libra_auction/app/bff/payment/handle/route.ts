@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     try {
         const auction = await fetchPublicAuction(auctionId);
         const redirectPath = type === "winner"
-            ? `/profile?tab=wallet&payment=${status}`
+            ? `/profile/wallet?payment=${status}`
             : `/auctions/${auction.category_id}/${auctionId}/registration?status=${status}`;
         return NextResponse.redirect(new URL(redirectPath, req.url));
     } catch {
