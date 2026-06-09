@@ -495,6 +495,15 @@ export default function AuctionsApprovalPage() {
                             </Link>
                           )}
 
+                        {row.status === "APPROVED" && (row.auctionStatus === "ENDED" || row.auctionStatus === "FAILED" || row.auctionStatus === "COMPLETED") && (
+                          <Link
+                            href={`/admin-dashboard/auctions/${row.id}/live`}
+                            className="w-full px-3 py-1.5 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 text-xs font-semibold text-center"
+                          >
+                            Result
+                          </Link>
+                        )}
+
                         {row.status === "PENDING" && (
                           <>
                             <button
