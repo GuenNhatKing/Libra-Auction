@@ -40,21 +40,15 @@ const EditIcon = () => (
 const AuctionIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width="22"
+    width="24"
     height="22"
     viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
+    fill="currentColor"
   >
-    <path d="m15 5 4 4" />
-    <path d="M13 7 14.5 8.5" />
-    <path d="M9 11 10.5 12.5" />
-    <path d="m5 15 4 4" />
-    <path d="m3 21 3-3" />
-    <path d="M20.5 7.5 18 5l-5 5 2.5 2.5z" />
+    <g>
+      <path d="M13.1 1A10.927 10.927 0 0 0 2.566 9.223l-.732-1.107a1 1 0 1 0-1.668 1.1l2.2 3.334a1.084 1.084 0 0 0 .634.425 1.024 1.024 0 0 0 .756-.145l3.3-2.223a1 1 0 1 0-1.115-1.659L4.44 9.96A8.909 8.909 0 1 1 13.1 21a8.892 8.892 0 0 1-7.281-3.822 1 1 0 1 0-1.64 1.143A10.881 10.881 0 0 0 24 12 10.963 10.963 0 0 0 13.1 1z" />
+      <path d="M13 5.95a1 1 0 0 0-1 1V12a1.04 1.04 0 0 0 .293.707l3 3.027a1.013 1.013 0 0 0 1.414.007 1 1 0 0 0 .006-1.414L14 11.589V6.95a1 1 0 0 0-1-1z" />
+    </g>
   </svg>
 );
 const WalletIcon = () => (
