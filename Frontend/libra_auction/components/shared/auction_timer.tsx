@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 
 interface AuctionTimerProps {
   endTimeMs: number;
+  startTimeMs?: number;
   remainingTimeMs?: number | null;
   isPaused: boolean;
   isEnded?: boolean;
+  isUpcoming?: boolean;
   onTick?: (timeLeftMs: number) => void;
   onEnd?: () => void;
   size?: "sm" | "md" | "lg";
@@ -14,26 +16,37 @@ interface AuctionTimerProps {
 
 export default function AuctionTimer({
   endTimeMs,
+  startTimeMs,
   remainingTimeMs,
   isPaused,
   isEnded = false,
+  isUpcoming = false,
   onTick,
   onEnd,
   size = "md",
 }: AuctionTimerProps) {
+  const targetMs = isUpcoming && startTimeMs ? startTimeMs : endTimeMs;
+
   const [timeLeftMs, setTimeLeftMs] = useState(() =>
     isPaused && remainingTimeMs !== undefined && remainingTimeMs !== null
       ? Math.max(0, remainingTimeMs)
-      : Math.max(0, endTimeMs - Date.now())
+      : Math.max(0, targetMs - Date.now())
   );
 
-  // Tick every second when not paused
+  // Reset timeLeftMs when target changes (UPCOMING → LIVE transition)
+  useEffect(() => {
+    if (!isPaused && !isEnded) {
+      setTimeLeftMs(Math.max(0, targetMs - Date.now()));
+    }
+  }, [targetMs, isPaused, isEnded]);
+
+  // Tick every second when not paused and not ended
   useEffect(() => {
     if (isPaused || isEnded) return;
 
     let hasEnded = false;
     const updateTimeLeft = () => {
-      const remaining = Math.max(0, endTimeMs - Date.now());
+      const remaining = Math.max(0, targetMs - Date.now());
       setTimeLeftMs(remaining);
       onTick?.(remaining);
 
@@ -50,7 +63,7 @@ export default function AuctionTimer({
       clearTimeout(timeout);
       clearInterval(interval);
     };
-  }, [isPaused, isEnded, endTimeMs, onTick, onEnd]);
+  }, [isPaused, isEnded, targetMs, onTick, onEnd]);
 
   const sizeClasses = {
     sm: "text-lg font-semibold",
@@ -77,6 +90,21 @@ export default function AuctionTimer({
           {timeStr}
         </div>
         <p className="mt-2 text-sm text-amber-700">PAUSED - The current time is frozen while the auction is paused</p>
+      </div>
+    );
+  }
+
+  if (isUpcoming) {
+    return (
+      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-5 text-center">
+        <div className={`${sizeClasses[size]} text-emerald-700 font-mono`} suppressHydrationWarning>
+          {displayTimeLeftMs <= 0 ? (
+            <span className="text-[#19A7CE]">STARTING</span>
+          ) : (
+            timeStr
+          )}
+        </div>
+        <p className="mt-2 text-sm text-emerald-700">Auction starts in</p>
       </div>
     );
   }

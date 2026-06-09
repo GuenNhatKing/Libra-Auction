@@ -238,6 +238,9 @@ export function AuctionHistoryContent({ userId }: AuctionHistoryContentProps) {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                 Action
               </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                Result
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -313,6 +316,25 @@ export function AuctionHistoryContent({ userId }: AuctionHistoryContentProps) {
                     </div>
                   ) : (
                     <span className="text-xs text-gray-400">Missing category</span>
+                  )}
+                </td>
+                <td className="px-6 py-4">
+                  {item.loading ? (
+                    <span className="inline-block w-20 h-6 bg-gray-200 rounded animate-pulse"></span>
+                  ) : item.error || !item.auction ? (
+                    <span className="text-xs text-gray-400">—</span>
+                  ) : item.auction.auction_status === "COMPLETED" || item.auction.auction_status === "ENDED" ? (
+                    item.auction.winner_id === userId ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                        Winner
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                        Not Winner
+                      </span>
+                    )
+                  ) : (
+                    <span className="text-xs text-gray-400">—</span>
                   )}
                 </td>
               </tr>

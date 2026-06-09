@@ -85,18 +85,17 @@ export default function LiveAuctionView({
   const [currentBid, setCurrentBid] = useState<number>(
     auction.current_price || auction.starting_price || 0
   );
+  const [startTimeMs] = useState(() => toTimestamp(auction.start_time));
   const [endTimeMs, setEndTimeMs] = useState(() => {
     const explicitEndTimeMs = toTimestamp(auction.end_time);
     if (!Number.isNaN(explicitEndTimeMs)) return explicitEndTimeMs;
-
-    const startTimeMs = toTimestamp(auction.start_time);
     return startTimeMs + auction.duration * 1000;
   });
   const [remainingTimeMs, setRemainingTimeMs] = useState<number | null>(
     auction.auction_status === "PAUSED" ? auction.remaining_time ?? null : null
   );
   const [auctionStatus, setAuctionStatus] = useState<string>(
-    auction.auction_status || "LIVE"
+    auction.auction_status || "UPCOMING"
   );
   const [bidValue, setBidValue] = useState<string>("");
   const [isBidding, setIsBidding] = useState(false);
@@ -338,6 +337,12 @@ export default function LiveAuctionView({
   const terminalStatuses = ["ENDED", "CANCELLED", "COMPLETED", "FAILED"];
   const isEnded = terminalStatuses.includes(auctionStatus);
   const isPaused = auctionStatus === "PAUSED";
+  const isUpcoming = auctionStatus === "UPCOMING";
+
+  const handleUpcomingEnd = useCallback(() => {
+    setAuctionStatus("LIVE");
+    addNotification("Phiên đấu giá đã bắt đầu!");
+  }, [addNotification]);
 
   return (
     <div className="min-h-screen bg-gray-50/50 pt-10 px-16 pb-12">
@@ -382,7 +387,7 @@ export default function LiveAuctionView({
                 <Image src={auction.images?.[0] || "/placeholder-image.jpg"} alt={auction.product_name} fill className="object-contain p-4" />
                 <div className="absolute top-4 left-4">
                   <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-white ${
-                    auctionStatus === "LIVE" ? "bg-red-500" : auctionStatus === "PAUSED" ? "bg-yellow-500" : "bg-gray-500"
+                    auctionStatus === "LIVE" ? "bg-red-500" : auctionStatus === "UPCOMING" ? "bg-emerald-500" : auctionStatus === "PAUSED" ? "bg-yellow-500" : "bg-gray-500"
                   }`}>
                     {auctionStatus === "LIVE" && (
                       <span className="relative flex h-2.5 w-2.5">
@@ -390,7 +395,7 @@ export default function LiveAuctionView({
                         <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white" />
                       </span>
                     )}
-                    {auctionStatus}
+                    {auctionStatus === "UPCOMING" ? "UPCOMING" : auctionStatus}
                   </span>
                 </div>
               </div>
@@ -440,7 +445,7 @@ export default function LiveAuctionView({
                 <div className="rounded-2xl border border-[#AFD3E2] bg-[#F2F8FA]/50 p-5 text-center shadow-sm shadow-[#AFD3E2]/20">
                   <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#5A7184]">Time remaining</p>
                   <div className="mt-3 flex min-h-16 items-center justify-center rounded-xl border border-[#D8EEF4] bg-[#EAF4F7] px-4 py-3 text-[#146C94]">
-                    <AuctionTimer endTimeMs={endTimeMs} remainingTimeMs={remainingTimeMs} isPaused={isPaused} isEnded={isEnded} size="sm" />
+                    <AuctionTimer endTimeMs={endTimeMs} startTimeMs={startTimeMs} remainingTimeMs={remainingTimeMs} isPaused={isPaused} isEnded={isEnded} isUpcoming={isUpcoming} onEnd={isUpcoming ? handleUpcomingEnd : undefined} size="sm" />
                   </div>
                 </div>
               </div>
