@@ -199,6 +199,49 @@ public class EmailNotificationService {
         }
     }
 
+    public void sendAuctionApprovedNotification(Auction auction) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            String productName = auction.getProduct() != null ? auction.getProduct().getName() : "N/A";
+            String recipientEmail = auction.getCreator() != null ? auction.getCreator().getEmail() : null;
+            if (recipientEmail == null) return;
+            message.setTo(recipientEmail);
+            message.setSubject("[" + auctionName + "] Phien dau gia cua ban da duoc duyet");
+            String startTime = auction.getStartTime() != null ? auction.getStartTime().format(DATE_FORMATTER) : "Chua xac dinh";
+            message.setText("Xin chao,\n\n" +
+                    "Phien dau gia '" + productName + "' (ID: " + auction.getId() + ") da duoc duyet boi quan tri vien.\n\n" +
+                    "Thoi gian bat dau: " + startTime + "\n\n" +
+                    "Vui long kiem tra dashboard cua ban de theo doi trang thai phien dau gia.\n\n" +
+                    "Tran trong,\n" + auctionName);
+            mailSender.send(message);
+            logger.info("Auction approved email sent for auction {}", auction.getId());
+        } catch (Exception e) {
+            logger.error("Error sending auction approved email: {}", e.getMessage(), e);
+        }
+    }
+
+    public void sendAuctionRejectedNotification(Auction auction, String reason) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            String productName = auction.getProduct() != null ? auction.getProduct().getName() : "N/A";
+            String recipientEmail = auction.getCreator() != null ? auction.getCreator().getEmail() : null;
+            if (recipientEmail == null) return;
+            message.setTo(recipientEmail);
+            message.setSubject("[" + auctionName + "] Phien dau gia cua ban bi tu choi");
+            message.setText("Xin chao,\n\n" +
+                    "Phien dau gia '" + productName + "' (ID: " + auction.getId() + ") da bi tu choi boi quan tri vien.\n\n" +
+                    "Ly do: " + (reason != null ? reason : "Khong co ly do cu the") + "\n\n" +
+                    "Ban co the chinh sua thong tin va tao lai phien dau gia moi.\n\n" +
+                    "Tran trong,\n" + auctionName);
+            mailSender.send(message);
+            logger.info("Auction rejected email sent for auction {}", auction.getId());
+        } catch (Exception e) {
+            logger.error("Error sending auction rejected email: {}", e.getMessage(), e);
+        }
+    }
+
     public void sendWinnerNotification(Auction auction, Customer winner) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
@@ -326,4 +369,5 @@ public class EmailNotificationService {
                "Tran trong,\n" +
                auctionName + " Team";
     }
+
 }

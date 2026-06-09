@@ -44,6 +44,7 @@ public class AuctionService {
         private final PaymentTransactionRepository paymentTransactionRepository;
         private final DepositTransactionRepository depositTransactionRepository;
         private final AuctionPaymentHelper auctionPaymentHelper;
+        private final EmailNotificationService emailNotificationService;
 
         public AuctionService(AuctionRepository auctionRepository,
                         AuctionMapper auctionMapper,
@@ -53,7 +54,8 @@ public class AuctionService {
                         AuctionStateRedisService auctionStateRedisService,
                         PaymentTransactionRepository paymentTransactionRepository,
                         DepositTransactionRepository depositTransactionRepository,
-                        AuctionPaymentHelper auctionPaymentHelper) {
+                        AuctionPaymentHelper auctionPaymentHelper,
+                        EmailNotificationService emailNotificationService) {
                 this.auctionRepository = auctionRepository;
                 this.auctionMapper = auctionMapper;
                 this.productResponseMapper = productResponseMapper;
@@ -63,6 +65,7 @@ public class AuctionService {
                 this.paymentTransactionRepository = paymentTransactionRepository;
                 this.depositTransactionRepository = depositTransactionRepository;
                 this.auctionPaymentHelper = auctionPaymentHelper;
+                this.emailNotificationService = emailNotificationService;
         }
 
         @Transactional(readOnly = true)
@@ -227,6 +230,13 @@ public class AuctionService {
                         auctionStateRedisService.addAuctionEndEvent(saved.getId(), endTime);
                 }
 
+                // Notify seller about approval
+                try {
+                        emailNotificationService.sendAuctionApprovedNotification(saved);
+                } catch (Exception e) {
+                        // Log but don't fail the transaction
+                }
+
                 return auctionMapper.toAuctionResponse(saved);
         }
 
@@ -249,6 +259,13 @@ public class AuctionService {
                 // Clean up Redis scheduling when rejecting
                 auctionStateRedisService.removeAuctionStartEvent(id);
                 auctionStateRedisService.removeAuctionEndEvent(id);
+
+                // Notify seller about rejection
+                try {
+                        emailNotificationService.sendAuctionRejectedNotification(saved, reason);
+                } catch (Exception e) {
+                        // Log but don't fail the transaction
+                }
 
                 return auctionMapper.toAuctionResponse(saved);
         }
