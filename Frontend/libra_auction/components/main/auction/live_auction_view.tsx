@@ -69,6 +69,7 @@ export default function LiveAuctionView({
   role = "user",
   isRegistered = false,
   isCreator = false,
+  depositPaid = false,
   initialNotifications = [],
   currentUserId = null,
 }: {
@@ -77,6 +78,7 @@ export default function LiveAuctionView({
   role?: UserRole;
   isRegistered?: boolean;
   isCreator?: boolean;
+  depositPaid?: boolean;
   initialNotifications?: LiveNotification[];
   currentUserId?: string | null;
 }) {
@@ -313,6 +315,7 @@ export default function LiveAuctionView({
     auctionStatus === "LIVE" &&
     !!currentUserId &&
     isRegistered &&
+    depositPaid &&
     !isCreator;
 
   const bidDisabledReason =
@@ -324,6 +327,8 @@ export default function LiveAuctionView({
       ? "You cannot place a bid because you are the seller."
       : !isRegistered
       ? "Register for this auction before placing a bid."
+      : !depositPaid
+      ? "Please complete your deposit payment before placing a bid."
       : auctionStatus === "PAUSED"
       ? "This auction is paused. Please wait until it resumes."
       : auctionStatus !== "LIVE"

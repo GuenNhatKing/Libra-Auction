@@ -86,8 +86,8 @@ public class VNPayService {
 
         Auction auction = auctionRepository.findByIdAndDeletedFalse(request.auctionId())
                 .orElseThrow(() -> new RuntimeException("Phien dau gia khong ton tai"));
-        if (hasAuctionStarted(auction)) {
-            throw new RuntimeException("Phien dau gia da bat dau, khong the thanh toan dat coc");
+        if (isDepositNotAllowed(auction)) {
+            throw new RuntimeException("Phien dau gia khong con trong trang thai cho phep thanh toan dat coc");
         }
 
         DepositTransaction deposit = new DepositTransaction(auction.getDepositAmount(),
@@ -292,7 +292,7 @@ public class VNPayService {
         }
 
         Auction depositAuction = deposit.getParticipationInfo().getAuction();
-        if (hasAuctionStarted(depositAuction)) {
+        if (isDepositNotAllowed(depositAuction)) {
             deposit.setTransactionStatus(TransactionStatus.FAILED);
             depositTransactionRepository.save(deposit);
             return false;
@@ -439,6 +439,11 @@ public class VNPayService {
     private boolean hasAuctionStarted(Auction auction) {
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.ofHours(7));
         return auction.getAuctionStatus() != AuctionStatus.UPCOMING || !now.isBefore(auction.getStartTime());
+    }
+
+    private boolean isDepositNotAllowed(Auction auction) {
+        AuctionStatus status = auction.getAuctionStatus();
+        return status != AuctionStatus.UPCOMING && status != AuctionStatus.LIVE;
     }
 
     @Transactional(readOnly = true)

@@ -7,6 +7,7 @@ import { UserInfo } from "@/types/user_info";
 import { CurrencyFormat } from '@/utils/currency_format';
 import { DurationFormat } from '@/utils/duration_format';
 import { checkRegistration } from '@/services/register_auction';
+import { isDepositPaid } from '@/services/create_deposit';
 import { getIdFromToken } from '@/lib/get_id_from_token';
 import { fetchUserInfo } from '@/services/fetch_user_info';
 import RegistrationConfirmDialog from './registration_confirm_dialog';
@@ -27,6 +28,7 @@ export default function AuctionInfoSection({
   const [isRegistered, setIsRegistered] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [depositPaid, setDepositPaid] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -85,6 +87,8 @@ export default function AuctionInfoSection({
         const registration = await checkRegistration(userId, autionInfos.auction_id);
         if (registration) {
           setIsRegistered(true);
+          const paid = await isDepositPaid(autionInfos.auction_id);
+          setDepositPaid(paid);
         }
         const info = await fetchUserInfo(userId);
         setUserInfo(info);
@@ -277,12 +281,25 @@ export default function AuctionInfoSection({
                     <p className="text-gray-500 text-sm mt-1">Không có người thắng</p>
                   </div>
                 ) : isLive ? (
-                  <Link
-                    href={`/auctions/${autionInfos.category_id}/${autionInfos.auction_id}/live`}
-                    className="w-full flex items-center justify-center gap-3 bg-red-500 hover:bg-red-600 active:scale-[0.98] text-white text-lg font-bold py-5 px-8 rounded-2xl shadow-lg shadow-red-500/20 transition-all duration-200 group"
-                  >
-                    View live auction
-                  </Link>
+                  isRegistered && !depositPaid ? (
+                    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-center">
+                      <p className="text-amber-700 font-bold text-lg">Vui lòng thanh toán cọc</p>
+                      <p className="text-amber-600 text-sm mt-1">Bạn cần thanh toán tiền cọc trước khi tham gia đấu giá</p>
+                      <Link
+                        href={`/auctions/${autionInfos.category_id}/${autionInfos.auction_id}/registration`}
+                        className="mt-3 inline-block w-full items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white text-lg font-bold py-4 px-8 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all duration-200"
+                      >
+                        Thanh toán cọc
+                      </Link>
+                    </div>
+                  ) : (
+                    <Link
+                      href={`/auctions/${autionInfos.category_id}/${autionInfos.auction_id}/live`}
+                      className="w-full flex items-center justify-center gap-3 bg-red-500 hover:bg-red-600 active:scale-[0.98] text-white text-lg font-bold py-5 px-8 rounded-2xl shadow-lg shadow-red-500/20 transition-all duration-200 group"
+                    >
+                      View live auction
+                    </Link>
+                  )
                 ) : isCreator ? (
                   <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-center">
                     <p className="text-blue-700 font-bold text-lg">You created this auction</p>
@@ -298,7 +315,7 @@ export default function AuctionInfoSection({
                     href={`/auctions/${autionInfos.category_id}/${autionInfos.auction_id}/registration`}
                     className="w-full flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white text-lg font-bold py-5 px-8 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all duration-200 group"
                   >
-                    View registration details
+                    {depositPaid ? "View registration details" : "Thanh toán cọc để hoàn tất đăng ký"}
                   </Link>
                 ) : (
                   <>

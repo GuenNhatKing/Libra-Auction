@@ -1,8 +1,9 @@
 import { getErrorStatus } from "@/lib/app_error";
 import BreadCrumb from "@/components/main/auction/breadcrumb";
 import { fetchPublicAuction } from "@/services/fetch_public_auction";
-import { fetchLiveNotifications } from "@/services/fetch_live_notifications"; 
+import { fetchLiveNotifications } from "@/services/fetch_live_notifications";
 import { checkRegistration } from "@/services/register_auction";
+import { isDepositPaid } from "@/services/create_deposit";
 import { getIdFromToken } from "@/lib/get_id_from_token";
 import { notFound } from "next/navigation";
 import LiveAuctionView from "@/components/main/auction/live_auction_view";
@@ -30,8 +31,9 @@ export default async function LivePage(props: {
   // 3. Kiểm tra thông tin định danh và quyền hạn của người dùng hiện tại
   let isRegistered = false;
   let isCreator = false;
+  let depositPaid = false;
   let currentUserId: string | null = null;
-  
+
   try {
     const userId = await getIdFromToken();
     currentUserId = userId;
@@ -41,6 +43,10 @@ export default async function LivePage(props: {
       }
       const registration = await checkRegistration(userId, auctionId);
       isRegistered = !!registration;
+
+      if (isRegistered && !isCreator) {
+        depositPaid = await isDepositPaid(auctionId);
+      }
     }
   } catch {
     // Không đăng nhập hoặc xảy ra lỗi token thì bỏ qua
@@ -74,8 +80,9 @@ export default async function LivePage(props: {
         role="user"
         isRegistered={isRegistered}
         isCreator={isCreator}
+        depositPaid={depositPaid}
         currentUserId={currentUserId}
-        initialNotifications={liveNotifications} 
+        initialNotifications={liveNotifications}
       />
     </>
   );
