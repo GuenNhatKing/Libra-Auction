@@ -26,6 +26,7 @@ export default function AuctionInfoSection({
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isRegistered, setIsRegistered] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -87,6 +88,9 @@ export default function AuctionInfoSection({
         }
         const info = await fetchUserInfo(userId);
         setUserInfo(info);
+        if (info.role?.name?.toLowerCase() === "admin") {
+          setIsAdmin(true);
+        }
       } catch {
         // User not logged in or error
       }
@@ -283,6 +287,11 @@ export default function AuctionInfoSection({
                   <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-center">
                     <p className="text-blue-700 font-bold text-lg">You created this auction</p>
                     <p className="text-blue-600 text-sm mt-1">You cannot register to participate</p>
+                  </div>
+                ) : isAdmin ? (
+                  <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-center">
+                    <p className="text-amber-700 font-bold text-lg">Admin cannot register for auctions</p>
+                    <p className="text-amber-600 text-sm mt-1">Admins can monitor auctions but cannot participate</p>
                   </div>
                 ) : isRegistered ? (
                   <Link
