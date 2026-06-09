@@ -75,7 +75,7 @@ export const AuctionList = ({ auctions }: AuctionListProps) => {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => router.push("/seller-dashboard/auctions/create")}
+          onClick={() => router.push("/seller-dashboard/auctions/new-auction")}
           className="rounded-lg bg-(--primary-color) px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
         >
           + Create Auction

@@ -218,6 +218,24 @@ public class EmailNotificationService {
         }
     }
 
+    public void sendQuestionRejectedEmail(String toEmail, String questionContent, String auctionName) {
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(fromEmail);
+            message.setTo(toEmail);
+            message.setSubject("[" + this.auctionName + "] Cau hoi cua ban da bi tu choi");
+            message.setText("Xin chao,\n\n" +
+                    "Cau hoi cua ban ve san pham '" + auctionName + "' da bi tu choi.\n\n" +
+                    "Noi dung cau hoi: " + questionContent + "\n\n" +
+                    "Nguoi ban khong the tra loi cau hoi nay. Vui long thu gui cau hoi khac neu can thiet.\n\n" +
+                    "Tran trong,\n" + this.auctionName);
+            mailSender.send(message);
+            logger.info("Question rejected email sent to {}", toEmail);
+        } catch (Exception e) {
+            logger.error("Error sending question rejected email: {}", e.getMessage(), e);
+        }
+    }
+
     public void sendAuctionLostNotification(Auction auction, Customer bidder) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();

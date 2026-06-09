@@ -26,8 +26,8 @@ export default function AuctionForm({ products }: { products: Product[] }) {
     productId: "",
     startTime: "",
     duration: 3600,
-    startingPrice: 0,
-    minimumBidIncrement: 0,
+    startingPrice: 1000,
+    minimumBidIncrement: 100,
     depositAmount: 0
   });
 
@@ -62,6 +62,19 @@ export default function AuctionForm({ products }: { products: Product[] }) {
     setSuccess(null);
 
     try {
+      if (!formData.startTime) {
+        setError("Please select a start time.");
+        return;
+      }
+      if (formData.startingPrice <= 0) {
+        setError("Starting price must be greater than 0.");
+        return;
+      }
+      if (formData.minimumBidIncrement <= 0) {
+        setError("Minimum bid increment must be greater than 0.");
+        return;
+      }
+
       const auction: NewAuction = {
         productId: formData.productId,
         startTime: new Date(formData.startTime).toISOString(),

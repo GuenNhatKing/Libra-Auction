@@ -3,9 +3,11 @@ package io.github.guennhatking.libra_auction.controllers;
 import io.github.guennhatking.libra_auction.services.AuctionSearchService;
 import io.github.guennhatking.libra_auction.services.AuctionService;
 import io.github.guennhatking.libra_auction.services.CustomerService;
+import io.github.guennhatking.libra_auction.services.qa.QuestionService;
 import io.github.guennhatking.libra_auction.models.qa.Question;
-import io.github.guennhatking.libra_auction.repositories.qa.QuestionRepository;
 import io.github.guennhatking.libra_auction.enums.qa.QuestionStatus;
+import io.github.guennhatking.libra_auction.viewmodels.request.QuestionAskRequest;
+import io.github.guennhatking.libra_auction.viewmodels.request.QuestionAnswerRequest;
 import io.github.guennhatking.libra_auction.utils.ParseDateTime;
 import io.github.guennhatking.libra_auction.viewmodels.request.AuctionCreateRequest;
 import io.github.guennhatking.libra_auction.security.JwtUserDetails;
@@ -42,16 +44,16 @@ public class AuctionController {
     private final AuctionService auctionService;
     private final AuctionSearchService searchService;
     private final CustomerService userService;
-    private final QuestionRepository questionRepository;
+    private final QuestionService questionService;
 
     public AuctionController(AuctionService auctionService,
             AuctionSearchService searchService,
             CustomerService userService,
-            QuestionRepository questionRepository) {
+            QuestionService questionService) {
         this.auctionService = auctionService;
         this.searchService = searchService;
         this.userService = userService;
-        this.questionRepository = questionRepository;
+        this.questionService = questionService;
     }
 
     // Helper method to check if user is admin
@@ -163,13 +165,96 @@ public class AuctionController {
     public ResponseEntity<ServerAPIResponse<List<AuctionQuestionResponse>>> getPublicAuctionQuestions(
             @PathVariable String id) {
 
-        List<AuctionQuestionResponse> questions = questionRepository
-                .findByAuctionIdOrderByQuestionTimeAsc(id)
+        List<AuctionQuestionResponse> questions = questionService
+                .getPublicQuestionsByAuction(id)
                 .stream()
                 .map(this::toQuestionResponse)
                 .toList();
 
         return ResponseEntity.ok(ServerAPIResponse.success(questions));
+    }
+
+    @GetMapping("/auctions/{id}/questions/public")
+    public ResponseEntity<ServerAPIResponse<List<AuctionQuestionResponse>>> getPublicQuestionsWithOwn(
+            @AuthenticationPrincipal JwtUserDetails userDetails,
+            @PathVariable String id) {
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error("Authentication required"));
+        }
+
+        List<AuctionQuestionResponse> questions = questionService
+                .getPublicQuestionsWithOwnByAuction(id, userDetails.getUserId())
+                .stream()
+                .map(this::toQuestionResponse)
+                .toList();
+
+        return ResponseEntity.ok(ServerAPIResponse.success(questions));
+    }
+
+    @PostMapping("/auctions/{id}/questions")
+    public ResponseEntity<ServerAPIResponse<AuctionQuestionResponse>> askQuestion(
+            @AuthenticationPrincipal JwtUserDetails userDetails,
+            @PathVariable String id,
+            @Valid @RequestBody QuestionAskRequest request) {
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error("Authentication required"));
+        }
+
+        Question question = questionService.askQuestion(id, userDetails.getUserId(), request.content());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ServerAPIResponse.success(toQuestionResponse(question)));
+    }
+
+    @GetMapping("/auctions/{id}/questions")
+    public ResponseEntity<ServerAPIResponse<List<AuctionQuestionResponse>>> getSellerAuctionQuestions(
+            @AuthenticationPrincipal JwtUserDetails userDetails,
+            @PathVariable String id) {
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error("Authentication required"));
+        }
+
+        List<AuctionQuestionResponse> questions = questionService
+                .getAllQuestionsByAuction(id)
+                .stream()
+                .map(this::toQuestionResponse)
+                .toList();
+
+        return ResponseEntity.ok(ServerAPIResponse.success(questions));
+    }
+
+    @PutMapping("/questions/{id}/answer")
+    public ResponseEntity<ServerAPIResponse<AuctionQuestionResponse>> answerQuestion(
+            @AuthenticationPrincipal JwtUserDetails userDetails,
+            @PathVariable String id,
+            @Valid @RequestBody QuestionAnswerRequest request) {
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error("Authentication required"));
+        }
+
+        Question question = questionService.answerQuestion(id, userDetails.getUserId(), request.content());
+        return ResponseEntity.ok(ServerAPIResponse.success(toQuestionResponse(question)));
+    }
+
+    @PutMapping("/questions/{id}/reject")
+    public ResponseEntity<ServerAPIResponse<AuctionQuestionResponse>> rejectQuestion(
+            @AuthenticationPrincipal JwtUserDetails userDetails,
+            @PathVariable String id) {
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error("Authentication required"));
+        }
+
+        Question question = questionService.rejectQuestion(id, userDetails.getUserId());
+        return ResponseEntity.ok(ServerAPIResponse.success(toQuestionResponse(question)));
     }
 
     @GetMapping("/auctions/{id}")
@@ -190,10 +275,12 @@ public class AuctionController {
     }
 
     private AuctionQuestionResponse toQuestionResponse(Question question) {
+    String userId = question.getQuestioner() != null ? question.getQuestioner().getId() : null;
     String userName = question.getQuestioner() != null && question.getQuestioner().getFullName() != null
         && !question.getQuestioner().getFullName().isBlank()
         ? question.getQuestioner().getFullName()
         : "Anonymous";
+    String avatarUrl = question.getQuestioner() != null ? question.getQuestioner().getAvatarUrl() : null;
 
     AuctionQuestionAnswerResponse answer = question.getQuestionStatus() == QuestionStatus.ANSWERED
         && question.getAnswerContent() != null
@@ -203,10 +290,13 @@ public class AuctionController {
 
     return new AuctionQuestionResponse(
         question.getId(),
+        userId,
         userName,
+        avatarUrl,
         question.getQuestionContent(),
         question.getQuestionTime(),
-        answer);
+        answer,
+        question.getQuestionStatus().name());
     }
 
     @PostMapping("/auctions")

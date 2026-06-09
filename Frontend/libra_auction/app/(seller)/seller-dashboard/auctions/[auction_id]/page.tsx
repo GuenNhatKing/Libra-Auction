@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import ErrorView from "@/components/error/error_view";
 import { getErrorMessage, getErrorStatus, getErrorTitle } from "@/lib/app_error";
 import { AuctionDetail } from "@/components/seller/auction/auction_detail";
 import { Auction } from "@/types/auction/auction";
 import { fetchAuction } from "@/services/fetch_auction";
+import SellerQuestionsSection from "@/components/seller/auction/seller_questions_section";
 
 export default function Page() {
     const params = useParams();
@@ -15,28 +16,28 @@ export default function Page() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<unknown>(null);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                if (!params.auction_id || Array.isArray(params.auction_id)) {
-                    return;
-                }
-                const data = await fetchAuction(params.auction_id);
-                if (data) {
-                    setData(data);
-                }
-            } catch (err) {
-                setError(err);
-                setData(null);
-            } finally {
-                setLoading(false);
+    const fetchData = useCallback(async () => {
+        try {
+            if (!params.auction_id || Array.isArray(params.auction_id)) {
+                return;
             }
-        };
+            const data = await fetchAuction(params.auction_id);
+            if (data) {
+                setData(data);
+            }
+        } catch (err) {
+            setError(err);
+            setData(null);
+        } finally {
+            setLoading(false);
+        }
+    }, [params.auction_id]);
 
+    useEffect(() => {
         if (params.auction_id) {
             fetchData();
         }
-    }, [params.auction_id]);
+    }, [params.auction_id, fetchData]);
 
     if (loading) return <div className="p-10 text-center text-gray-400 italic">Loading auction...</div>;
 
@@ -57,7 +58,10 @@ export default function Page() {
                 </button>
 
             {data ? (
-                <AuctionDetail data={data} />
+                <>
+                    <AuctionDetail data={data} />
+                    <SellerQuestionsSection auctionId={data.auction_id} />
+                </>
             ) : (
                 <p>Auction not found</p>
             )}

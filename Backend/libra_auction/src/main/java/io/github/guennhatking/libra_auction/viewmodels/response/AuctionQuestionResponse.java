@@ -4,8 +4,11 @@ import java.time.OffsetDateTime;
 
 public record AuctionQuestionResponse(
         String id,
+        String user_id,
         String user_name,
+        String avatar_url,
         String content,
         OffsetDateTime created_at,
-        AuctionQuestionAnswerResponse answer) {
+        AuctionQuestionAnswerResponse answer,
+        String question_status) {
 }

@@ -48,7 +48,7 @@ export const ProductList = ({ initialData }: ProductListProps) => {
       <div className="flex justify-end">
         <button
           type="button"
-          onClick={() => router.push("/seller-dashboard/products/create")}
+          onClick={() => router.push("/seller-dashboard/products/new-product")}
           className="rounded-lg bg-(--primary-color) px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
         >
           + Create Product

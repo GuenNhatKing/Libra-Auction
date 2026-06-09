@@ -1,15 +1,17 @@
 "use client";
-import { Question } from "@/types/auction_type";
+import { AuctionQuestion } from "@/types/auction/auction_question";
 import { QuestionItem } from "./question_item";
 
 interface QuestionListProps {
-  questions: Question[];
+  questions: AuctionQuestion[];
+  onAnswerSubmit?: (questionId: string, answerText: string) => Promise<void>;
+  onReject?: (questionId: string) => Promise<void>;
 }
 
-export const QuestionList = ({ questions }: QuestionListProps) => {
+export const QuestionList = ({ questions, onAnswerSubmit, onReject }: QuestionListProps) => {
   return (
     <>
-      <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+      <h3 className="text-lg font-bold text-[#146C94] mb-4 flex items-center gap-2">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
         Questions and discussion ({questions.length})
       </h3>
@@ -20,6 +22,8 @@ export const QuestionList = ({ questions }: QuestionListProps) => {
             <QuestionItem
               key={q.id}
               question={q}
+              onAnswerSubmit={onAnswerSubmit}
+              onReject={onReject}
             />
           ))
         ) : (

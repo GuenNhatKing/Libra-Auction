@@ -8,7 +8,7 @@ import { CurrencyFormat } from "@/utils/currency_format";
 import { DateFormat } from "@/utils/date_format";
 
 interface AuctionDetailProps {
-  data: Auction
+  data: Auction;
 }
 
 const approvalStatusConfig: Record<ApprovalStatus, { label: string; classes: string }> = {
