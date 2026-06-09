@@ -34,11 +34,13 @@ export default function AuctionTimer({
   );
 
   // Reset timeLeftMs when target changes (UPCOMING → LIVE transition)
-  useEffect(() => {
+  const [prevTargetMs, setPrevTargetMs] = useState(targetMs);
+  if (targetMs !== prevTargetMs) {
+    setPrevTargetMs(targetMs);
     if (!isPaused && !isEnded) {
       setTimeLeftMs(Math.max(0, targetMs - Date.now()));
     }
-  }, [targetMs, isPaused, isEnded]);
+  }
 
   // Tick every second when not paused and not ended
   useEffect(() => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Auction } from "@/types/auction/auction";
 import { AuctionFilters, AuctionFilterFields, defaultAuctionFilters } from "./auction_filters";
 import { AuctionItem } from "./auction_item";
@@ -13,12 +13,13 @@ interface AuctionListProps {
 
 export const AuctionList = ({ auctions }: AuctionListProps) => {
   const [filters, setFilters] = useState<AuctionFilterFields>(defaultAuctionFilters);
-  const [visibleAuctions, setVisibleAuctions] = useState(auctions);
+  const [cancelledIds, setCancelledIds] = useState<Set<string>>(new Set());
   const [cancelingId, setCancelingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    setVisibleAuctions(auctions);
-  }, [auctions]);
+  const visibleAuctions = useMemo(
+    () => auctions.filter((a) => !cancelledIds.has(a.auction_id)),
+    [auctions, cancelledIds]
+  );
 
   const categoryOptions = useMemo(
     () => Array.from(new Set(visibleAuctions.map((a) => a.category_name).filter(Boolean))).sort(),
@@ -58,7 +59,7 @@ export const AuctionList = ({ auctions }: AuctionListProps) => {
     setCancelingId(auctionId);
     try {
       await deleteAuction(auctionId);
-      setVisibleAuctions((current) => current.filter((auction) => auction.auction_id !== auctionId));
+      setCancelledIds((prev) => new Set(prev).add(auctionId));
     } finally {
       setCancelingId(null);
     }

@@ -24,7 +24,18 @@ export default function AuctionInfoSection({
   autionInfos: Auction
 }) {
   const [activeImage, setActiveImage] = useState(autionInfos.images[0]);
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const difference = new Date(autionInfos.start_time).getTime() - Date.now();
+    if (difference > 0) {
+      return {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60),
+      };
+    }
+    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  });
   const [isRegistered, setIsRegistered] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -65,7 +76,6 @@ export default function AuctionInfoSection({
       }
     };
 
-    calculateTimeLeft();
     const timer = setInterval(calculateTimeLeft, 1000);
     return () => clearInterval(timer);
   }, [autionInfos.start_time]);

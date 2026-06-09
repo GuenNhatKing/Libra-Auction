@@ -1,7 +1,7 @@
 "use client";
 
 import { NewAuction } from "@/types/auction/new-auction";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 interface AuctionFormProps {
   initialData?: NewAuction;
@@ -21,11 +21,11 @@ export const AuctionEditForm = ({ initialData, onSubmit, isUpdating }: AuctionFo
 
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (initialData) {
-      setFormData(initialData);
-    }
-  }, [initialData]);
+  const [prevInitialData, setPrevInitialData] = useState(initialData);
+  if (initialData && initialData !== prevInitialData) {
+    setPrevInitialData(initialData);
+    setFormData(initialData);
+  }
 
   const handleChange = (name: string, value: string | number) => {
     setFormData(prev => ({
