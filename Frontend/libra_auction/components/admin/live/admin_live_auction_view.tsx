@@ -300,6 +300,8 @@ export default function AdminLiveAuctionView({
   };
 
   const isPaused = auctionStatus === "PAUSED";
+  const terminalStatuses = ["ENDED", "CANCELLED", "COMPLETED", "FAILED"];
+  const isEnded = terminalStatuses.includes(auctionStatus);
 
   const statusLabel =
     auctionStatus === "LIVE"
@@ -394,6 +396,7 @@ export default function AdminLiveAuctionView({
               endTimeMs={endTimeMs}
               remainingTimeMs={remainingTimeMs}
               isPaused={isPaused}
+              isEnded={isEnded}
               size="lg"
             />
           </div>
