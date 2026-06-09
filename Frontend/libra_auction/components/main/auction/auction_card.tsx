@@ -30,7 +30,6 @@ export default function AuctionCard({ auctionCard }: { auctionCard: Auction }) {
     const router = useRouter();
     const [now, setNow] = useState(() => Date.now());
 
-    const isLive = auctionCard.auction_status === "LIVE";
     const status = auctionStatusConfig[auctionCard.auction_status] ?? { label: 'Unknown', classes: 'bg-gray-50 text-gray-500 border-gray-100' };
 
     useEffect(() => {
@@ -67,6 +66,9 @@ export default function AuctionCard({ auctionCard }: { auctionCard: Auction }) {
     const auctionEndTime = Number.isNaN(explicitEndTime)
         ? startTime + auctionCard.duration * 1000
         : explicitEndTime;
+
+    // Tự chuyển sang LIVE khi startTime đã qua mà server chưa cập nhật
+    const isLive = auctionCard.auction_status === "LIVE" || now >= startTime;
     const countdownLabel = isLive ? "Ends in" : "Starts in";
     const countdownValue = isLive
         ? formatCountdown(auctionEndTime, now)
