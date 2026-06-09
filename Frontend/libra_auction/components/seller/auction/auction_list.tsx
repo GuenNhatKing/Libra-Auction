@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Auction } from "@/types/auction/auction";
-import { AuctionSearchBar } from "./auction_search_bar";
+import { AuctionFilters, AuctionFilterFields, defaultAuctionFilters } from "./auction_filters";
 import { AuctionItem } from "./auction_item";
 import { useRouter } from "next/navigation";
 import { deleteAuction } from "@/services/delete_auction";
@@ -12,7 +12,7 @@ interface AuctionListProps {
 }
 
 export const AuctionList = ({ auctions }: AuctionListProps) => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState<AuctionFilterFields>(defaultAuctionFilters);
   const [visibleAuctions, setVisibleAuctions] = useState(auctions);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
 
@@ -20,9 +20,34 @@ export const AuctionList = ({ auctions }: AuctionListProps) => {
     setVisibleAuctions(auctions);
   }, [auctions]);
 
-  const filteredAuctions = visibleAuctions.filter((auction) =>
-    auction.product_name.toLowerCase().includes(searchTerm.toLowerCase())
+  const categoryOptions = useMemo(
+    () => Array.from(new Set(visibleAuctions.map((a) => a.category_name).filter(Boolean))).sort(),
+    [visibleAuctions]
   );
+
+  const filteredAuctions = useMemo(() => {
+    const search = filters.searchName.trim().toLowerCase();
+    const minPrice = filters.minStartingPrice ? Number(filters.minStartingPrice) : null;
+    const maxPrice = filters.maxStartingPrice ? Number(filters.maxStartingPrice) : null;
+    const startFrom = filters.startTimeFrom ? new Date(filters.startTimeFrom).getTime() : null;
+    const startTo = filters.startTimeTo ? new Date(filters.startTimeTo).getTime() : null;
+
+    return visibleAuctions.filter((auction) => {
+      const auctionStartTime = new Date(auction.start_time).getTime();
+
+      return (
+        (!search || auction.product_name.toLowerCase().includes(search)) &&
+        (filters.approvalStatus === "ALL" || auction.approval_status === filters.approvalStatus) &&
+        (filters.auctionStatus === "ALL" || auction.auction_status === filters.auctionStatus) &&
+        (filters.category === "ALL" || auction.category_name === filters.category) &&
+        (minPrice === null || auction.starting_price >= minPrice) &&
+        (maxPrice === null || auction.starting_price <= maxPrice) &&
+        (startFrom === null || auctionStartTime >= startFrom) &&
+        (startTo === null || auctionStartTime <= startTo)
+      );
+    });
+  }, [visibleAuctions, filters]);
+
   const router = useRouter();
 
   const handleCancel = async (auctionId: string) => {
@@ -40,11 +65,22 @@ export const AuctionList = ({ auctions }: AuctionListProps) => {
   };
 
   return (
-    <div className="w-full">
-      <AuctionSearchBar 
-        onSearch={setSearchTerm} 
-        onAddClick={() => router.push("/seller-dashboard/auctions/new-auction")} 
+    <div className="w-full space-y-4">
+      <AuctionFilters
+        filters={filters}
+        onChange={setFilters}
+        categoryOptions={categoryOptions}
       />
+
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => router.push("/seller-dashboard/auctions/create")}
+          className="rounded-lg bg-(--primary-color) px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+        >
+          + Create Auction
+        </button>
+      </div>
 
       <div className="flex flex-col gap-3">
         {filteredAuctions.length > 0 ? (

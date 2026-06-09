@@ -10,3 +10,23 @@ export type Transaction = {
   direction?: 'INCOMING' | 'OUTGOING';
   description?: string;
 };
+
+export type TransactionFilterFields = {
+  searchTerm: string;
+  participantName: string;
+  status: string;
+  transactionType: string;
+  direction: string;
+  minAmount: string;
+  maxAmount: string;
+};
+
+export const defaultTransactionFilters: TransactionFilterFields = {
+  searchTerm: "",
+  participantName: "",
+  status: "ALL",
+  transactionType: "ALL",
+  direction: "ALL",
+  minAmount: "",
+  maxAmount: "",
+};

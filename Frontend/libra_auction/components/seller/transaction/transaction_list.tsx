@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Transaction } from "@/types/transaction_type";
-import { TransactionSearchBar } from "./transaction_search_bar";
+import { useMemo, useState } from "react";
+import { Transaction, TransactionFilterFields, defaultTransactionFilters } from "@/types/transaction_type";
+import { TransactionFilters } from "./transaction_filters";
 import { TransactionItem } from "./transaction_item";
 import { useRouter } from "next/navigation";
 
@@ -12,19 +12,34 @@ interface TransactionListProps {
 }
 
 export const TransactionList = ({ transactions, detailsHrefPrefix }: TransactionListProps) => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState<TransactionFilterFields>(defaultTransactionFilters);
   const router = useRouter();
 
-  const filteredTransactions = transactions.filter((t) =>
-    t.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.participant_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (t.description && t.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    t.status.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredTransactions = useMemo(() => {
+    const search = filters.searchTerm.trim().toLowerCase();
+    const participant = filters.participantName.trim().toLowerCase();
+    const minAmount = filters.minAmount ? Number(filters.minAmount) : null;
+    const maxAmount = filters.maxAmount ? Number(filters.maxAmount) : null;
+
+    return transactions.filter((t) => {
+      const matchesSearch =
+        !search ||
+        t.id.toLowerCase().includes(search) ||
+        (t.description && t.description.toLowerCase().includes(search));
+      const matchesParticipant = !participant || t.participant_name.toLowerCase().includes(participant);
+      const matchesStatus = filters.status === "ALL" || t.status === filters.status;
+      const matchesType = filters.transactionType === "ALL" || t.transaction_type === filters.transactionType;
+      const matchesDirection = filters.direction === "ALL" || t.direction === filters.direction;
+      const matchesMinAmount = minAmount === null || t.amount >= minAmount;
+      const matchesMaxAmount = maxAmount === null || t.amount <= maxAmount;
+
+      return matchesSearch && matchesParticipant && matchesStatus && matchesType && matchesDirection && matchesMinAmount && matchesMaxAmount;
+    });
+  }, [transactions, filters]);
 
   return (
     <div className="space-y-4">
-      <TransactionSearchBar onSearch={setSearchTerm} />
+      <TransactionFilters filters={filters} onChange={setFilters} />
 
       <div className="grid grid-cols-1 gap-3">
         {filteredTransactions.length > 0 ? (

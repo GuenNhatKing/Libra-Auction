@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Product } from "@/types/product/product";
-import { ProductSearchBar } from "./product_search_bar";
+import { ProductFilters, ProductFilterFields, defaultProductFilters } from "./product_filters";
 import { ProductItem } from "./product_item";
 import { useRouter } from "next/navigation";
 
@@ -11,21 +11,49 @@ interface ProductListProps {
 }
 
 export const ProductList = ({ initialData }: ProductListProps) => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState<ProductFilterFields>(defaultProductFilters);
+  const router = useRouter();
 
-  const filteredProducts = initialData.filter((p) =>
-    p.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.category_name.toLowerCase().includes(searchTerm.toLowerCase())
+  const categoryOptions = useMemo(
+    () => Array.from(new Set(initialData.map((p) => p.category_name).filter(Boolean))).sort(),
+    [initialData]
   );
 
-  const router = useRouter();
+  const filteredProducts = useMemo(() => {
+    const search = filters.searchName.trim().toLowerCase();
+    const minQty = filters.minQuantity ? Number(filters.minQuantity) : null;
+    const maxQty = filters.maxQuantity ? Number(filters.maxQuantity) : null;
+
+    return initialData.filter((p) => {
+      const matchesSearch =
+        !search ||
+        p.product_name.toLowerCase().includes(search) ||
+        p.category_name.toLowerCase().includes(search);
+      const matchesCategory = filters.category === "ALL" || p.category_name === filters.category;
+      const matchesMinQty = minQty === null || p.quantity >= minQty;
+      const matchesMaxQty = maxQty === null || p.quantity <= maxQty;
+
+      return matchesSearch && matchesCategory && matchesMinQty && matchesMaxQty;
+    });
+  }, [initialData, filters]);
 
   return (
     <div className="space-y-4">
-      <ProductSearchBar 
-        onSearch={setSearchTerm} 
-        onAddClick={() => router.push("/seller-dashboard/products/new-product")} 
+      <ProductFilters
+        filters={filters}
+        onChange={setFilters}
+        categoryOptions={categoryOptions}
       />
+
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => router.push("/seller-dashboard/products/create")}
+          className="rounded-lg bg-(--primary-color) px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+        >
+          + Create Product
+        </button>
+      </div>
 
       <div className="grid grid-cols-1 gap-3">
         {filteredProducts.length > 0 ? (
