@@ -1,6 +1,6 @@
 'use client';
 
-import { signUpAction, sendEmailVerificationAction } from "@/lib/auth_actions";
+import { signUpAction } from "@/lib/auth_actions";
 
 export async function signUp(
     fullName: string,
@@ -8,7 +8,7 @@ export async function signUp(
     email: string,
     password: string,
     confirmPassword: string,
-    onSuccess: (token: string) => void,
+    onSuccess: () => void,
     onFailed: (message: string) => void
 ) {
     try {
@@ -27,13 +27,7 @@ export async function signUp(
         if (!res.success) {
             onFailed(res.message);
         } else {
-            // Send email verification OTP after successful signup
-            const verificationResult = await sendEmailVerificationAction(email);
-            if (verificationResult.success && verificationResult.token) {
-                onSuccess(verificationResult.token);
-            } else {
-                onSuccess(''); // Still succeed signup but without token
-            }
+            onSuccess();
         }
     }
     catch (error) {
