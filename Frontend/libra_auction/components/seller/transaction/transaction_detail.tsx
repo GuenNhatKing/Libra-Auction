@@ -1,8 +1,11 @@
 import { TransactionDetailData } from "@/types/transaction_detail_type";
 
-const statusConfig = {
+const statusConfig: Record<string, { label: string; color: string }> = {
   SUCCESS: { label: "Success", color: "bg-green-100 text-green-700 border-green-200" },
+  PROCESSING: { label: "Processing", color: "bg-blue-100 text-blue-700 border-blue-200" },
   PENDING: { label: "Pending", color: "bg-amber-100 text-amber-700 border-amber-200" },
+  REFUNDED: { label: "Refunded", color: "bg-purple-100 text-purple-700 border-purple-200" },
+  CANCELLED: { label: "Cancelled", color: "bg-gray-100 text-gray-700 border-gray-200" },
   FAILED: { label: "Failed", color: "bg-red-100 text-red-700 border-red-200" },
 };
 
