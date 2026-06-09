@@ -8,6 +8,8 @@ import { ProfileContent } from "./ProfileContent";
 import { EditProfileContent } from "./EditProfileContent";
 import { AuctionHistoryContent } from "./tabs/AuctionHistoryContent";
 import { WalletContent } from "./tabs/WalletContent";
+import { EmailVerifyContent } from "./tabs/EmailVerifyContent";
+import { ChangePasswordContent } from "./tabs/ChangePasswordContent";
 
 interface UserDashboardProps {
   user: UserInfo;
@@ -79,6 +81,20 @@ export function UserDashboard({ user }: UserDashboardProps) {
         )}
 
         {activeTab === "wallet" && <WalletContent userId={profileUser.id} />}
+
+        {activeTab === "email-verify" && (
+          <EmailVerifyContent
+            email={profileUser.email}
+            emailStatus={profileUser.emailStatus}
+          />
+        )}
+
+        {activeTab === "change-password" && (
+          <ChangePasswordContent
+            email={profileUser.email}
+            emailStatus={profileUser.emailStatus}
+          />
+        )}
       </div>
     </div>
   );

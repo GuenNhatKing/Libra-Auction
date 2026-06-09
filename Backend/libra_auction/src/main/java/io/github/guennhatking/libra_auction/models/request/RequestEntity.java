@@ -105,7 +105,7 @@ public abstract class RequestEntity {
         this.requestType = requestType;
     }
 
-    public void setRequestStatus(RequestStatus requestStatus) {
+    protected void setRequestStatus(RequestStatus requestStatus) {
         this.requestStatus = requestStatus;
     }
 
@@ -115,5 +115,35 @@ public abstract class RequestEntity {
 
     public void setUsageExpiry(OffsetDateTime usageExpiry) {
         this.usageExpiry = usageExpiry;
+    }
+
+    // BUSINESS LOGIC
+
+    /**
+     * Activate this request. Checks that status is INITIATED and activation has not expired.
+     * Subclasses may override to add additional activation logic.
+     */
+    public void activate() {
+        if (this.requestStatus != RequestStatus.INITIATED) {
+            throw new IllegalStateException("Request is not in INITIATED state");
+        }
+        if (this.activationExpiry != null && OffsetDateTime.now().isAfter(this.activationExpiry)) {
+            throw new IllegalStateException("Request activation has expired");
+        }
+        this.requestStatus = RequestStatus.ACTIVATED;
+    }
+
+    /**
+     * Mark this request as used. Checks that status is ACTIVATED and usage has not expired.
+     * Subclasses may override to add additional use logic.
+     */
+    public void use() {
+        if (this.requestStatus != RequestStatus.ACTIVATED) {
+            throw new IllegalStateException("Request is not in ACTIVATED state");
+        }
+        if (this.usageExpiry != null && OffsetDateTime.now().isAfter(this.usageExpiry)) {
+            throw new IllegalStateException("Request usage has expired");
+        }
+        this.requestStatus = RequestStatus.COMPLETED;
     }
 }

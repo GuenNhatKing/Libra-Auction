@@ -1,20 +1,25 @@
 "use client";
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import PasswordInput from "./passwordInput";
 import { signUp } from "@/lib/sign_up";
 
 export default function SignUpSection() {
+  const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [checkEmail, setCheckEmail] = useState(false);
+  const [verificationToken, setVerificationToken] = useState("");
   const handleSignUp = async (e: FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
-    const onSuccess = () => {
-      window.location.replace("/sign-in");
+    const onSuccess = (token: string) => {
+      setVerificationToken(token);
+      setCheckEmail(true);
     };
     const onFailed = (message: string) => {
       setErrorMessage(message);
@@ -29,6 +34,26 @@ export default function SignUpSection() {
       onFailed,
     );
   };
+
+  if (checkEmail) {
+    return (
+      <div className="flex flex-col mt-6 gap-4 items-center text-center">
+        <div className="text-5xl mb-2">&#9993;</div>
+        <p className="text-xl font-bold">Kiểm tra email của bạn</p>
+        <p className="text-gray-600">
+          Chúng tôi đã gửi mã OTP đến <strong>{email}</strong>.
+          Vui lòng đăng nhập và vào mục xác thực email trong trang hồ sơ để hoàn tất.
+        </p>
+        <button
+          onClick={() => router.push("/sign-in")}
+          className="mt-4 px-6 py-2 bg-(--primary-color) text-white rounded-full font-semibold hover:bg-(--primary-color)/90 transition-colors"
+        >
+          Đăng nhập ngay
+        </button>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSignUp}>
       <div className="flex flex-col mt-6 gap-4">

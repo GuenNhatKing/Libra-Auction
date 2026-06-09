@@ -1,5 +1,6 @@
 package io.github.guennhatking.libra_auction.models.request;
 
+import io.github.guennhatking.libra_auction.enums.request.RequestStatus;
 import io.github.guennhatking.libra_auction.enums.request.RequestType;
 import io.github.guennhatking.libra_auction.models.person.Customer;
 import jakarta.persistence.Entity;
@@ -36,5 +37,15 @@ public class PasswordResetRequest extends RequestEntity {
 
     public void setNewPassword(String newPassword) {
         this.newPassword = newPassword;
+    }
+
+    // BUSINESS LOGIC
+
+    @Override
+    public void activate() {
+        if (this.otpRequest == null || this.otpRequest.getRequestStatus() != RequestStatus.ACTIVATED) {
+            throw new IllegalStateException("OTP has not been activated yet.");
+        }
+        super.activate();
     }
 }

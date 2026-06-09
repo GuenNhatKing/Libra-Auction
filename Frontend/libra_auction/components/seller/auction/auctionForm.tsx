@@ -1,5 +1,6 @@
 "use client";
 import { createAuction } from "@/services/create_auction";
+import { sendEmailVerificationAction } from "@/lib/auth_actions";
 import { getErrorMessage } from "@/lib/app_error";
 import { NewAuction } from "@/types/auction/new-auction";
 import { Product } from "@/types/product/product";
@@ -18,6 +19,8 @@ export default function AuctionForm({ products }: { products: Product[] }) {
   const [step, setStep] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [emailVerificationNeeded, setEmailVerificationNeeded] = useState(false);
+  const [emailVerificationSent, setEmailVerificationSent] = useState(false);
 
   const [formData, setFormData] = useState<AuctionFormData>({
     productId: "",
@@ -33,6 +36,25 @@ export default function AuctionForm({ products }: { products: Product[] }) {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleSendEmailVerification = async () => {
+    try {
+      // Get user email from session/cookie - for now we'll need to get it from somewhere
+      // This is a simplified version - in production you'd get the email from the authenticated user
+      const email = prompt("Please enter your email address for verification:");
+      if (!email) return;
+
+      const result = await sendEmailVerificationAction(email);
+      if (result.success) {
+        setEmailVerificationSent(true);
+        setError(null);
+      } else {
+        setError(result.error || "Failed to send verification email");
+      }
+    } catch (err) {
+      setError(getErrorMessage(err, "Failed to send verification email"));
+    }
   };
 
   const handleSubmit = async () => {
@@ -53,14 +75,33 @@ export default function AuctionForm({ products }: { products: Product[] }) {
       setSuccess("Auction created successfully!");
       window.location.href = "/seller-dashboard/auctions";
     } catch (err) {
-      setError(getErrorMessage(err, "Failed to create auction!"));
+      const errorMessage = getErrorMessage(err, "Failed to create auction!");
+      setError(errorMessage);
+      if (errorMessage.toLowerCase().includes("email must be verified")) {
+        setEmailVerificationNeeded(true);
+      }
     }
   };
 
   return (
     <div className="bg-white p-8 rounded-2xl border border-[#AFD3E2] space-y-8 shadow-sm">
       {error ? (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</p>
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+          <p>{error}</p>
+          {emailVerificationNeeded && !emailVerificationSent && (
+            <button
+              onClick={handleSendEmailVerification}
+              className="mt-2 text-blue-600 underline hover:text-blue-800"
+            >
+              Send verification email
+            </button>
+          )}
+          {emailVerificationSent && (
+            <p className="mt-2 text-green-600">
+              Verification email sent! Please check your inbox and verify your email.
+            </p>
+          )}
+        </div>
       ) : null}
       {success ? (
         <p className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">{success}</p>

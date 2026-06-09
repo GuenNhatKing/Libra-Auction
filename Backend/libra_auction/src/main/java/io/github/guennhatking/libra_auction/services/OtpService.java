@@ -1,12 +1,20 @@
 package io.github.guennhatking.libra_auction.services;
 
+import io.github.guennhatking.libra_auction.enums.account.EmailStatus;
 import io.github.guennhatking.libra_auction.models.person.Customer;
+import io.github.guennhatking.libra_auction.models.request.EmailVerificationRequest;
 import io.github.guennhatking.libra_auction.models.request.OtpRequest;
+import io.github.guennhatking.libra_auction.models.request.PasswordResetRequest;
+import io.github.guennhatking.libra_auction.models.request.RequestEntity;
+import io.github.guennhatking.libra_auction.repositories.request.EmailVerificationRequestRepository;
 import io.github.guennhatking.libra_auction.repositories.request.OtpRequestRepository;
-import io.github.guennhatking.libra_auction.enums.request.RequestStatus;
+import io.github.guennhatking.libra_auction.repositories.request.PasswordResetRequestRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.security.SecureRandom;
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Service
 public class OtpService {
@@ -15,52 +23,114 @@ public class OtpService {
     private static final long OTP_TTL_MINUTES = 5;
 
     private final OtpRequestRepository otpRequestRepository;
+    private final EmailVerificationRequestRepository emailVerificationRequestRepository;
+    private final PasswordResetRequestRepository passwordResetRequestRepository;
     private final CustomerService customerService;
 
-    public OtpService(OtpRequestRepository otpRequestRepository, CustomerService customerService) {
+    public OtpService(
+            OtpRequestRepository otpRequestRepository,
+            EmailVerificationRequestRepository emailVerificationRequestRepository,
+            PasswordResetRequestRepository passwordResetRequestRepository,
+            CustomerService customerService) {
         this.otpRequestRepository = otpRequestRepository;
+        this.emailVerificationRequestRepository = emailVerificationRequestRepository;
+        this.passwordResetRequestRepository = passwordResetRequestRepository;
         this.customerService = customerService;
     }
 
-    public String generateAndStore(String email) {
+    public record OtpGenerationResult(String otp, String parentToken) {}
+
+    @Transactional
+    public OtpGenerationResult generateForEmailVerification(String email) {
         Customer customer = customerService.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Khong tim thay tai khoan voi email nay."));
 
+        EmailVerificationRequest emailRequest = new EmailVerificationRequest(customer);
+        emailRequest.setToken(UUID.randomUUID().toString());
+        emailRequest.setActivationExpiry(OffsetDateTime.now().plusMinutes(OTP_TTL_MINUTES));
+        emailRequest.setUsageExpiry(OffsetDateTime.now().plusMinutes(30));
+        emailVerificationRequestRepository.save(emailRequest);
+
         String otp = generateOtp();
-
-        OtpRequest otpRequest = new OtpRequest(customer);
-        otpRequest.setGeneratedOtpCode(otp);
-        otpRequest.setRequestStatus(RequestStatus.PROCESSING);
-        otpRequest.setActivationExpiry(OffsetDateTime.now().plusMinutes(OTP_TTL_MINUTES));
-
+        OtpRequest otpRequest = createOtpRequest(customer, otp, emailRequest);
         otpRequestRepository.save(otpRequest);
-        return otp;
+
+        emailRequest.setOtpRequest(otpRequest);
+        emailVerificationRequestRepository.save(emailRequest);
+
+        return new OtpGenerationResult(otp, emailRequest.getToken());
     }
 
-    public boolean verify(String email, String otp) {
-        OtpRequest otpRequest = otpRequestRepository.findLatestByEmail(email)
-                .orElse(null);
+    @Transactional
+    public OtpGenerationResult generateForPasswordReset(String email) {
+        Customer customer = customerService.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay tai khoan voi email nay."));
 
-        if (otpRequest == null) {
-            return false;
+        if (customer.getEmailStatus() != EmailStatus.VERIFIED) {
+            throw new IllegalArgumentException("Ban can xac thuc email truoc khi dat lai mat khau.");
         }
 
-        // Check if OTP has expired
-        if (OffsetDateTime.now().isAfter(otpRequest.getActivationExpiry())) {
-            return false;
-        }
+        PasswordResetRequest passwordRequest = new PasswordResetRequest(customer);
+        passwordRequest.setToken(UUID.randomUUID().toString());
+        passwordRequest.setActivationExpiry(OffsetDateTime.now().plusMinutes(OTP_TTL_MINUTES));
+        passwordRequest.setUsageExpiry(OffsetDateTime.now().plusMinutes(30));
+        passwordResetRequestRepository.save(passwordRequest);
 
-        // Check if OTP matches
-        if (!otpRequest.getGeneratedOtpCode().equals(otp)) {
-            return false;
-        }
-
-        // Mark as used
-        otpRequest.setRequestStatus(RequestStatus.COMPLETED);
-        otpRequest.setUserInputOtpCode(otp);
+        String otp = generateOtp();
+        OtpRequest otpRequest = createOtpRequest(customer, otp, passwordRequest);
         otpRequestRepository.save(otpRequest);
 
-        return true;
+        passwordRequest.setOtpRequest(otpRequest);
+        passwordResetRequestRepository.save(passwordRequest);
+
+        return new OtpGenerationResult(otp, passwordRequest.getToken());
+    }
+
+    @Transactional
+    public void activateOtpByParentToken(String parentToken, String userInputOtp) {
+        OtpRequest otpRequest = otpRequestRepository.findByRequestToActivateToken(parentToken)
+                .orElseThrow(() -> new IllegalArgumentException("Token OTP khong hop le."));
+        otpRequest.setUserInputOtpCode(userInputOtp);
+        otpRequest.activate();
+        otpRequest.use();
+        otpRequestRepository.save(otpRequest);
+        if (otpRequest.getRequestToActivate() != null) {
+            saveRequestEntity(otpRequest.getRequestToActivate());
+        }
+    }
+
+    public EmailVerificationRequest findEmailVerificationByToken(String token) {
+        return emailVerificationRequestRepository.findByToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Token xac thuc email khong hop le."));
+    }
+
+    public PasswordResetRequest findPasswordResetByToken(String token) {
+        return passwordResetRequestRepository.findByToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Token dat lai mat khau khong hop le."));
+    }
+
+    @Transactional
+    public void markParentAsUsed(RequestEntity parent) {
+        parent.use();
+        saveRequestEntity(parent);
+    }
+
+    private OtpRequest createOtpRequest(Customer customer, String otp, RequestEntity parentRequest) {
+        OtpRequest otpRequest = new OtpRequest(customer);
+        otpRequest.setGeneratedOtpCode(otp);
+        otpRequest.setToken(UUID.randomUUID().toString());
+        otpRequest.setActivationExpiry(OffsetDateTime.now().plusMinutes(OTP_TTL_MINUTES));
+        otpRequest.setUsageExpiry(OffsetDateTime.now().plusMinutes(10));
+        otpRequest.setRequestToActivate(parentRequest);
+        return otpRequest;
+    }
+
+    private void saveRequestEntity(RequestEntity entity) {
+        if (entity instanceof EmailVerificationRequest evr) {
+            emailVerificationRequestRepository.save(evr);
+        } else if (entity instanceof PasswordResetRequest prr) {
+            passwordResetRequestRepository.save(prr);
+        }
     }
 
     private String generateOtp() {

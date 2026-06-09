@@ -31,7 +31,7 @@ export default function page() {
         <GoogleSignInButton />
         <div className="mt-4">
           <Link
-            href="#"
+            href="/forgot-password"
             className="hover:text-(--primary-color) active:text-(--secondary-color)"
           >
             Forgot your password?

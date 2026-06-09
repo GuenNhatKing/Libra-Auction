@@ -1,5 +1,6 @@
 package io.github.guennhatking.libra_auction.services;
 
+import io.github.guennhatking.libra_auction.enums.account.EmailStatus;
 import io.github.guennhatking.libra_auction.enums.auction.ApprovalStatus;
 import io.github.guennhatking.libra_auction.enums.auction.AuctionStatus;
 import io.github.guennhatking.libra_auction.enums.product.ProductStatus;
@@ -117,6 +118,10 @@ public class AuctionService {
 
                 Customer creator = customerRepository.findById(userId)
                                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+                if (creator.getEmailStatus() != EmailStatus.VERIFIED) {
+                        throw new AccessDeniedException("Email must be verified to create auctions");
+                }
 
                 Auction session = new Auction();
                 session.setCreatedAt(OffsetDateTime.now(ZoneOffset.ofHours(7)));

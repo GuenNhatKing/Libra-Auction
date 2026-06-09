@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: otp-request-parent-token
+      author: nhatking
+      changes:
+        # Remove user_input_otp_code column - now @Transient in OtpRequest entity
+        - dropColumn:
+            tableName: otp_request
+            columnName: user_input_otp_code
+
+        # Add request_to_activate_id column - @ManyToOne link to parent RequestEntity
+        - addColumn:
+            tableName: otp_request
+            columns:
+              - column:
+                  name: request_to_activate_id
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: true
+
+        - addForeignKeyConstraint:
+            baseColumnNames: request_to_activate_id
+            baseTableName: otp_request
+            constraintName: fk_otp_request_request_to_activate
+            referencedTableName: request_entity
+            referencedColumnNames: id

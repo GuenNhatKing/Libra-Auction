@@ -8,4 +8,8 @@ import java.util.Optional;
 public interface OtpRequestRepository extends JpaRepository<OtpRequest, String> {
     @Query("SELECT o FROM OtpRequest o WHERE o.customer.email = ?1 ORDER BY o.id DESC LIMIT 1")
     Optional<OtpRequest> findLatestByEmail(String email);
+
+    Optional<OtpRequest> findByToken(String token);
+
+    Optional<OtpRequest> findByRequestToActivateToken(String parentToken);
 }
