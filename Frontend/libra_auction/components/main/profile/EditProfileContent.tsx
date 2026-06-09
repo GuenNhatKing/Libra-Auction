@@ -11,12 +11,15 @@ import Image from "next/image";
 interface EditProfileContentProps {
   userId: string;
   initialData?: {
+    id?: string;
     fullName?: string;
     email?: string;
     phoneNumber?: string;
     identityNumber?: string;
     avatarUrl?: string;
     roleName?: string;
+    hasPasswordAccount?: boolean;
+    username?: string | null;
   };
   onSuccess?: (updatedUser: UserInfo) => void;
   onCancel?: () => void;
@@ -340,10 +343,10 @@ export function EditProfileContent({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Username</label>
+                <label className="block text-xs text-gray-500 mb-1">ID</label>
                 <input
                   type="text"
-                  value={initialData?.email?.split("@")[0] || "—"}
+                  value={initialData?.id || "—"}
                   disabled
                   className="w-full px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
                 />

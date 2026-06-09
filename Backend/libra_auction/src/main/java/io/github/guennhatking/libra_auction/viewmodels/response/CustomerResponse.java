@@ -14,6 +14,7 @@ public record CustomerResponse(
     EmailStatus emailStatus,
     AccountStatus accountStatus,
     Role role,
-    boolean hasPasswordAccount
+    boolean hasPasswordAccount,
+    String username
 ) {
 }

@@ -124,7 +124,10 @@ export function ProfileContent({
   // Profile fields configuration
   const profileFields = [
     { label: "Full Name", value: profile?.fullName },
-    { label: "Username", value: profile?.id },
+    { label: "ID", value: profile?.id },
+    ...(profile?.hasPasswordAccount && profile?.username
+      ? [{ label: "Username", value: profile.username }]
+      : []),
     { label: "Email", value: profile?.email },
     { label: "Phone Number", value: profile?.phoneNumber || "—" },
     { label: "Identity Number", value: profile?.identityNumber || "—" },

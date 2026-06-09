@@ -20,12 +20,15 @@ export default async function EditProfilePage() {
     <EditProfileContent
       userId={user.id}
       initialData={{
+        id: user.id,
         fullName: user.fullName,
         email: user.email,
         phoneNumber: user.phoneNumber,
         identityNumber: user.identityNumber,
         avatarUrl: user.avatarUrl || "/default-avatar.png",
         roleName: user.role?.name,
+        hasPasswordAccount: user.hasPasswordAccount,
+        username: user.username,
       }}
     />
   );

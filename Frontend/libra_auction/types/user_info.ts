@@ -10,7 +10,8 @@ export interface UserInfo {
     emailStatus: EmailStatus,
     accountStatus: AccountStatus,
     role: Role,
-    hasPasswordAccount: boolean
+    hasPasswordAccount: boolean,
+    username: string | null
 }
 
 export interface Role {

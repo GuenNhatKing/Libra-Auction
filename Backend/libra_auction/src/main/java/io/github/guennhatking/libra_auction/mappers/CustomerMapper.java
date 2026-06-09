@@ -19,9 +19,17 @@ public interface CustomerMapper {
         boolean hasPassword = entity.getLinkedAccounts() != null
                 && entity.getLinkedAccounts().stream()
                         .anyMatch(a -> a instanceof AccountPassword);
+        String username = null;
+        if (hasPassword && entity.getLinkedAccounts() != null) {
+            username = entity.getLinkedAccounts().stream()
+                    .filter(a -> a instanceof AccountPassword)
+                    .map(a -> ((AccountPassword) a).getUsername())
+                    .findFirst()
+                    .orElse(null);
+        }
         return new CustomerResponse(
                 base.id(), base.fullName(), base.phoneNumber(), base.identityNumber(),
                 base.email(), base.avatarUrl(), base.emailStatus(), base.accountStatus(),
-                base.role(), hasPassword);
+                base.role(), hasPassword, username);
     }
 }
