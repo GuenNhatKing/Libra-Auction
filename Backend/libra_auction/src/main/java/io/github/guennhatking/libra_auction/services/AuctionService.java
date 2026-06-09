@@ -1,11 +1,13 @@
 package io.github.guennhatking.libra_auction.services;
 
+import io.github.guennhatking.libra_auction.enums.account.AccountStatus;
 import io.github.guennhatking.libra_auction.enums.account.EmailStatus;
 import io.github.guennhatking.libra_auction.enums.auction.ApprovalStatus;
 import io.github.guennhatking.libra_auction.enums.auction.AuctionStatus;
 import io.github.guennhatking.libra_auction.enums.product.ProductStatus;
 import io.github.guennhatking.libra_auction.enums.transaction.TransactionStatus;
 import io.github.guennhatking.libra_auction.mappers.AuctionMapper;
+import io.github.guennhatking.libra_auction.mappers.AuctionPaymentHelper;
 import io.github.guennhatking.libra_auction.mappers.ProductResponseMapper;
 import io.github.guennhatking.libra_auction.models.auction.Auction;
 import io.github.guennhatking.libra_auction.models.auction.AuctionResult;
@@ -41,6 +43,7 @@ public class AuctionService {
         private final AuctionStateRedisService auctionStateRedisService;
         private final PaymentTransactionRepository paymentTransactionRepository;
         private final DepositTransactionRepository depositTransactionRepository;
+        private final AuctionPaymentHelper auctionPaymentHelper;
 
         public AuctionService(AuctionRepository auctionRepository,
                         AuctionMapper auctionMapper,
@@ -49,7 +52,8 @@ public class AuctionService {
                         CustomerRepository customerRepository,
                         AuctionStateRedisService auctionStateRedisService,
                         PaymentTransactionRepository paymentTransactionRepository,
-                        DepositTransactionRepository depositTransactionRepository) {
+                        DepositTransactionRepository depositTransactionRepository,
+                        AuctionPaymentHelper auctionPaymentHelper) {
                 this.auctionRepository = auctionRepository;
                 this.auctionMapper = auctionMapper;
                 this.productResponseMapper = productResponseMapper;
@@ -58,6 +62,7 @@ public class AuctionService {
                 this.auctionStateRedisService = auctionStateRedisService;
                 this.paymentTransactionRepository = paymentTransactionRepository;
                 this.depositTransactionRepository = depositTransactionRepository;
+                this.auctionPaymentHelper = auctionPaymentHelper;
         }
 
         @Transactional(readOnly = true)
@@ -123,6 +128,10 @@ public class AuctionService {
                         throw new AccessDeniedException("Email must be verified to create auctions");
                 }
 
+                if (creator.getAccountStatus() != AccountStatus.ACTIVE) {
+                        throw new AccessDeniedException("Account must be approved by admin to create auctions");
+                }
+
                 Auction session = new Auction();
                 session.setCreatedAt(OffsetDateTime.now(ZoneOffset.ofHours(7)));
                 session.setCreator(creator);
@@ -136,7 +145,7 @@ public class AuctionService {
                 session.setMinimumBidIncrement(request.minimumBidIncrement());
                 session.setDepositAmount(request.depositAmount());
                 session.setApprovalStatus(ApprovalStatus.PENDING_APPROVAL);
-                session.setAuctionStatus(AuctionStatus.NOT_STARTED);
+                session.setAuctionStatus(AuctionStatus.UPCOMING);
 
 
                 Auction savedSession = auctionRepository.save(session);
@@ -166,7 +175,7 @@ public class AuctionService {
                 }
 
                 if (session.getApprovalStatus() != ApprovalStatus.PENDING_APPROVAL
-                                || session.getAuctionStatus() != AuctionStatus.NOT_STARTED) {
+                                || session.getAuctionStatus() != AuctionStatus.UPCOMING) {
                         throw new IllegalStateException("Only pending auctions can be cancelled");
                 }
 
@@ -322,7 +331,7 @@ public class AuctionService {
          * @return Number of auctions registered
          */
         public int registerExistingAuctionsToRedis() {
-                List<Auction> approvedNotStarted = auctionRepository.findByAuctionStatusAndDeletedFalse(AuctionStatus.NOT_STARTED);
+                List<Auction> approvedNotStarted = auctionRepository.findByAuctionStatusAndDeletedFalse(AuctionStatus.UPCOMING);
                 int count = 0;
 
                 for (Auction auction : approvedNotStarted) {
@@ -404,6 +413,10 @@ public class AuctionService {
                                 ? auctionStateRedisService.getRemainingTime(response.auction_id())
                                 : null;
 
+                boolean winnerPaymentCompleted = auctionRepository.findByIdAndDeletedFalse(response.auction_id())
+                                .map(auctionPaymentHelper::isWinnerPaymentCompleted)
+                                .orElse(false);
+
                 return new AuctionResponse(
                                 response.category_id(),
                                 response.category_name(),
@@ -433,6 +446,7 @@ public class AuctionService {
                                 response.winner_name(),
                                 response.winning_price(),
                                 response.auction_result_id(),
+                                winnerPaymentCompleted,
                                 remainingTime);
         }
 }

@@ -12,8 +12,8 @@ interface AuctionItemProps {
 }
 
 const statusConfig: Record<AuctionStatus, { label: string, classes: string }> = {
-    "NOT_STARTED": { label: 'Upcoming', classes: 'bg-amber-50 text-amber-600 border-amber-100' },
-    "IN_PROGRESS": { label: 'Live', classes: 'bg-green-50 text-green-600 border-green-100' },
+    "UPCOMING": { label: 'Upcoming', classes: 'bg-amber-50 text-amber-600 border-amber-100' },
+    "LIVE": { label: 'Live', classes: 'bg-green-50 text-green-600 border-green-100' },
     "PAUSED": { label: 'Paused', classes: 'bg-yellow-50 text-yellow-600 border-yellow-100' },
     "ENDED": { label: 'Ended', classes: 'bg-gray-50 text-gray-500 border-gray-100' },
     "CANCELLED": { label: 'Cancelled', classes: 'bg-red-50 text-red-600 border-red-100' },
@@ -29,7 +29,7 @@ const approvalStatusConfig: Record<ApprovalStatus, { label: string; classes: str
 
 export const AuctionItem = ({ auction, onView, onCancel, isCanceling = false }: AuctionItemProps) => {
     const status = statusConfig[auction.auction_status];
-    const canCancel = auction.approval_status === "PENDING" && auction.auction_status === "NOT_STARTED";
+    const canCancel = auction.approval_status === "PENDING" && auction.auction_status === "UPCOMING";
 
     return (
         <div className="bg-white p-4 rounded-2xl border border-gray-100 hover:border-(--accent-color) hover:shadow-sm transition-all flex items-center justify-between group">

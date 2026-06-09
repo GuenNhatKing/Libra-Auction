@@ -91,7 +91,7 @@ public class AuctionSearchService {
                 baseCriteria.timeStart(),
                 baseCriteria.timeEnd(),
                 baseCriteria.attributes(),
-                AuctionStatus.NOT_STARTED.toString(),
+                AuctionStatus.UPCOMING.toString(),
                 ApprovalStatus.PENDING_APPROVAL.toString(),
                 baseCriteria.page(),
                 baseCriteria.pageSize(),

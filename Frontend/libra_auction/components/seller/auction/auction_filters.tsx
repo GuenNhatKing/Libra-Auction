@@ -84,8 +84,8 @@ export const AuctionFilters = ({ filters, onChange, categoryOptions }: AuctionFi
             className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-normal text-gray-600 outline-none focus:border-(--primary-color) focus:ring-1 focus:ring-(--primary-color) transition-all"
           >
             <option value="ALL">All auction statuses</option>
-            <option value="NOT_STARTED">Not started</option>
-            <option value="IN_PROGRESS">In progress</option>
+            <option value="UPCOMING">Not started</option>
+            <option value="LIVE">In progress</option>
             <option value="PAUSED">Paused</option>
             <option value="ENDED">Ended</option>
             <option value="COMPLETED">Completed</option>

@@ -22,8 +22,8 @@ function statusLabel(status: string): string {
 }
 
 function statusClassName(status: string): string {
-  if (status === "IN_PROGRESS") return "bg-red-50 text-red-700 ring-red-200";
-  if (status === "NOT_STARTED") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+  if (status === "LIVE") return "bg-red-50 text-red-700 ring-red-200";
+  if (status === "UPCOMING") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
   if (status === "COMPLETED") return "bg-[#EAF7FB] text-[#146C94] ring-[#AFD3E2]";
   if (status === "FAILED" || status === "REJECTED") return "bg-slate-100 text-slate-600 ring-slate-200";
   return "bg-orange-50 text-orange-700 ring-orange-200";

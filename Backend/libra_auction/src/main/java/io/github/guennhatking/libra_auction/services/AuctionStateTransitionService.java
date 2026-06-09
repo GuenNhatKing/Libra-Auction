@@ -28,7 +28,7 @@ import java.util.Optional;
 
 /**
  * Service to handle auction state transitions
- * Manages transitions from NOT_STARTED -> IN_PROGRESS -> ENDED
+ * Manages transitions from UPCOMING -> LIVE -> ENDED
  */
 @Service
 public class AuctionStateTransitionService {
@@ -67,7 +67,7 @@ public class AuctionStateTransitionService {
     }
 
     /**
-     * Transition an auction to STARTED state (IN_PROGRESS)
+     * Transition an auction to STARTED state (LIVE)
      * - Send start notifications to participants
      * - Change status in database
      * @param auctionId The auction ID
@@ -83,15 +83,15 @@ public class AuctionStateTransitionService {
 
             Auction auction = auctionOpt.get();
 
-            // Only transition if currently in NOT_STARTED state
-            if (auction.getAuctionStatus() != AuctionStatus.NOT_STARTED) {
-                logger.warn("Auction {} is not in NOT_STARTED state, current: {}",
+            // Only transition if currently in UPCOMING state
+            if (auction.getAuctionStatus() != AuctionStatus.UPCOMING) {
+                logger.warn("Auction {} is not in UPCOMING state, current: {}",
                     auctionId, auction.getAuctionStatus());
                 return;
             }
 
-            // Change status to IN_PROGRESS
-            auction.setAuctionStatus(AuctionStatus.IN_PROGRESS);
+            // Change status to LIVE
+            auction.setAuctionStatus(AuctionStatus.LIVE);
             if (auction.getEndTime() == null && auction.getStartTime() != null) {
                 auction.setEndTime(auction.getStartTime().plusSeconds(auction.getDuration()));
             }
@@ -107,7 +107,7 @@ public class AuctionStateTransitionService {
             }
 
             // Send WebSocket notification
-            sendAuctionStatusUpdate(auctionId, AuctionStatus.IN_PROGRESS.toString());
+            sendAuctionStatusUpdate(auctionId, AuctionStatus.LIVE.toString());
 
         } catch (Exception e) {
             logger.error("Error starting auction {}: {}", auctionId, e.getMessage(), e);
@@ -115,7 +115,7 @@ public class AuctionStateTransitionService {
     }
 
     /**
-     * Pause an auction (IN_PROGRESS -> PAUSED)
+     * Pause an auction (LIVE -> PAUSED)
      * @param auctionId The auction ID
      */
     @Transactional
@@ -129,7 +129,7 @@ public class AuctionStateTransitionService {
 
             Auction auction = auctionOpt.get();
 
-            if (auction.getAuctionStatus() != AuctionStatus.IN_PROGRESS) {
+            if (auction.getAuctionStatus() != AuctionStatus.LIVE) {
                 logger.warn("Auction {} cannot be paused, current status: {}", auctionId, auction.getAuctionStatus());
                 return;
             }
@@ -150,7 +150,7 @@ public class AuctionStateTransitionService {
     }
 
     /**
-     * Resume a paused auction (PAUSED -> IN_PROGRESS)
+     * Resume a paused auction (PAUSED -> LIVE)
      * @param auctionId The auction ID
      */
     @Transactional
@@ -184,11 +184,11 @@ public class AuctionStateTransitionService {
             }
             auctionStateRedisService.clearRemainingTime(auctionId);
 
-            auction.setAuctionStatus(AuctionStatus.IN_PROGRESS);
+            auction.setAuctionStatus(AuctionStatus.LIVE);
             auctionRepository.save(auction);
 
             logger.info("Auction {} resumed, sending newEndTime={}", auctionId, finalEndTimeMs);
-            sendAuctionStatusUpdateWithExtra(auctionId, "IN_PROGRESS", finalEndTimeMs > 0 ? finalEndTimeMs : null, null);
+            sendAuctionStatusUpdateWithExtra(auctionId, "LIVE", finalEndTimeMs > 0 ? finalEndTimeMs : null, null);
         } catch (Exception e) {
             logger.error("Error resuming auction {}: {}", auctionId, e.getMessage(), e);
         }
@@ -213,8 +213,8 @@ public class AuctionStateTransitionService {
 
             Auction auction = auctionOpt.get();
 
-            // Only transition if currently in IN_PROGRESS or PAUSED state
-            if (auction.getAuctionStatus() != AuctionStatus.IN_PROGRESS
+            // Only transition if currently in LIVE or PAUSED state
+            if (auction.getAuctionStatus() != AuctionStatus.LIVE
                     && auction.getAuctionStatus() != AuctionStatus.PAUSED) {
                 logger.warn("Auction {} cannot be ended, current status: {}",
                     auctionId, auction.getAuctionStatus());
@@ -290,7 +290,7 @@ public class AuctionStateTransitionService {
     }
 
     /**
-     * Cancel an auction (only NOT_STARTED can be cancelled)
+     * Cancel an auction (only UPCOMING can be cancelled)
      * - Set product back to AVAILABLE
      * - Notify all registered participants and the seller
      * @param auctionId The auction ID
@@ -307,7 +307,7 @@ public class AuctionStateTransitionService {
 
             Auction auction = auctionOpt.get();
 
-            if (auction.getAuctionStatus() != AuctionStatus.NOT_STARTED) {
+            if (auction.getAuctionStatus() != AuctionStatus.UPCOMING) {
                 throw new IllegalStateException("Chỉ có thể hủy phiên đấu giá chưa bắt đầu. Trạng thái hiện tại: " + auction.getAuctionStatus());
             }
 

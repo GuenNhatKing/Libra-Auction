@@ -24,4 +24,5 @@ export interface AdminAuction {
     total_participants: number;
     failure_reason?: string;
     completed_at?: string;
+    winner_payment_completed?: boolean;
 }

@@ -41,6 +41,7 @@ public record AuctionResponse(
         String winner_name,
         Long winning_price,
         String auction_result_id,
+        boolean winner_payment_completed,
 
         Long remaining_time) {
 }

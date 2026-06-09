@@ -438,7 +438,7 @@ public class VNPayService {
 
     private boolean hasAuctionStarted(Auction auction) {
         OffsetDateTime now = OffsetDateTime.now(ZoneOffset.ofHours(7));
-        return auction.getAuctionStatus() != AuctionStatus.NOT_STARTED || !now.isBefore(auction.getStartTime());
+        return auction.getAuctionStatus() != AuctionStatus.UPCOMING || !now.isBefore(auction.getStartTime());
     }
 
     @Transactional(readOnly = true)

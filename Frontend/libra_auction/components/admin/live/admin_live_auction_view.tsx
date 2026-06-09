@@ -83,7 +83,7 @@ function toNumber(value: string | number | undefined) {
 
 function statusFromAdminNotification(type?: string) {
   if (type === "AUCTION_PAUSED") return "PAUSED";
-  if (type === "AUCTION_RESUMED") return "IN_PROGRESS";
+  if (type === "AUCTION_RESUMED") return "LIVE";
   if (type === "AUCTION_ENDED") return "ENDED";
   if (type === "AUCTION_CANCELLED") return "CANCELLED";
   return undefined;
@@ -112,7 +112,7 @@ export default function AdminLiveAuctionView({
     auction.auction_status === "PAUSED" ? auction.remaining_time ?? null : null
   );
   const [auctionStatus, setAuctionStatus] = useState<string>(
-    auction.auction_status || "IN_PROGRESS"
+    auction.auction_status || "LIVE"
   );
   const [bids, setBids] = useState<BidEntry[]>([]);
   const [totalBids, setTotalBids] = useState(auction.total_bids || 0);
@@ -219,7 +219,7 @@ export default function AdminLiveAuctionView({
             setRemainingTimeMs(parsedRemainingTime);
           }
         }
-        if (update.status === "IN_PROGRESS") {
+        if (update.status === "LIVE") {
           setRemainingTimeMs(null);
         }
       }
@@ -251,7 +251,7 @@ export default function AdminLiveAuctionView({
       const nextStatus = statusFromAdminNotification(msg.type);
       if (nextStatus) {
         setAuctionStatus(nextStatus);
-        if (nextStatus === "IN_PROGRESS") {
+        if (nextStatus === "LIVE") {
           setRemainingTimeMs(null);
         }
       }
@@ -302,7 +302,7 @@ export default function AdminLiveAuctionView({
   const isPaused = auctionStatus === "PAUSED";
 
   const statusLabel =
-    auctionStatus === "IN_PROGRESS"
+    auctionStatus === "LIVE"
       ? "LIVE"
       : auctionStatus === "PAUSED"
       ? "PAUSED"
@@ -313,7 +313,7 @@ export default function AdminLiveAuctionView({
       : auctionStatus;
 
   const statusClassName =
-    auctionStatus === "IN_PROGRESS"
+    auctionStatus === "LIVE"
       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
       : auctionStatus === "PAUSED"
       ? "bg-amber-50 text-amber-700 border-amber-200"

@@ -29,7 +29,7 @@ export default function AuctionInfoSection({
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const isLive = autionInfos.auction_status === "IN_PROGRESS";
+  const isLive = autionInfos.auction_status === "LIVE";
   const startDate = new Date(autionInfos.start_time);
 
   const formatDateOnly = (date: Date) => {

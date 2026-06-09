@@ -50,7 +50,7 @@ public class AdminAuctionWebSocketController {
         }
 
         Auction auction = auctionOpt.get();
-        if (auction.getAuctionStatus() != AuctionStatus.IN_PROGRESS) {
+        if (auction.getAuctionStatus() != AuctionStatus.LIVE) {
             logger.warn("Cannot pause auction {} - current status: {}", auctionId, auction.getAuctionStatus());
             notificationService.sendAdminNotification(auctionId, "ERROR",
                     "Cannot pause the auction. Current status: " + auction.getAuctionStatus());
@@ -104,7 +104,7 @@ public class AdminAuctionWebSocketController {
         }
 
         Auction auction = auctionOpt.get();
-        if (auction.getAuctionStatus() != AuctionStatus.IN_PROGRESS
+        if (auction.getAuctionStatus() != AuctionStatus.LIVE
                 && auction.getAuctionStatus() != AuctionStatus.PAUSED) {
             logger.warn("Cannot end auction {} - current status: {}", auctionId, auction.getAuctionStatus());
             notificationService.sendAdminNotification(auctionId, "ERROR",
@@ -119,7 +119,7 @@ public class AdminAuctionWebSocketController {
     }
 
     /**
-     * Cancel an auction (only NOT_STARTED can be cancelled, reason required)
+     * Cancel an auction (only UPCOMING can be cancelled, reason required)
      */
     @MessageMapping("/admin/auction/{auctionId}/cancel")
     public void cancelAuction(@DestinationVariable String auctionId, @Payload Map<String, String> payload) {

@@ -31,8 +31,8 @@ export default function AdminControls({
   const isEnded =
     currentStatus === "ENDED" || currentStatus === "CANCELLED";
   const isPaused = currentStatus === "PAUSED";
-  const isLive = currentStatus === "IN_PROGRESS";
-  const isNotStarted = currentStatus === "NOT_STARTED";
+  const isLive = currentStatus === "LIVE";
+  const isNotStarted = currentStatus === "UPCOMING";
 
   const primaryButtonClass =
     "w-full rounded-xl px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50";
@@ -144,7 +144,7 @@ export default function AdminControls({
           </button>
         )}
 
-        {/* Cancel Auction - only when NOT_STARTED */}
+        {/* Cancel Auction - only when UPCOMING */}
         {isNotStarted && (
           <button
             onClick={() => setShowConfirm("cancel")}

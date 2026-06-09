@@ -29,10 +29,11 @@ type AuctionRow = AdminAuction & {
   productName: string;
   failure_reason?: string;
   completed_at?: string;
+  winner_payment_completed?: boolean;
 };
 
 type AuctionFilter = "ALL" | "PENDING" | "APPROVED" | "REJECTED";
-type AuctionStatusFilter = "ALL" | "NOT_STARTED" | "IN_PROGRESS" | "PAUSED" | "ENDED" | "COMPLETED" | "FAILED" | "CANCELLED";
+type AuctionStatusFilter = "ALL" | "UPCOMING" | "LIVE" | "PAUSED" | "ENDED" | "COMPLETED" | "FAILED" | "CANCELLED";
 
 type AuctionFilters = {
   searchName: string;
@@ -83,11 +84,12 @@ function mapAuction(auction: AdminAuction): AuctionRow {
     startTime: DateFormat(startDate),
     endTime: DateFormat(endDate),
     status: resolveAuctionStatus(auction.approval_status),
-    auctionStatus: auction.auction_status || "NOT_STARTED",
+    auctionStatus: auction.auction_status || "UPCOMING",
     images: auction.images || [],
     productName: auction.product_name,
     failure_reason: auction.failure_reason,
     completed_at: auction.completed_at,
+    winner_payment_completed: auction.winner_payment_completed,
   };
 }
 
@@ -113,8 +115,8 @@ function getStatusBadge(status: string) {
 
 function getAuctionStatusBadge(auctionStatus: string) {
   const styles: Record<string, string> = {
-    NOT_STARTED: "bg-gray-100 text-gray-600",
-    IN_PROGRESS: "bg-blue-100 text-blue-700",
+    UPCOMING: "bg-gray-100 text-gray-600",
+    LIVE: "bg-blue-100 text-blue-700",
     PAUSED: "bg-yellow-100 text-yellow-700",
     ENDED: "bg-purple-100 text-purple-700",
     COMPLETED: "bg-green-100 text-green-700",
@@ -340,8 +342,8 @@ export default function AuctionsApprovalPage() {
               className="w-full rounded-lg border border-[#AFD3E2] bg-white px-3 py-2 text-sm font-normal text-[#5A7184] outline-none focus:border-[#19A7CE]"
             >
               <option value="ALL">All auction statuses</option>
-              <option value="NOT_STARTED">Not started</option>
-              <option value="IN_PROGRESS">In progress</option>
+              <option value="UPCOMING">Not started</option>
+              <option value="LIVE">In progress</option>
               <option value="PAUSED">Paused</option>
               <option value="ENDED">Ended</option>
               <option value="COMPLETED">Completed</option>
@@ -480,7 +482,7 @@ export default function AuctionsApprovalPage() {
                         </button>
 
                         {row.status === "APPROVED" &&
-                          (row.auctionStatus === "IN_PROGRESS" || row.auctionStatus === "PAUSED") && (
+                          (row.auctionStatus === "LIVE" || row.auctionStatus === "PAUSED") && (
                             <Link
                               href={`/admin-dashboard/auctions/${row.id}/live`}
                               className="w-full px-3 py-1.5 bg-green-50 text-green-700 rounded hover:bg-green-100 text-xs font-semibold inline-flex items-center justify-center gap-1"
@@ -511,23 +513,23 @@ export default function AuctionsApprovalPage() {
                             </button>
                           </>
                         )}
+                        {row.status === "APPROVED" && row.auctionStatus === "ENDED" && row.winner_payment_completed && (
+                          <button
+                            onClick={() => handleComplete(row)}
+                            disabled={actionLoadingId === row.id}
+                            className="w-full px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded hover:bg-emerald-100 text-xs font-semibold text-center disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            Complete
+                          </button>
+                        )}
                         {row.status === "APPROVED" && row.auctionStatus === "ENDED" && (
-                          <>
-                            <button
-                              onClick={() => handleComplete(row)}
-                              disabled={actionLoadingId === row.id}
-                              className="w-full px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded hover:bg-emerald-100 text-xs font-semibold text-center disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              Complete
-                            </button>
-                            <button
-                              onClick={() => setFailDialog({ isOpen: true, auctionId: row.id, reason: "" })}
-                              disabled={actionLoadingId === row.id}
-                              className="w-full px-3 py-1.5 bg-rose-50 text-rose-700 rounded hover:bg-rose-100 text-xs font-semibold text-center disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              Fail
-                            </button>
-                          </>
+                          <button
+                            onClick={() => setFailDialog({ isOpen: true, auctionId: row.id, reason: "" })}
+                            disabled={actionLoadingId === row.id}
+                            className="w-full px-3 py-1.5 bg-rose-50 text-rose-700 rounded hover:bg-rose-100 text-xs font-semibold text-center disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            Fail
+                          </button>
                         )}
                         <button
                           onClick={() => handleAdminDelete(row)}

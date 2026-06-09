@@ -20,7 +20,7 @@ public interface AuctionMapper {
     @Mapping(source = "product.category.name", target = "category_name")
     @Mapping(source = "id", target = "auction_id")
 
-    @Mapping(source = "auctionStatus", target = "auction_status", defaultValue = "NOT_STARTED")
+    @Mapping(source = "auctionStatus", target = "auction_status", defaultValue = "UPCOMING")
     @Mapping(source = "approvalStatus", target = "approval_status")
     @Mapping(source = "startTime", target = "start_time")
     @Mapping(source = "endTime", target = "end_time")
@@ -47,6 +47,7 @@ public interface AuctionMapper {
     @Mapping(source = ".", target = "winner_name", qualifiedByName = "resolveWinnerName")
     @Mapping(source = ".", target = "winning_price", qualifiedByName = "resolveWinningPrice")
     @Mapping(source = ".", target = "auction_result_id", qualifiedByName = "resolveAuctionResultId")
+    @Mapping(target = "winner_payment_completed", ignore = true)
     @Mapping(target = "remaining_time", ignore = true)
     AuctionResponse toAuctionResponse(Auction session);
 

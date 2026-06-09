@@ -86,7 +86,7 @@ public class AuctionWebSocketController {
                 return;
             }
 
-            if (!auction.getAuctionStatus().equals(AuctionStatus.IN_PROGRESS)) {
+            if (!auction.getAuctionStatus().equals(AuctionStatus.LIVE)) {
                 sendErrorNotification(bidMessage.auctionId(), "Phiên đấu giá chưa bắt đầu hoặc đã kết thúc.");
                 return;
             }

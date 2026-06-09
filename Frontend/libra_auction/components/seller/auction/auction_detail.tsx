@@ -18,8 +18,8 @@ const approvalStatusConfig: Record<ApprovalStatus, { label: string; classes: str
 };
 
 const auctionStatusConfig: Record<AuctionStatus, { label: string; classes: string }> = {
-  NOT_STARTED: { label: "Upcoming", classes: "bg-blue-50 text-blue-600 border-blue-100" },
-  IN_PROGRESS: { label: "Live", classes: "bg-green-50 text-green-600 border-green-100" },
+  UPCOMING: { label: "Upcoming", classes: "bg-blue-50 text-blue-600 border-blue-100" },
+  LIVE: { label: "Live", classes: "bg-green-50 text-green-600 border-green-100" },
   PAUSED: { label: "Paused", classes: "bg-yellow-50 text-yellow-600 border-yellow-100" },
   ENDED: { label: "Ended", classes: "bg-gray-50 text-gray-500 border-gray-100" },
   CANCELLED: { label: "Cancelled", classes: "bg-red-50 text-red-600 border-red-100" },
@@ -28,8 +28,8 @@ const auctionStatusConfig: Record<AuctionStatus, { label: string; classes: strin
 };
 
 export const AuctionDetail = ({ data }: AuctionDetailProps) => {
-  const isLive = data.auction_status === "IN_PROGRESS"
-  const canCancel = data.approval_status === "PENDING" && data.auction_status === "NOT_STARTED";
+  const isLive = data.auction_status === "LIVE"
+  const canCancel = data.approval_status === "PENDING" && data.auction_status === "UPCOMING";
   const hasImages = data.images && data.images.length > 0;
   const attributeCount = data.attributes?.length ?? 0;
 

@@ -7,8 +7,8 @@ import { useState } from "react";
 
 const statusOptions = [
     { label: "All", value: "" },
-    { label: "Live", value: "IN_PROGRESS" },
-    { label: "Upcoming", value: "NOT_STARTED" },
+    { label: "Live", value: "LIVE" },
+    { label: "Upcoming", value: "UPCOMING" },
 ];
 
 export const AuctionFilterSidebar = ({

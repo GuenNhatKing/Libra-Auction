@@ -24,7 +24,7 @@ interface StatusSocketResponse {
   type?: "AUCTION_EXTENDED";
   newEndTime?: string;
   message?: string;
-  status?: "IN_PROGRESS" | "PAUSED" | "ENDED" | "CANCELLED" | "COMPLETED" | "FAILED";
+  status?: "LIVE" | "PAUSED" | "ENDED" | "CANCELLED" | "COMPLETED" | "FAILED";
   remainingTime?: string | number;
   winnerId?: string;
   winnerName?: string;
@@ -94,7 +94,7 @@ export default function LiveAuctionView({
     auction.auction_status === "PAUSED" ? auction.remaining_time ?? null : null
   );
   const [auctionStatus, setAuctionStatus] = useState<string>(
-    auction.auction_status || "IN_PROGRESS"
+    auction.auction_status || "LIVE"
   );
   const [bidValue, setBidValue] = useState<string>("");
   const [isBidding, setIsBidding] = useState(false);
@@ -225,7 +225,7 @@ export default function LiveAuctionView({
             addNotification("Phiên đấu giá đã bị tạm dừng");
             break;
           }
-          case "IN_PROGRESS":
+          case "LIVE":
             setRemainingTimeMs(null);
             setStatusMessage(null);
             addNotification("Phiên đấu giá đã tiếp tục");
@@ -310,7 +310,7 @@ export default function LiveAuctionView({
 
   const canBid =
     role === "user" &&
-    auctionStatus === "IN_PROGRESS" &&
+    auctionStatus === "LIVE" &&
     !!currentUserId &&
     isRegistered &&
     !isCreator;
@@ -326,7 +326,7 @@ export default function LiveAuctionView({
       ? "Register for this auction before placing a bid."
       : auctionStatus === "PAUSED"
       ? "This auction is paused. Please wait until it resumes."
-      : auctionStatus !== "IN_PROGRESS"
+      : auctionStatus !== "LIVE"
       ? "Bids can only be placed while the auction is live."
       : null;
 
@@ -377,9 +377,9 @@ export default function LiveAuctionView({
                 <Image src={auction.images?.[0] || "/placeholder-image.jpg"} alt={auction.product_name} fill className="object-contain p-4" />
                 <div className="absolute top-4 left-4">
                   <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold text-white ${
-                    auctionStatus === "IN_PROGRESS" ? "bg-red-500" : auctionStatus === "PAUSED" ? "bg-yellow-500" : "bg-gray-500"
+                    auctionStatus === "LIVE" ? "bg-red-500" : auctionStatus === "PAUSED" ? "bg-yellow-500" : "bg-gray-500"
                   }`}>
-                    {auctionStatus === "IN_PROGRESS" && (
+                    {auctionStatus === "LIVE" && (
                       <span className="relative flex h-2.5 w-2.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
                         <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white" />

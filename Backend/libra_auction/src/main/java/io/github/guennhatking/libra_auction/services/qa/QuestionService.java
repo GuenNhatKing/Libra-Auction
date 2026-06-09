@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import io.github.guennhatking.libra_auction.enums.auction.AuctionStatus;
 import io.github.guennhatking.libra_auction.enums.qa.QuestionStatus;
 import io.github.guennhatking.libra_auction.models.auction.Auction;
 import io.github.guennhatking.libra_auction.models.person.Customer;
@@ -42,6 +43,11 @@ public class QuestionService {
     public Question askQuestion(String auctionId, String userId, String content) {
         Auction auction = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new RuntimeException("Auction not found: " + auctionId));
+
+        if (auction.getAuctionStatus() != AuctionStatus.UPCOMING) {
+                throw new RuntimeException("Q&A is only available before the auction starts");
+        }
+
         Customer questioner = customerRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
 
@@ -54,6 +60,10 @@ public class QuestionService {
     public Question answerQuestion(String questionId, String sellerId, String answerContent) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new RuntimeException("Question not found: " + questionId));
+
+        if (question.getAuction().getAuctionStatus() != AuctionStatus.UPCOMING) {
+                throw new RuntimeException("Q&A is only available before the auction starts");
+        }
 
         verifySellerOwnership(question.getAuction(), sellerId);
 
@@ -71,6 +81,10 @@ public class QuestionService {
     public Question rejectQuestion(String questionId, String sellerId) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new RuntimeException("Question not found: " + questionId));
+
+        if (question.getAuction().getAuctionStatus() != AuctionStatus.UPCOMING) {
+                throw new RuntimeException("Q&A is only available before the auction starts");
+        }
 
         verifySellerOwnership(question.getAuction(), sellerId);
 
