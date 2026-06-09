@@ -10,6 +10,7 @@ export async function fetchPublicAuctions(
     status?: string,
     priceFrom?: string,
     priceTo?: string,
+    attributes?: string[],
 ): Promise<Auction[]> {
     const request: RequestInit = {
         method: "GET",
@@ -30,6 +31,12 @@ export async function fetchPublicAuctions(
 
     if (priceTo) {
         query.set("priceTo", priceTo);
+    }
+
+    if (attributes && attributes.length > 0) {
+        for (const attr of attributes) {
+            query.append("attr", attr);
+        }
     }
 
     const queryString = query.toString();

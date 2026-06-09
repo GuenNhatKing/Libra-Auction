@@ -7,6 +7,7 @@ type AuctionSearchParams = {
     status?: string;
     priceFrom?: string;
     priceTo?: string;
+    attr?: string | string[];
 };
 
 export default async function page(props: {
@@ -23,6 +24,10 @@ export default async function page(props: {
         notFound();
     }
 
+    const attrs = searchParams?.attr
+        ? (Array.isArray(searchParams.attr) ? searchParams.attr : [searchParams.attr])
+        : undefined;
+
     return (
         <Auctions
             categoryId={params.category_id}
@@ -31,6 +36,7 @@ export default async function page(props: {
             searchStatus={searchParams?.status}
             priceFrom={searchParams?.priceFrom}
             priceTo={searchParams?.priceTo}
+            attributes={attrs}
             backHref="/auctions"
         />
     );

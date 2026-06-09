@@ -35,7 +35,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -76,6 +79,7 @@ public class AuctionController {
             @RequestParam(required = false) String timeStart,
             @RequestParam(required = false) String timeEnd,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) List<String> attr,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "20") Integer pageSize,
             @RequestParam(defaultValue = "startTime") String sortBy,
@@ -84,7 +88,8 @@ public class AuctionController {
         AuctionSearchRequest criteria = buildSearchCriteria(
                 name, categoryId, priceFrom, priceTo, startingPrice,
                 timeStart, timeEnd, status, null,
-                page, pageSize, sortBy, sortOrder);
+                page, pageSize, sortBy, sortOrder,
+                parseAttributeParams(attr));
 
         PageResponse<AuctionResponse> result = searchService.searchPublicAuctions(criteria);
 
@@ -100,6 +105,7 @@ public class AuctionController {
             @RequestParam(required = false) String timeStart,
             @RequestParam(required = false) String timeEnd,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) List<String> attr,
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "20") Integer pageSize,
             @RequestParam(defaultValue = "startTime") String sortBy,
@@ -108,7 +114,8 @@ public class AuctionController {
         AuctionSearchRequest criteria = buildSearchCriteria(
                 name, null, priceFrom, priceTo, startingPrice,
                 timeStart, timeEnd, status, null,
-                page, pageSize, sortBy, sortOrder);
+                page, pageSize, sortBy, sortOrder,
+                parseAttributeParams(attr));
 
         PageResponse<AuctionResponse> result = searchService.searchPublicAuctions(criteria);
 
@@ -138,7 +145,7 @@ public class AuctionController {
         AuctionSearchRequest baseCriteria = buildSearchCriteria(
                 name, null, priceFrom, priceTo, startingPrice,
                 timeStart, timeEnd, status, null,
-                page, pageSize, sortBy, sortOrder);
+                page, pageSize, sortBy, sortOrder, null);
 
         // Ensure authentication succeeded
         if (userDetails == null) {
@@ -416,7 +423,7 @@ public class AuctionController {
         AuctionSearchRequest request = buildSearchCriteria(
                 null, null, null, null, null,
                 null, null, null, "PENDING_APPROVAL",
-                page, pageSize, "startTime", "DESC");
+                page, pageSize, "startTime", "DESC", null);
 
         PageResponse<AuctionResponse> response = searchService.searchPendingAuctions(request);
         return ResponseEntity.ok(ServerAPIResponse.success(response));
@@ -441,7 +448,7 @@ public class AuctionController {
         AuctionSearchRequest request = buildSearchCriteria(
                 null, null, null, null, null,
                 null, null, null, "APPROVED",
-                page, pageSize, "startTime", "DESC");
+                page, pageSize, "startTime", "DESC", null);
 
         PageResponse<AuctionResponse> response = searchService.searchAuctions(request);
         return ResponseEntity.ok(ServerAPIResponse.success(response));
@@ -466,7 +473,7 @@ public class AuctionController {
         AuctionSearchRequest request = buildSearchCriteria(
                 null, null, null, null, null,
                 null, null, null, "REJECTED",
-                page, pageSize, "startTime", "DESC");
+                page, pageSize, "startTime", "DESC", null);
 
         PageResponse<AuctionResponse> response = searchService.searchAuctions(request);
         return ResponseEntity.ok(ServerAPIResponse.success(response));
@@ -475,7 +482,8 @@ public class AuctionController {
     private AuctionSearchRequest buildSearchCriteria(
             String name, String categoryId, Long priceFrom, Long priceTo, Long startingPrice,
             String timeStart, String timeEnd, String status, String approvalStatus,
-            Integer page, Integer pageSize, String sortBy, String sortOrder) {
+            Integer page, Integer pageSize, String sortBy, String sortOrder,
+            List<Map<String, String>> attributes) {
 
         OffsetDateTime parsedStart = ParseDateTime.parse(timeStart);
         OffsetDateTime parsedEnd = ParseDateTime.parse(timeEnd);
@@ -488,7 +496,7 @@ public class AuctionController {
                 startingPrice,
                 parsedStart,
                 parsedEnd,
-                null,
+                attributes,
                 status,
                 approvalStatus,
                 page,
@@ -496,6 +504,28 @@ public class AuctionController {
                 sortBy,
                 sortOrder,
                 null);
+    }
+
+    /**
+     * Parse attribute query params in format "name:value" into list of maps.
+     * Example: attr=Color:Red&attr=Brand:Samsung
+     *   -> [{attribute_name=Color, attribute_value=Red}, {attribute_name=Brand, attribute_value=Samsung}]
+     */
+    private List<Map<String, String>> parseAttributeParams(List<String> attr) {
+        if (attr == null || attr.isEmpty()) {
+            return null;
+        }
+        List<Map<String, String>> attributes = new ArrayList<>();
+        for (String a : attr) {
+            int idx = a.indexOf(':');
+            if (idx > 0 && idx < a.length() - 1) {
+                Map<String, String> map = new HashMap<>();
+                map.put("attribute_name", a.substring(0, idx));
+                map.put("attribute_value", a.substring(idx + 1));
+                attributes.add(map);
+            }
+        }
+        return attributes.isEmpty() ? null : attributes;
     }
 
     @PostMapping("/admin/auctions/{id}/complete")

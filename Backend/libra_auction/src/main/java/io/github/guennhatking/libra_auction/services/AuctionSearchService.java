@@ -190,23 +190,33 @@ public class AuctionSearchService {
             return true;
         }
 
-        // Neu session khong co tai san hoac khong co thuoc tinh thi bo qua
-        if (session.getProduct() == null ||
-                session.getProduct().getAttributes() == null ||
-                session.getProduct().getAttributes().isEmpty()) {
+        if (session.getProduct() == null) {
             return false;
         }
 
-        // Check if all attribute filters match
+        // Check if all attribute filters match against either custom or standardized attributes
         return attributes.stream().allMatch(filterAttr -> {
             String attrName = filterAttr.get("attribute_name");
             String attrValue = filterAttr.get("attribute_value");
 
-            return session.getProduct().getAttributes().stream()
-                    .anyMatch(productAttr -> productAttr.getAttributeName() != null &&
-                            productAttr.getAttributeName().equals(attrName) &&
-                            productAttr.getAttributeValue() != null &&
-                            productAttr.getAttributeValue().equals(attrValue));
+            // Check custom attributes (ProductAttribute)
+            boolean matchesCustom = session.getProduct().getAttributes() != null &&
+                    session.getProduct().getAttributes().stream()
+                            .anyMatch(productAttr -> productAttr.getAttributeName() != null &&
+                                    productAttr.getAttributeName().equals(attrName) &&
+                                    productAttr.getAttributeValue() != null &&
+                                    productAttr.getAttributeValue().equals(attrValue));
+
+            if (matchesCustom) return true;
+
+            // Check standardized attributes (AttributeCombination -> StandardizedAttribute)
+            return session.getProduct().getAttributeCombinations() != null &&
+                    session.getProduct().getAttributeCombinations().stream()
+                            .anyMatch(combo -> combo.getStandardizedAttribute() != null &&
+                                    combo.getStandardizedAttribute().getAttributeName() != null &&
+                                    combo.getStandardizedAttribute().getAttributeName().equals(attrName) &&
+                                    combo.getStandardizedAttribute().getAttributeValue() != null &&
+                                    combo.getStandardizedAttribute().getAttributeValue().equals(attrValue));
         });
     }
 

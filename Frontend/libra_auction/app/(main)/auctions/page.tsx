@@ -5,16 +5,21 @@ type AuctionSearchParams = {
     status?: string;
     priceFrom?: string;
     priceTo?: string;
+    attr?: string | string[];
 };
 
 export default async function page(props: { searchParams?: Promise<AuctionSearchParams> }) {
     const searchParams = await props.searchParams;
+    const attrs = searchParams?.attr
+        ? (Array.isArray(searchParams.attr) ? searchParams.attr : [searchParams.attr])
+        : undefined;
     return (
         <Auctions
             searchTerm={searchParams?.name}
             searchStatus={searchParams?.status}
             priceFrom={searchParams?.priceFrom}
             priceTo={searchParams?.priceTo}
+            attributes={attrs}
         />
     );
 }
