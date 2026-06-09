@@ -18,38 +18,6 @@ databaseChangeLog:
                   type: VARCHAR(255)
 
         - createTable:
-            tableName: permission
-            columns:
-              - column:
-                  name: name
-                  type: VARCHAR(255)
-                  constraints:
-                    nullable: false
-                    primaryKey: true
-                    primaryKeyName: permission_pkey
-              - column:
-                  name: description
-                  type: VARCHAR(255)
-
-        - createTable:
-            tableName: role_permissions
-            columns:
-              - column:
-                  name: permissions_name
-                  type: VARCHAR(255)
-                  constraints:
-                    nullable: false
-                    primaryKey: true
-                    primaryKeyName: role_permissions_pkey
-              - column:
-                  name: role_name
-                  type: VARCHAR(255)
-                  constraints:
-                    nullable: false
-                    primaryKey: true
-                    primaryKeyName: role_permissions_pkey
-
-        - createTable:
             tableName: category
             columns:
               - column:
@@ -858,13 +826,6 @@ databaseChangeLog:
             referencedColumnNames: id
 
         - addForeignKeyConstraint:
-            baseColumnNames: role_name
-            baseTableName: role_permissions
-            constraintName: fkcppvu8fk24eqqn6q4hws7ajux
-            referencedTableName: role
-            referencedColumnNames: name
-
-        - addForeignKeyConstraint:
             baseColumnNames: product_id
             baseTableName: attribute_combination
             constraintName: fkdjwmjnlg571h16wjdckwfafag
@@ -905,13 +866,6 @@ databaseChangeLog:
             constraintName: fkey2ca4f34kgqsyplv1m0osxbd
             referencedTableName: account
             referencedColumnNames: id
-
-        - addForeignKeyConstraint:
-            baseColumnNames: permissions_name
-            baseTableName: role_permissions
-            constraintName: fkf5aljih4mxtdgalvr7xvngfn1
-            referencedTableName: permission
-            referencedColumnNames: name
 
         - addForeignKeyConstraint:
             baseColumnNames: creator_id

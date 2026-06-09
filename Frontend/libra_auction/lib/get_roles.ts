@@ -10,12 +10,12 @@ import { refreshToken } from "./refresh_token";
 
 function toRole(rawRoleValue: unknown): Role | null {
 	if (typeof rawRoleValue === "string" && rawRoleValue.length > 0) {
-		return { name: rawRoleValue, description: "", permissions: [] };
+		return { name: rawRoleValue, description: "" };
 	}
 
 	if (Array.isArray(rawRoleValue)) {
 		const first = rawRoleValue.find((role): role is string => typeof role === "string" && role.length > 0);
-		return first ? { name: first, description: "", permissions: [] } : null;
+		return first ? { name: first, description: "" } : null;
 	}
 
 	return null;

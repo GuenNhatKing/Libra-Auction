@@ -1,10 +1,7 @@
 package io.github.guennhatking.libra_auction.models.account;
 
-import java.util.Set;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
 
 @Entity
 public class Role {
@@ -12,9 +9,6 @@ public class Role {
     private String name;
 
     private String description;
-
-    @ManyToMany
-    private Set<Permission> permissions;
 
     // CONSTRUCTOR
     public Role() {
@@ -34,10 +28,6 @@ public class Role {
         return description;
     }
 
-    public Set<Permission> getPermissions() {
-        return permissions;
-    }
-
     // SETTER
     public void setName(String name) {
         this.name = name;
@@ -45,9 +35,5 @@ public class Role {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public void setPermissions(Set<Permission> permissions) {
-        this.permissions = permissions;
     }
 }
