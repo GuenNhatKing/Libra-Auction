@@ -141,10 +141,10 @@ public class CustomerService {
     @Transactional
     public void changePassword(String userId, String currentPassword, String newPassword) {
         AccountPassword account = accountPasswordRepository.findByCustomerId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Tai khoan khong ton tai hoac khong dung mat khau."));
+                .orElseThrow(() -> new IllegalArgumentException("Account not found or does not have a password."));
 
         if (!passwordService.verifyPassword(currentPassword, account.getPasswordHash())) {
-            throw new IllegalArgumentException("Mat khau hien tai khong dung.");
+            throw new IllegalArgumentException("Current password is incorrect.");
         }
 
         account.setPasswordHash(passwordService.encodePassword(newPassword));

@@ -16,5 +16,7 @@ export default async function ChangePasswordPage() {
     throw error;
   }
 
-  return <ChangePasswordContent email={user.email} emailStatus={user.emailStatus} />;
+  if (!user.hasPasswordAccount) redirect("/profile");
+
+  return <ChangePasswordContent email={user.email} emailStatus={user.emailStatus} hasPasswordAccount={user.hasPasswordAccount} />;
 }

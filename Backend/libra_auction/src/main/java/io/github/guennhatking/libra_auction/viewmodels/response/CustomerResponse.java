@@ -13,6 +13,7 @@ public record CustomerResponse(
     String avatarUrl,
     EmailStatus emailStatus,
     AccountStatus accountStatus,
-    Role role
+    Role role,
+    boolean hasPasswordAccount
 ) {
 }

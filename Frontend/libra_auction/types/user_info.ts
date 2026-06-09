@@ -9,7 +9,8 @@ export interface UserInfo {
     avatarUrl: string,
     emailStatus: EmailStatus,
     accountStatus: AccountStatus,
-    role: Role
+    role: Role,
+    hasPasswordAccount: boolean
 }
 
 export interface Role {

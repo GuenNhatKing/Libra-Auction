@@ -107,7 +107,7 @@ const LockIcon = () => (
   </svg>
 );
 
-const menuItems: Array<{ path: string; label: string; icon: React.ReactNode }> = [
+const allMenuItems: Array<{ path: string; label: string; icon: React.ReactNode }> = [
   { path: "/profile", label: "Profile", icon: <UserIcon /> },
   { path: "/profile/edit", label: "Edit profile", icon: <EditIcon /> },
   { path: "/profile/auction-history", label: "Auction history", icon: <AuctionIcon /> },
@@ -118,6 +118,9 @@ const menuItems: Array<{ path: string; label: string; icon: React.ReactNode }> =
 
 export function ProfileSidebar({ user }: { user: UserInfo }) {
   const pathname = usePathname();
+  const menuItems = user.hasPasswordAccount
+    ? allMenuItems
+    : allMenuItems.filter((item) => item.path !== "/profile/change-password");
 
   return (
     <div className="flex flex-col gap-8">

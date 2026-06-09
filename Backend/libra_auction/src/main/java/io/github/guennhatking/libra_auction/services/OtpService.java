@@ -1,6 +1,7 @@
 package io.github.guennhatking.libra_auction.services;
 
 import io.github.guennhatking.libra_auction.enums.account.EmailStatus;
+import io.github.guennhatking.libra_auction.models.account.AccountPassword;
 import io.github.guennhatking.libra_auction.models.person.Customer;
 import io.github.guennhatking.libra_auction.models.request.EmailVerificationRequest;
 import io.github.guennhatking.libra_auction.models.request.OtpRequest;
@@ -68,6 +69,13 @@ public class OtpService {
 
         if (customer.getEmailStatus() != EmailStatus.VERIFIED) {
             throw new IllegalArgumentException("Ban can xac thuc email truoc khi dat lai mat khau.");
+        }
+
+        boolean hasPassword = customer.getLinkedAccounts() != null
+                && customer.getLinkedAccounts().stream()
+                        .anyMatch(a -> a instanceof AccountPassword);
+        if (!hasPassword) {
+            throw new IllegalArgumentException("This account does not have a password. Please sign in with your social account.");
         }
 
         PasswordResetRequest passwordRequest = new PasswordResetRequest(customer);
