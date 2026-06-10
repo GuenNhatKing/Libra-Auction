@@ -1,8 +1,5 @@
 package io.github.guennhatking.libra_auction.models.request;
 
-import java.time.OffsetDateTime;
-
-import io.github.guennhatking.libra_auction.enums.request.RequestStatus;
 import io.github.guennhatking.libra_auction.enums.request.RequestType;
 import io.github.guennhatking.libra_auction.models.person.Customer;
 import jakarta.persistence.Entity;
