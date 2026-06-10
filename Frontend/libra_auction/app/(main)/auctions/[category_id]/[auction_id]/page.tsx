@@ -64,6 +64,7 @@ export default async function page(props: {
         currentUserId={userId}
         isCreator={isCreator}
         isAdmin={isAdmin}
+        auctionStatus={auction_info.status}
       />
     </>
   );

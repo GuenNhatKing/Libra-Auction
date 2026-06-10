@@ -9,12 +9,14 @@ export default async function AuctionQuestionsSection({
   currentUserId,
   isCreator,
   isAdmin,
+  auctionStatus,
 }: {
   auctionId: string;
   isAuthenticated: boolean;
   currentUserId: string | null;
   isCreator: boolean;
   isAdmin: boolean;
+  auctionStatus: string;
 }) {
   const questions: AuctionQuestion[] = isAuthenticated && currentUserId
     ? await fetchAuctionQuestionsWithOwn(auctionId)
@@ -31,6 +33,7 @@ export default async function AuctionQuestionsSection({
           currentUserId={currentUserId}
           isCreator={isCreator}
           isAdmin={isAdmin}
+          auctionStatus={auctionStatus}
         />
       </div>
     </div>
