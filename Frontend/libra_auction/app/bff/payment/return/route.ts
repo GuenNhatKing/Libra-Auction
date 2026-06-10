@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 
         // Extract auction ID from order info for redirect
         let auctionId = "";
-        const auctionMatch = orderInfo.match(/auction:\s*(.+)/i);
+        const auctionMatch = orderInfo.match(/auction\s+(?:deposit|payment):\s*(.+)/i);
         if (auctionMatch) {
             auctionId = auctionMatch[1].trim();
         }
