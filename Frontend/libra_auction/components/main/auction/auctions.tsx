@@ -2,6 +2,31 @@ import { fetchPublicAuctions } from "@/services/fetch_public_auctions"
 import { fetchCategories } from "@/services/fetch_categories";
 import AuctionCard from "./auction_card";
 import { AuctionFilterSidebar } from "@/components/main/auction/auction_filter_sidebar";
+import SortSelect from "./sort_select";
+import { Auction } from "@/types/auction/auction";
+
+function sortAuctions(auctions: Auction[], sort?: string): Auction[] {
+    const sorted = [...auctions];
+    switch (sort) {
+        case "lowest":
+            return sorted.sort((a, b) => a.starting_price - b.starting_price);
+        case "highest":
+            return sorted.sort((a, b) => b.starting_price - a.starting_price);
+        case "ending":
+            return sorted.sort((a, b) => {
+                const aEnd = a.end_time ? new Date(a.end_time).getTime() : Infinity;
+                const bEnd = b.end_time ? new Date(b.end_time).getTime() : Infinity;
+                return aEnd - bEnd;
+            });
+        case "newest":
+        default:
+            return sorted.sort((a, b) => {
+                const aStart = new Date(a.start_time).getTime();
+                const bStart = new Date(b.start_time).getTime();
+                return bStart - aStart;
+            });
+    }
+}
 
 export default async function Auctions({
     categoryId,
@@ -12,6 +37,7 @@ export default async function Auctions({
     priceTo,
     attributes,
     backHref,
+    sort,
 }: {
     categoryId?: string;
     categoryName?: string;
@@ -21,15 +47,19 @@ export default async function Auctions({
     priceTo?: string;
     attributes?: string[];
     backHref?: string;
+    sort?: string;
 }) {
     const [cards, categories] = await Promise.all([
         fetchPublicAuctions(categoryId, searchTerm, searchStatus, priceFrom, priceTo, attributes),
         fetchCategories(),
     ]);
 
-    const visibleCards = cards.filter((card) =>
-        card.approval_status === "APPROVED" &&
-        (card.auction_status === "UPCOMING" || card.auction_status === "LIVE")
+    const visibleCards = sortAuctions(
+        cards.filter((card) =>
+            card.approval_status === "APPROVED" &&
+            (card.auction_status === "UPCOMING" || card.auction_status === "LIVE")
+        ),
+        sort
     );
 
     const pageTitle = categoryName || "Online Auction Marketplace";
@@ -60,13 +90,7 @@ export default async function Auctions({
                         <p className="text-sm text-gray-500 mt-1">{pageDescription}</p>
                     </div>
                     
-                    {/* Sort dropdown */}
-                    <select className="bg-white text-sm border border-gray-200 rounded-lg p-2 outline-none focus:ring-1 focus:ring-(--primary-color)">
-                        <option>Newest</option>
-                        <option>Lowest price</option>
-                        <option>Highest price</option>
-                        <option>Ending soon</option>
-                    </select>
+                    <SortSelect currentSort={sort} />
                 </header>
 
                 {/* Grid - Reduce gap from 6 to 4 so cards fit better */}

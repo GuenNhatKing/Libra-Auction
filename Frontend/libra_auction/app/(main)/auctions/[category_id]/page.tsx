@@ -8,6 +8,7 @@ type AuctionSearchParams = {
     priceFrom?: string;
     priceTo?: string;
     attr?: string | string[];
+    sort?: string;
 };
 
 export default async function page(props: {
@@ -38,6 +39,7 @@ export default async function page(props: {
             priceTo={searchParams?.priceTo}
             attributes={attrs}
             backHref="/auctions"
+            sort={searchParams?.sort}
         />
     );
 }

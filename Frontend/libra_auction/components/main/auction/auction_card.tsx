@@ -137,8 +137,9 @@ export default function AuctionCard({ auctionCard }: { auctionCard: Auction }) {
 
                     <div className="flex items-center gap-2">
                         <div className="flex items-center justify-center gap-2 shrink-0 rounded-xl bg-gray-50 px-3.5 py-2.5 border border-gray-100 min-w-14 h-[38px]">
-                            <svg className="h-3.5 w-3.5 text-gray-800 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 21h18M14 4h6m0 0v6m0-6L10 14M4 14.243a3 3 0 114.243-4.243L16.5 18l-4.243 4.243-8.257-8M16.5 18l4.243-4.243" />
+                            <svg className="h-4 w-4 text-gray-800 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor">
+                                <path d="M487.5 146.5c-20.9-44.3-54-81.5-95.7-107.6-58-36.2-126.7-47.7-193.3-32.3C131.9 21.9 75.2 62.3 39 120.3 2.7 178.3-8.8 246.9 6.6 313.6 22 380.2 62.4 436.9 120.3 473.1c40.8 25.5 87.6 39 135.5 39h3.1c47.7-.6 94.1-14.4 134.3-39.8 11.7-7.4 15.1-22.8 7.7-34.5s-22.8-15.1-34.5-7.7c-32.3 20.5-69.7 31.6-108.1 32.1-39.4.5-77.9-10.4-111.5-31.3-46.7-29.2-79.2-74.8-91.5-128.4S52.2 193.7 81.4 147C141.6 50.7 269 21.3 365.3 81.5c33.6 21 60.2 50.9 77 86.5 16.4 34.7 22.8 73.2 18.5 111.2-1.5 13.7 8.3 26.1 22.1 27.6 13.7 1.5 26.1-8.3 27.6-22.1 5.3-47.3-2.7-95.1-23-138.2z" />
+                                <path d="M338.7 169.2 218.1 289.8l-44.7-44.7c-9.8-9.8-25.6-9.8-35.4 0s-9.8 25.6 0 35.4l62.4 62.4c4.9 4.9 11.3 7.3 17.7 7.3s12.8-2.4 17.7-7.3L374 204.6c9.8-9.8 9.8-25.6 0-35.4-9.8-9.7-25.6-9.7-35.3 0z" />
                             </svg>
 
                             <span
