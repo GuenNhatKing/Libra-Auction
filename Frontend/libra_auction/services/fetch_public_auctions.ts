@@ -11,7 +11,9 @@ export async function fetchPublicAuctions(
     priceFrom?: string,
     priceTo?: string,
     attributes?: string[],
-): Promise<Auction[]> {
+    page: number = 0,
+    pageSize: number = 20,
+): Promise<PageResponse<Auction>> {
     const request: RequestInit = {
         method: "GET",
     }
@@ -39,14 +41,16 @@ export async function fetchPublicAuctions(
         }
     }
 
+    query.set("page", String(page));
+    query.set("pageSize", String(pageSize));
+
     const queryString = query.toString();
     const endpoint = categoryId
-        ? `/api/public/categories/${categoryId}/auctions${queryString ? `?${queryString}` : ""}`
-        : `/api/public/auctions${queryString ? `?${queryString}` : ""}`;
+        ? `/api/public/categories/${categoryId}/auctions?${queryString}`
+        : `/api/public/auctions?${queryString}`;
     const res = await ServerAPICall<PageResponse<Auction>>(endpoint, request);
     if (res.isSuccess && res.data) {
-        return res.data.content;
+        return res.data;
     }
-    else if(res.isSuccess) return [];
     throw createAppErrorFromResponse(res, "Failed to fetch live auctions");
 }

@@ -2,8 +2,8 @@ import AuctionForm from "@/components/seller/auction/auctionForm";
 import { fetchProducts } from "@/services/fetch_products";
 
 export default async function page() {
-    const products = await fetchProducts();
+    const productPage = await fetchProducts(0, 100);
     return (
-        <AuctionForm products={products} />
+        <AuctionForm products={productPage.content} />
     );
 }

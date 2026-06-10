@@ -4,6 +4,7 @@ import AuctionCard from "./auction_card";
 import { AuctionFilterSidebar } from "@/components/main/auction/auction_filter_sidebar";
 import SortSelect from "./sort_select";
 import { Auction } from "@/types/auction/auction";
+import { PaginationLinks } from "@/components/ui/pagination";
 
 function sortAuctions(auctions: Auction[], sort?: string): Auction[] {
     const sorted = [...auctions];
@@ -28,6 +29,25 @@ function sortAuctions(auctions: Auction[], sort?: string): Auction[] {
     }
 }
 
+function buildAuctionHref(base: string, props: {
+    searchTerm?: string;
+    searchStatus?: string;
+    priceFrom?: string;
+    priceTo?: string;
+    attributes?: string[];
+    sort?: string;
+}, page: number): string {
+    const params = new URLSearchParams();
+    if (props.searchTerm) params.set("name", props.searchTerm);
+    if (props.searchStatus) params.set("status", props.searchStatus);
+    if (props.priceFrom) params.set("priceFrom", props.priceFrom);
+    if (props.priceTo) params.set("priceTo", props.priceTo);
+    if (props.attributes) props.attributes.forEach(a => params.append("attr", a));
+    if (props.sort) params.set("sort", props.sort);
+    params.set("page", String(page));
+    return `${base}?${params.toString()}`;
+}
+
 export default async function Auctions({
     categoryId,
     categoryName,
@@ -38,6 +58,7 @@ export default async function Auctions({
     attributes,
     backHref,
     sort,
+    page = 0,
 }: {
     categoryId?: string;
     categoryName?: string;
@@ -48,14 +69,15 @@ export default async function Auctions({
     attributes?: string[];
     backHref?: string;
     sort?: string;
+    page?: number;
 }) {
-    const [cards, categories] = await Promise.all([
-        fetchPublicAuctions(categoryId, searchTerm, searchStatus, priceFrom, priceTo, attributes),
+    const [auctionPage, categories] = await Promise.all([
+        fetchPublicAuctions(categoryId, searchTerm, searchStatus, priceFrom, priceTo, attributes, page, 20),
         fetchCategories(),
     ]);
 
     const visibleCards = sortAuctions(
-        cards.filter((card) =>
+        auctionPage.content.filter((card) =>
             card.approval_status === "APPROVED" &&
             (card.auction_status === "UPCOMING" || card.auction_status === "LIVE")
         ),
@@ -64,8 +86,11 @@ export default async function Auctions({
 
     const pageTitle = categoryName || "Online Auction Marketplace";
     const pageDescription = categoryName
-        ? `Found ${visibleCards.length} auctions in this category`
-        : `Found ${visibleCards.length} live auctions`;
+        ? `Found ${auctionPage.totalElements} auctions in this category`
+        : `Found ${auctionPage.totalElements} live auctions`;
+
+    const base = categoryId ? `/auctions/${categoryId}` : "/auctions";
+    const hrefProps = { searchTerm, searchStatus, priceFrom, priceTo, attributes, sort };
 
     return (
         <div className="flex min-h-screen bg-(--background-color)">
@@ -89,7 +114,7 @@ export default async function Auctions({
                         <h1 className="text-2xl font-bold text-gray-800">{pageTitle}</h1>
                         <p className="text-sm text-gray-500 mt-1">{pageDescription}</p>
                     </div>
-                    
+
                     <SortSelect currentSort={sort} />
                 </header>
 
@@ -99,6 +124,17 @@ export default async function Auctions({
                         <AuctionCard key={card.auction_id} auctionCard={card} />
                     ))}
                 </div>
+
+                {/* Pagination */}
+                {auctionPage.totalPages > 1 && (
+                    <div className="mt-8">
+                        <PaginationLinks
+                            currentPage={auctionPage.currentPage}
+                            totalPages={auctionPage.totalPages}
+                            buildHref={(p) => buildAuctionHref(base, hrefProps, p)}
+                        />
+                    </div>
+                )}
 
                 {/* Empty state */}
                 {visibleCards.length === 0 && (

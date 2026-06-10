@@ -1,11 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Auction } from "@/types/auction/auction";
 import { AuctionFilters, AuctionFilterFields, defaultAuctionFilters } from "./auction_filters";
 import { AuctionItem } from "./auction_item";
 import { useRouter } from "next/navigation";
 import { deleteAuction } from "@/services/delete_auction";
+import { Pagination, PaginationInfo } from "@/components/ui/pagination";
+
+const PAGE_SIZE = 20;
 
 interface AuctionListProps {
   auctions: Auction[];
@@ -15,6 +18,7 @@ export const AuctionList = ({ auctions }: AuctionListProps) => {
   const [filters, setFilters] = useState<AuctionFilterFields>(defaultAuctionFilters);
   const [cancelledIds, setCancelledIds] = useState<Set<string>>(new Set());
   const [cancelingId, setCancelingId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
 
   const visibleAuctions = useMemo(
     () => auctions.filter((a) => !cancelledIds.has(a.auction_id)),
@@ -49,6 +53,14 @@ export const AuctionList = ({ auctions }: AuctionListProps) => {
     });
   }, [visibleAuctions, filters]);
 
+  useEffect(() => { setCurrentPage(0); }, [filters]);
+
+  const totalPages = Math.ceil(filteredAuctions.length / PAGE_SIZE);
+  const paginatedAuctions = useMemo(
+    () => filteredAuctions.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE),
+    [filteredAuctions, currentPage],
+  );
+
   const router = useRouter();
 
   const handleCancel = async (auctionId: string) => {
@@ -73,7 +85,8 @@ export const AuctionList = ({ auctions }: AuctionListProps) => {
         categoryOptions={categoryOptions}
       />
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        <PaginationInfo currentPage={currentPage} pageSize={PAGE_SIZE} totalElements={filteredAuctions.length} />
         <button
           type="button"
           onClick={() => router.push("/seller-dashboard/auctions/new-auction")}
@@ -84,8 +97,8 @@ export const AuctionList = ({ auctions }: AuctionListProps) => {
       </div>
 
       <div className="flex flex-col gap-3">
-        {filteredAuctions.length > 0 ? (
-          filteredAuctions.map((auction) => (
+        {paginatedAuctions.length > 0 ? (
+          paginatedAuctions.map((auction) => (
             <AuctionItem
               key={auction.auction_id}
               auction={auction}
@@ -103,6 +116,8 @@ export const AuctionList = ({ auctions }: AuctionListProps) => {
           </div>
         )}
       </div>
+
+      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import AdminModal from "@/components/admin/admin_modal";
 import { fetchAdminUsers, updateAdminUserAction } from "@/services/fetch_pending_users";
+import { Pagination, PaginationInfo } from "@/components/ui/pagination";
 import { PendingUser } from "@/types/admin/pending_user";
 
 type UserRow = PendingUser & {
@@ -79,13 +80,14 @@ export default function UsersApprovalPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
 
   useEffect(() => {
     const loadUsers = async () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetchAdminUsers(0, 1000);
+        const response = await fetchAdminUsers(0, 100);
         setUsers(response.content.map(mapUser));
       } catch (loadError) {
         setError(loadError instanceof Error ? loadError.message : "Failed to load users");
@@ -116,6 +118,15 @@ export default function UsersApprovalPage() {
       (filters.accountStatus === "ALL" || user.accountStatus === filters.accountStatus)
     ));
   }, [users, filters]);
+
+  useEffect(() => { setCurrentPage(0); }, [filters]);
+
+  const PAGE_SIZE = 20;
+  const totalUserPages = Math.ceil(filteredUsers.length / PAGE_SIZE);
+  const paginatedUsers = useMemo(
+    () => filteredUsers.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE),
+    [filteredUsers, currentPage],
+  );
 
   const handleAction = async (user: UserRow, action: UserAction) => {
     try {
@@ -325,7 +336,7 @@ export default function UsersApprovalPage() {
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((row) => (
+                paginatedUsers.map((row) => (
                   <tr key={row.id} className="border-b border-[#EAF3F6] hover:bg-[#F8FCFD]">
                     <td className="px-6 py-4">
                       <Image
@@ -355,6 +366,11 @@ export default function UsersApprovalPage() {
           </table>
         </div>
       </div>
+
+      <div className="flex items-center justify-between px-2">
+        <PaginationInfo currentPage={currentPage} pageSize={PAGE_SIZE} totalElements={filteredUsers.length} />
+      </div>
+      <Pagination currentPage={currentPage} totalPages={totalUserPages} onPageChange={setCurrentPage} />
 
       {selectedUser.data && (
         <AdminModal

@@ -1,10 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Product } from "@/types/product/product";
 import { ProductFilters, ProductFilterFields, defaultProductFilters } from "./product_filters";
 import { ProductItem } from "./product_item";
 import { useRouter } from "next/navigation";
+import { Pagination, PaginationInfo } from "@/components/ui/pagination";
+
+const PAGE_SIZE = 20;
 
 interface ProductListProps {
   initialData: Product[];
@@ -12,6 +15,7 @@ interface ProductListProps {
 
 export const ProductList = ({ initialData }: ProductListProps) => {
   const [filters, setFilters] = useState<ProductFilterFields>(defaultProductFilters);
+  const [currentPage, setCurrentPage] = useState(0);
   const router = useRouter();
 
   const categoryOptions = useMemo(
@@ -37,6 +41,14 @@ export const ProductList = ({ initialData }: ProductListProps) => {
     });
   }, [initialData, filters]);
 
+  useEffect(() => { setCurrentPage(0); }, [filters]);
+
+  const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
+  const paginatedProducts = useMemo(
+    () => filteredProducts.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE),
+    [filteredProducts, currentPage],
+  );
+
   return (
     <div className="space-y-4">
       <ProductFilters
@@ -45,7 +57,8 @@ export const ProductList = ({ initialData }: ProductListProps) => {
         categoryOptions={categoryOptions}
       />
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        <PaginationInfo currentPage={currentPage} pageSize={PAGE_SIZE} totalElements={filteredProducts.length} />
         <button
           type="button"
           onClick={() => router.push("/seller-dashboard/products/new-product")}
@@ -56,8 +69,8 @@ export const ProductList = ({ initialData }: ProductListProps) => {
       </div>
 
       <div className="grid grid-cols-1 gap-3">
-        {filteredProducts.length > 0 ? (
-          filteredProducts.map((product) => (
+        {paginatedProducts.length > 0 ? (
+          paginatedProducts.map((product) => (
             <ProductItem
               key={product.product_id}
               product={product}
@@ -75,6 +88,8 @@ export const ProductList = ({ initialData }: ProductListProps) => {
           </div>
         )}
       </div>
+
+      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import AuctionDetailModal from "@/components/admin/auction_detail_modal";
+import { Pagination, PaginationInfo } from "@/components/ui/pagination";
 import { approveAuction } from "@/services/approve_auction";
 import { completeAuction } from "@/services/complete_auction";
 import { deleteAdminAuction } from "@/services/delete_admin_auction";
@@ -131,6 +132,8 @@ function getAuctionStatusBadge(auctionStatus: string) {
   );
 }
 
+const PAGE_SIZE = 20;
+
 export default function AuctionsApprovalPage() {
   const [auctions, setAuctions] = useState<AuctionRow[]>([]);
   const [selectedAuction, setSelectedAuction] = useState<{ isOpen: boolean; data: AuctionRow | null }>({
@@ -138,6 +141,7 @@ export default function AuctionsApprovalPage() {
     data: null,
   });
   const [filters, setFilters] = useState<AuctionFilters>(defaultFilters);
+  const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
@@ -154,9 +158,9 @@ export default function AuctionsApprovalPage() {
         setError(null);
 
         const [pending, approved, rejected] = await Promise.all([
-          fetchPendingAuctions(0, 1000),
-          fetchApprovedAuctions(0, 1000),
-          fetchRejectedAuctions(0, 1000),
+          fetchPendingAuctions(0, 100),
+          fetchApprovedAuctions(0, 100),
+          fetchRejectedAuctions(0, 100),
         ]);
 
         const combined = [...pending.content, ...approved.content, ...rejected.content]
@@ -205,6 +209,17 @@ export default function AuctionsApprovalPage() {
       );
     });
   }, [auctions, filters]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [filters]);
+
+  const totalPages = Math.ceil(filteredAuctions.length / PAGE_SIZE);
+  const paginatedAuctions = useMemo(
+    () => filteredAuctions.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE),
+    [filteredAuctions, currentPage],
+  );
 
   const handleApprove = async (auction: AuctionRow) => {
     try {
@@ -449,7 +464,7 @@ export default function AuctionsApprovalPage() {
                   </td>
                 </tr>
               ) : (
-                filteredAuctions.map((row) => (
+                paginatedAuctions.map((row) => (
                   <tr key={row.id} className="border-b border-[#EAF3F6] hover:bg-[#F8FCFD]">
                     <td className="px-6 py-4">
                       <Image
@@ -556,6 +571,11 @@ export default function AuctionsApprovalPage() {
           </table>
         </div>
       </div>
+
+      <div className="flex items-center justify-between px-2">
+        <PaginationInfo currentPage={currentPage} pageSize={PAGE_SIZE} totalElements={filteredAuctions.length} />
+      </div>
+      <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
 
       {/* Failure Reason Dialog */}
       {failDialog.isOpen && (
