@@ -162,7 +162,7 @@ export default function UsersApprovalPage() {
         </>
       )}
 
-      {row.accountStatus === "ACTIVE" && (
+      {row.accountStatus === "ACTIVE" && row.role !== "ADMIN" && (
         <button
           onClick={() => handleAction(row, "lock")}
           disabled={actionLoadingId === row.id}
@@ -172,7 +172,7 @@ export default function UsersApprovalPage() {
         </button>
       )}
 
-      {row.accountStatus === "LOCKED" && (
+      {row.accountStatus === "LOCKED" && row.role !== "ADMIN" && (
         <button
           onClick={() => handleAction(row, "unlock")}
           disabled={actionLoadingId === row.id}

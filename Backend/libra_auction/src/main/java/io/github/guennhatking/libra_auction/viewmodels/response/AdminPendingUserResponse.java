@@ -11,5 +11,6 @@ public record AdminPendingUserResponse(
         String email,
         String avatarUrl,
         EmailStatus emailStatus,
-        AccountStatus accountStatus) {
+        AccountStatus accountStatus,
+        String role) {
 }

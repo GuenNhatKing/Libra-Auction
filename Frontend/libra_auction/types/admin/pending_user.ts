@@ -7,4 +7,5 @@ export interface PendingUser {
     avatarUrl: string;
     emailStatus: string;
     accountStatus: string;
+    role: string;
 }

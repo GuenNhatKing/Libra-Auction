@@ -135,6 +135,9 @@ public class AdminController {
         } catch (IllegalArgumentException error) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(ServerAPIResponse.error(error.getMessage()));
+        } catch (IllegalStateException error) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ServerAPIResponse.error(error.getMessage()));
         }
     }
 }

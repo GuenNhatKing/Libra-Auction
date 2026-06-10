@@ -214,6 +214,10 @@ public class CustomerService {
         Customer customer = customerRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        if (customer.getRole() != null && "ADMIN".equalsIgnoreCase(customer.getRole().getName())) {
+            throw new IllegalStateException("Khong the thay doi trang thai tai khoan ADMIN");
+        }
+
         customer.setAccountStatus(status);
         customerRepository.save(customer);
 
@@ -268,7 +272,8 @@ public class CustomerService {
             user.getEmail(),
             user.getAvatarUrl(),
             user.getEmailStatus(),
-            user.getAccountStatus());
+            user.getAccountStatus(),
+            user.getRole() != null ? user.getRole().getName() : null);
     }
     private Customer assignDefaultRole(Customer user) {
         Role defaultRole = roleRepository.findById("USER")
