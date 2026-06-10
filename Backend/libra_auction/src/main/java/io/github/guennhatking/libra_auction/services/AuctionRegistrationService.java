@@ -63,12 +63,12 @@ public class AuctionRegistrationService {
 
                 // 3. Kiem tra admin khong duoc dang ky dau gia
                 if (user.getRole() != null && "ADMIN".equalsIgnoreCase(user.getRole().getName())) {
-                        throw new IllegalArgumentException("Quản trị viên không thể đăng ký tham gia đấu giá");
+                        throw new IllegalArgumentException("Admins cannot register for auctions");
                 }
 
                 // 4. Kiem tra nguoi ban khong duoc tu dang ky
                 if (auction.getCreator() != null && auction.getCreator().getId().equals(userId)) {
-                        throw new IllegalArgumentException("Người tạo phiên đấu giá không thể đăng ký tham gia");
+                        throw new IllegalArgumentException("Auction creators cannot register for their own auctions");
                 }
 
                 // 5. Kiem tra dang ky trung lap (Logic cu giu nguyen)

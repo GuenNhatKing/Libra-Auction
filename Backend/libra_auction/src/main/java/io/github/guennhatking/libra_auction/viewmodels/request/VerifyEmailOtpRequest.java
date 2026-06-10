@@ -4,10 +4,10 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public record VerifyEmailOtpRequest(
-    @NotBlank(message = "Email không được để trống.")
+    @NotBlank(message = "Email is required.")
     @Email(message = "INVALID_EMAIL")
     String email,
 
-    @NotBlank(message = "OTP không được để trống.")
+    @NotBlank(message = "OTP is required.")
     String otp
 ) {}

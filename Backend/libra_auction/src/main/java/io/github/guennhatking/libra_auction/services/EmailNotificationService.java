@@ -159,7 +159,7 @@ public class EmailNotificationService {
             logger.info("Email verification OTP sent to {}", toEmail);
         } catch (Exception e) {
             logger.error("Error sending email verification OTP: {}", e.getMessage(), e);
-            throw new RuntimeException("Khong the gui email. Vui long thu lai.");
+            throw new RuntimeException("Unable to send email. Please try again.");
         }
     }
 
@@ -174,7 +174,7 @@ public class EmailNotificationService {
             logger.info("Password reset OTP sent to {}", toEmail);
         } catch (Exception e) {
             logger.error("Error sending password reset OTP: {}", e.getMessage(), e);
-            throw new RuntimeException("Khong the gui email. Vui long thu lai.");
+            throw new RuntimeException("Unable to send email. Please try again.");
         }
     }
 

@@ -215,7 +215,7 @@ public class CustomerService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         if (customer.getRole() != null && "ADMIN".equalsIgnoreCase(customer.getRole().getName())) {
-            throw new IllegalStateException("Khong the thay doi trang thai tai khoan ADMIN");
+            throw new IllegalStateException("Cannot change the status of an ADMIN account");
         }
 
         customer.setAccountStatus(status);

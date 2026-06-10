@@ -32,6 +32,6 @@ export async function signUp(
     }
     catch (error) {
         console.error("Client signup error:", error);
-        onFailed("Internal server error");
+        onFailed("Unable to connect to server. Please try again later.");
     }
 }

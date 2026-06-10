@@ -121,7 +121,7 @@ public class AuctionService {
                 }
 
                 if (product.getStatus() != ProductStatus.AVAILABLE) {
-                        throw new IllegalArgumentException("Sản phẩm không ở trạng thái sẵn sàng. Trạng thái hiện tại: " + product.getStatus());
+                        throw new IllegalArgumentException("Product is not in available status. Current status: " + product.getStatus());
                 }
 
                 Customer creator = customerRepository.findById(userId)

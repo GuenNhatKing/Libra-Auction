@@ -59,10 +59,11 @@ export async function signInAction(body: SignInBody): Promise<ActionResponse> {
             return { success: true, message: "Sign in successful" };
         }
 
-        return { success: false, message: res.errorMessage || "Failed to sign in" };
+        const errorMsg = res.errorMessage || (res as Record<string, unknown>).message as string || "Invalid username or password";
+        return { success: false, message: errorMsg };
     } catch (e) {
         console.error("Error in signInAction:", e);
-        return { success: false, message: "Internal server error" };
+        return { success: false, message: "Unable to connect to server. Please try again later." };
     }
 }
 
@@ -85,7 +86,7 @@ export async function signUpAction(body: SignUpBody): Promise<ActionResponse> {
         return { success: true, message: "Sign up success" };
     } catch (error) {
         console.error("Error in signUpAction:", error);
-        return { success: false, message: "Internal server error" };
+        return { success: false, message: "Unable to connect to server. Please try again later." };
     }
 }
 
@@ -110,7 +111,7 @@ export async function sendEmailVerificationAction(email: string): Promise<Action
         return { success: false, message: res.errorMessage || "Unable to send OTP." };
     } catch (e) {
         console.error("Error in sendEmailVerificationAction:", e);
-        return { success: false, message: "Internal server error" };
+        return { success: false, message: "Unable to connect to server. Please try again later." };
     }
 }
 
@@ -128,7 +129,7 @@ export async function activateOtpAction(token: string, otp: string): Promise<Act
         return { success: false, message: res.errorMessage || "Invalid or expired OTP." };
     } catch (e) {
         console.error("Error in activateOtpAction:", e);
-        return { success: false, message: "Internal server error" };
+        return { success: false, message: "Unable to connect to server. Please try again later." };
     }
 }
 
@@ -145,7 +146,7 @@ export async function verifyEmailAction(token: string): Promise<ActionResponse> 
         return { success: false, message: res.errorMessage || "Unable to verify email." };
     } catch (e) {
         console.error("Error in verifyEmailAction:", e);
-        return { success: false, message: "Internal server error" };
+        return { success: false, message: "Unable to connect to server. Please try again later." };
     }
 }
 
@@ -165,7 +166,7 @@ export async function forgotPasswordAction(email: string): Promise<ActionRespons
         return { success: false, message: res.errorMessage || "Unable to send OTP." };
     } catch (e) {
         console.error("Error in forgotPasswordAction:", e);
-        return { success: false, message: "Internal server error" };
+        return { success: false, message: "Unable to connect to server. Please try again later." };
     }
 }
 
@@ -183,6 +184,6 @@ export async function resetPasswordAction(token: string, newPassword: string): P
         return { success: false, message: res.errorMessage || "Unable to reset password." };
     } catch (e) {
         console.error("Error in resetPasswordAction:", e);
-        return { success: false, message: "Internal server error" };
+        return { success: false, message: "Unable to connect to server. Please try again later." };
     }
 }

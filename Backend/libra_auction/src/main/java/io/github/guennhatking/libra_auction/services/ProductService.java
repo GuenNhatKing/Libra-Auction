@@ -115,11 +115,11 @@ public class ProductService {
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
         if (!userId.equals(product.getCreator().getId())) {
-            throw new AccessDeniedException("Ban khong co quyen chinh sua tai san nay");
+            throw new AccessDeniedException("You do not have permission to edit this product");
         }
 
         if (product.getStatus() != ProductStatus.AVAILABLE) {
-            throw new IllegalStateException("Chi co the chinh sua san pham dang available");
+            throw new IllegalStateException("Can only edit products with available status");
         }
 
         Category category = categoryRepository.findById(request.categoryId())
@@ -156,10 +156,10 @@ public class ProductService {
                 .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
         if (!userId.equals(product.getCreator().getId())) {
-            throw new AccessDeniedException("Ban khong co quyen xoa tai san nay");
+            throw new AccessDeniedException("You do not have permission to delete this product");
         }
         if (product.getStatus() != ProductStatus.AVAILABLE) {
-            throw new IllegalStateException("Chi co the xoa san pham dang available");
+            throw new IllegalStateException("Can only delete products with available status");
         }
 
         String rootProductId = product.getRootProductId() == null ? product.getId() : product.getRootProductId();
@@ -169,13 +169,13 @@ public class ProductService {
         boolean hasCompletedAuction = relatedAuctions.stream()
                 .anyMatch(auction -> auction.getAuctionStatus() == AuctionStatus.COMPLETED);
         if (hasCompletedAuction) {
-            throw new IllegalStateException("San pham da ban thanh cong khong the xoa");
+            throw new IllegalStateException("Cannot delete a product that has been sold successfully");
         }
 
         boolean hasNonTerminalAuction = relatedAuctions.stream()
                 .anyMatch(auction -> auction.getAuctionStatus() != AuctionStatus.FAILED);
         if (hasNonTerminalAuction) {
-            throw new IllegalStateException("Chi co the xoa khi tat ca phien dau gia lien quan da that bai");
+            throw new IllegalStateException("Can only delete when all related auctions have failed");
         }
 
         product.setDeleted(true);

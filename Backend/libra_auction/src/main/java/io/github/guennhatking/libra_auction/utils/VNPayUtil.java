@@ -36,7 +36,7 @@ public class VNPayUtil {
             return sb.toString();
 
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            throw new RuntimeException("Lỗi thực thi băm HMAC SHA512", e);
+            throw new RuntimeException("HMAC SHA512 hashing error", e);
         }
     }
 

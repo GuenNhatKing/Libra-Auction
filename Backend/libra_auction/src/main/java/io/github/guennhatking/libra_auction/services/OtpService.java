@@ -44,7 +44,7 @@ public class OtpService {
     @Transactional
     public OtpGenerationResult generateForEmailVerification(String email) {
         Customer customer = customerService.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay tai khoan voi email nay."));
+                .orElseThrow(() -> new IllegalArgumentException("No account found with this email."));
 
         EmailVerificationRequest emailRequest = new EmailVerificationRequest(customer);
         emailRequest.setToken(UUID.randomUUID().toString());
@@ -65,10 +65,10 @@ public class OtpService {
     @Transactional
     public OtpGenerationResult generateForPasswordReset(String email) {
         Customer customer = customerService.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Khong tim thay tai khoan voi email nay."));
+                .orElseThrow(() -> new IllegalArgumentException("No account found with this email."));
 
         if (customer.getEmailStatus() != EmailStatus.VERIFIED) {
-            throw new IllegalArgumentException("Ban can xac thuc email truoc khi dat lai mat khau.");
+            throw new IllegalArgumentException("You need to verify your email before resetting your password.");
         }
 
         boolean hasPassword = customer.getLinkedAccounts() != null

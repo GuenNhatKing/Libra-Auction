@@ -76,36 +76,36 @@ public class AuctionWebSocketController {
 
             // Validate bidderId is provided
             if (bidMessage.bidderId() == null || bidMessage.bidderId().isBlank()) {
-                sendErrorNotification(bidMessage.auctionId(), "Bạn cần đăng nhập để đặt giá.");
+                sendErrorNotification(bidMessage.auctionId(), "You need to sign in to place a bid.");
                 return;
             }
 
             // Validate auction is active
             if (auction.getAuctionStatus().equals(AuctionStatus.PAUSED)) {
-                sendErrorNotification(bidMessage.auctionId(), "Phiên đấu giá đang tạm dừng. Không thể đặt giá lúc này.");
+                sendErrorNotification(bidMessage.auctionId(), "The auction is currently paused. Bidding is not available at this time.");
                 return;
             }
 
             if (!auction.getAuctionStatus().equals(AuctionStatus.LIVE)) {
-                sendErrorNotification(bidMessage.auctionId(), "Phiên đấu giá chưa bắt đầu hoặc đã kết thúc.");
+                sendErrorNotification(bidMessage.auctionId(), "The auction has not started or has already ended.");
                 return;
             }
 
             // Validate bidder is not the auction creator
             if (auction.getCreator() != null && auction.getCreator().getId().equals(bidMessage.bidderId())) {
-                sendErrorNotification(bidMessage.auctionId(), "Người tạo phiên đấu giá không thể đặt giá.");
+                sendErrorNotification(bidMessage.auctionId(), "The auction creator cannot place bids.");
                 return;
             }
 
             Customer bidder = customerRepository.findById(bidMessage.bidderId()).orElse(null);
             if (bidder == null) {
-                sendErrorNotification(bidMessage.auctionId(), "Không tìm thấy người đặt giá.");
+                sendErrorNotification(bidMessage.auctionId(), "Bidder not found.");
                 return;
             }
 
             // Validate bidder is not the administrator
             if (bidder.getRole() != null && bidder.getRole().getName().equalsIgnoreCase("ADMIN")) {
-                sendErrorNotification(bidMessage.auctionId(), "Quản trị viên không thể đặt giá.");
+                sendErrorNotification(bidMessage.auctionId(), "Admins cannot place bids.");
                 return;
             }
 
@@ -114,7 +114,7 @@ public class AuctionWebSocketController {
                     .findByParticipantIdAndAuctionId(bidMessage.bidderId(), bidMessage.auctionId())
                     .isPresent();
             if (!isRegistered) {
-                sendErrorNotification(bidMessage.auctionId(), "Bạn chưa đăng ký tham gia phiên đấu giá này.");
+                sendErrorNotification(bidMessage.auctionId(), "You have not registered for this auction.");
                 return;
             }
 
@@ -125,7 +125,7 @@ public class AuctionWebSocketController {
                             TransactionStatus.SUCCESS)
                     .isPresent();
             if (!isRegistrationCompleted) {
-                sendErrorNotification(bidMessage.auctionId(), "Bạn chưa hoàn tất thanh toán đặt cọc để tham gia phiên đấu giá này.");
+                sendErrorNotification(bidMessage.auctionId(), "You have not completed the deposit payment to participate in this auction.");
                 return;
             }
 

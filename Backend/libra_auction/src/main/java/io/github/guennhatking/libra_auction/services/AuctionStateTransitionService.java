@@ -308,7 +308,7 @@ public class AuctionStateTransitionService {
             Auction auction = auctionOpt.get();
 
             if (auction.getAuctionStatus() != AuctionStatus.UPCOMING) {
-                throw new IllegalStateException("Chỉ có thể hủy phiên đấu giá chưa bắt đầu. Trạng thái hiện tại: " + auction.getAuctionStatus());
+                throw new IllegalStateException("Can only cancel auctions that have not started. Current status: " + auction.getAuctionStatus());
             }
 
             // Set product back to AVAILABLE

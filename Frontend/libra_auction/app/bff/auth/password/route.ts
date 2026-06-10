@@ -17,30 +17,32 @@ export async function POST(request: NextRequest) {
             })
         }
         const res = await ServerAPICall<JWTResponse>("/auth/signin", req);
-        if (res.isSuccess && res.data) {
-            const jwtToken = res.data.token;
-            const refreshToken = res.data.refreshToken;
-            const cookieStore = await cookies();
-            cookieStore.set({
-                name: 'jwtToken',
-                value: jwtToken,
-                httpOnly: true,
-                secure: true,
-                maxAge: res.data.accessTokenExpiration
-            });
-            cookieStore.set({
-                name: 'refreshToken',
-                value: refreshToken,
-                httpOnly: true,
-                secure: true,
-                maxAge: res.data.refreshTokenExpiration
-            })
-            return NextResponse.json({ message: "Sign in successful" }, { status: 200 })
+        if (!res.isSuccess || !res.data) {
+            const status = res.status || 401;
+            const message = res.errorMessage || "Invalid username or password";
+            return NextResponse.json({ message }, { status });
         }
-        throw new Error(res.errorMessage || "Failed to sign in");
+        const jwtToken = res.data.token;
+        const refreshToken = res.data.refreshToken;
+        const cookieStore = await cookies();
+        cookieStore.set({
+            name: 'jwtToken',
+            value: jwtToken,
+            httpOnly: true,
+            secure: true,
+            maxAge: res.data.accessTokenExpiration
+        });
+        cookieStore.set({
+            name: 'refreshToken',
+            value: refreshToken,
+            httpOnly: true,
+            secure: true,
+            maxAge: res.data.refreshTokenExpiration
+        })
+        return NextResponse.json({ message: "Sign in successful" }, { status: 200 })
     }
     catch (e) {
         console.error(e)
-        return NextResponse.json({ message: "Intenal server error" }, { status: 500 });
+        return NextResponse.json({ message: "Unable to connect to server. Please try again later." }, { status: 503 });
     }
 }

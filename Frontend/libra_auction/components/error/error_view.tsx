@@ -1,11 +1,16 @@
 import Link from "next/link";
 
 const STATUS_DESCRIPTIONS: Record<number, string> = {
+  400: "The request was invalid. Please check your input and try again.",
   401: "Please sign in to continue using this feature.",
   403: "Your account does not have permission to perform this action or access this page.",
   404: "The page or data you requested does not exist or has been moved.",
+  408: "The request took too long to complete. Please try again.",
+  409: "There was a conflict with the current state. Please refresh and try again.",
+  422: "The data provided was invalid. Please check your input and try again.",
+  429: "Too many requests. Please wait a moment and try again.",
   500: "The system is experiencing an issue. Please try again later.",
-  503: "Frontend could not connect to backend. Please check the server.",
+  503: "Unable to connect to the server. Please check your connection and try again.",
 };
 
 type ErrorViewProps = {

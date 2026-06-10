@@ -86,6 +86,6 @@ public class CustomerController {
             @AuthenticationPrincipal JwtUserDetails principal,
             @Valid @RequestBody ChangePasswordRequest request) {
         userService.changePassword(principal.getUserId(), request.currentPassword(), request.newPassword());
-        return ResponseEntity.ok(ServerAPIResponse.success("Đổi mật khẩu thành công."));
+        return ResponseEntity.ok(ServerAPIResponse.success("Password changed successfully."));
     }
 }

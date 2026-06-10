@@ -1,9 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import cross from "@/public/cross.png";
 import Image from "next/image";
 
 function AuthFailed() {
+  const searchParams = useSearchParams();
+  const error = searchParams.get("error");
   const timeout = 3;
   const [seconds, setSeconds] = useState(timeout);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -19,7 +22,7 @@ function AuthFailed() {
   useEffect(() => {
     const handleUnload = () => {
       if (window.opener) {
-        window.opener.postMessage({ type: "AUTH_FAILD" });
+        window.opener.postMessage({ type: "AUTH_FAILED", error });
       }
     };
 
@@ -31,7 +34,7 @@ function AuthFailed() {
             if (intervalRef.current) {
               clearInterval(intervalRef.current);
             }
-            window.opener.postMessage({ type: "AUTH_FAILD" });
+            window.opener.postMessage({ type: "AUTH_FAILED", error });
             window.close();
             return 0;
           }
@@ -46,7 +49,7 @@ function AuthFailed() {
         }
       };
     }
-  }, []);
+  }, [error]);
 
   return (
     <div className="h-screen flex flex-col">
@@ -56,6 +59,11 @@ function AuthFailed() {
           <div className="text-center mt-8 mb-5 text-red-600 text-4xl font-bold">
             FAILED
           </div>
+          {error && (
+            <div className="text-lg text-red-500 mb-2 max-w-md text-center">
+              {error}
+            </div>
+          )}
           <div className="text-2xl">
             The window will close in {seconds} seconds
           </div>

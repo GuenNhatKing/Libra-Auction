@@ -22,9 +22,12 @@ export async function ServerAPICall<T>(path: string, request: RequestInit): Prom
             }
         }
         const data = await res.json();
+        // Backend returns "message" in error responses, but frontend expects "errorMessage"
+        const errorMessage = data.errorMessage || data.message || undefined;
         return {
             ...data,
-            status: res.status
+            status: res.status,
+            errorMessage,
         } as ServerAPIResponse<T>;
     }
     catch {

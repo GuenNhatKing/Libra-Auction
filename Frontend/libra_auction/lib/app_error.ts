@@ -46,9 +46,14 @@ export function getErrorMessage(
 }
 
 export function getErrorTitle(status: number) {
+  if (status === 400) return "Bad request";
   if (status === 401) return "Authentication required";
   if (status === 403) return "Access denied";
   if (status === 404) return "Content not found";
+  if (status === 408) return "Request timeout";
+  if (status === 409) return "Conflict";
+  if (status === 422) return "Invalid data";
+  if (status === 429) return "Too many requests";
   if (status === 503) return "Unable to connect to server";
   return "An error occurred";
 }

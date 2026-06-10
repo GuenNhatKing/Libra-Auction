@@ -78,16 +78,16 @@ public class VNPayService {
             HttpServletRequest servletRequest) {
 
         Customer user = customerRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Nguoi dung khong ton tai"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         AuctionParticipationInfo participationInfo = participationInfoRepository
                 .findByParticipantIdAndAuctionId(userId, request.auctionId())
-                .orElseThrow(() -> new RuntimeException("Thong tin tham gia khong ton tai"));
+                .orElseThrow(() -> new RuntimeException("Participation info not found"));
 
         Auction auction = auctionRepository.findByIdAndDeletedFalse(request.auctionId())
-                .orElseThrow(() -> new RuntimeException("Phien dau gia khong ton tai"));
+                .orElseThrow(() -> new RuntimeException("Auction not found"));
         if (isDepositNotAllowed(auction)) {
-            throw new RuntimeException("Phien dau gia khong con trong trang thai cho phep thanh toan dat coc");
+            throw new RuntimeException("Auction is no longer in a status that allows deposit payment");
         }
 
         DepositTransaction deposit = new DepositTransaction(auction.getDepositAmount(),
@@ -157,14 +157,14 @@ public class VNPayService {
     public VNPayPaymentResponse createPayment(VNPayPaymentRequest request, String userId,
             HttpServletRequest servletRequest) {
         Customer user = customerRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Nguoi dung khong ton tai"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         Auction auction = auctionRepository.findByIdAndDeletedFalse(request.auctionId())
-                .orElseThrow(() -> new RuntimeException("Phien dau gia khong ton tai"));
+                .orElseThrow(() -> new RuntimeException("Auction not found"));
 
         AuctionResult auctionResult = auction.getAuctionResult();
         if (auctionResult == null || !auctionResult.getWinner().getId().equals(userId)) {
-            throw new RuntimeException("Nguoi dung khong phai la nguoi thang cuoc cua phien dau gia nay");
+            throw new RuntimeException("User is not the winner of this auction");
         }
 
         Customer seller = auction.getCreator();
@@ -271,18 +271,18 @@ public class VNPayService {
         String signValue = VNPayUtil.hmacSHA512(vnPayProperties.getHashSecret(), hashData.toString());
         // So sanh hash tu VNPAY va hash minh tu tinh
         if (!signValue.equalsIgnoreCase(request.vnp_SecureHash())) {
-            throw new RuntimeException("Chu ky khong hop le (Invalid Checksum)");
+            throw new RuntimeException("Invalid checksum");
         }
 
-        // 3. Tim giao dich dat coc trong DB
+        // 3. Find deposit transaction in DB
         DepositTransaction deposit = depositTransactionRepository.findById(request.vnp_TxnRef())
-                .orElseThrow(() -> new RuntimeException("Khong tim thay giao dich dat coc"));
+                .orElseThrow(() -> new RuntimeException("Deposit transaction not found"));
 
-        // 4. Kiem tra so tien
+        // 4. Verify amount
         long vnpAmount = request.getActualAmount();
         long dbAmount = deposit.getAmount();
         if (vnpAmount != dbAmount) {
-            throw new RuntimeException("So tien thanh toan khong khop");
+            throw new RuntimeException("Payment amount does not match");
         }
 
         // 5. Kiem tra trang thai giao dich
@@ -348,18 +348,18 @@ public class VNPayService {
         String signValue = VNPayUtil.hmacSHA512(vnPayProperties.getHashSecret(), hashData.toString());
         // So sanh hash tu VNPAY va hash minh tu tinh
         if (!signValue.equalsIgnoreCase(request.vnp_SecureHash())) {
-            throw new RuntimeException("Chu ky khong hop le (Invalid Checksum)");
+            throw new RuntimeException("Invalid checksum");
         }
 
-        // 3. Tim giao dich thanh toan trong DB
+        // 3. Find payment transaction in DB
         PaymentTransaction payment = paymentTransactionRepository.findById(request.vnp_TxnRef())
-                .orElseThrow(() -> new RuntimeException("Khong tim thay giao dich thanh toan"));
+                .orElseThrow(() -> new RuntimeException("Payment transaction not found"));
 
-        // 4. Kiem tra so tien
+        // 4. Verify amount
         long vnpAmount = request.getActualAmount();
         long dbAmount = payment.getAmount();
         if (vnpAmount != dbAmount) {
-            throw new RuntimeException("So tien thanh toan khong khop");
+            throw new RuntimeException("Payment amount does not match");
         }
 
         // 5. Kiem tra trang thai giao dich
@@ -390,21 +390,21 @@ public class VNPayService {
                 .map(t -> (Transaction) t)
                 .orElseGet(() -> paymentTransactionRepository.findById(transactionId)
                         .map(t -> (Transaction) t)
-                        .orElseThrow(() -> new RuntimeException("Khong tim thay giao dich")));
+                        .orElseThrow(() -> new RuntimeException("Transaction not found")));
 
         String description = "";
         String details = "";
 
         if (transaction.getTransactionType() == null) {
-            throw new RuntimeException("Giao dich khong hop le");
+            throw new RuntimeException("Invalid transaction");
         } else if (transaction.getTransactionType().equals(TransactionType.DEPOSIT)) {
             if (!(transaction instanceof DepositTransaction)) {
-                throw new RuntimeException("Giao dich dat coc khong hop le");
+                throw new RuntimeException("Invalid deposit transaction");
             }
-            description = "Dat coc dau gia";
+            description = "Auction deposit";
             DepositTransaction deposit = (DepositTransaction) transaction;
             AuctionParticipationInfo info = deposit.getParticipationInfo();
-            details = "Phien dau gia: " + info.getAuction().getId() + ", San pham: "
+            details = "Auction: " + info.getAuction().getId() + ", Product: "
                     + info.getAuction().getProduct().getName();
         } else if (transaction.getTransactionType().equals(TransactionType.PAYMENT)) {
             if (!(transaction instanceof PaymentTransaction)) {
@@ -412,7 +412,7 @@ public class VNPayService {
             }
             description = "Auction payment";
             PaymentTransaction payment = (PaymentTransaction) transaction;
-            details = "Phien dau gia: " + payment.getAuctionResult().getAuction().getId() + ", San pham: "
+            details = "Auction: " + payment.getAuctionResult().getAuction().getId() + ", Product: "
                     + payment.getAuctionResult().getAuction().getProduct().getName();
         }
 
@@ -515,11 +515,11 @@ public class VNPayService {
 
         if (transaction.getTransactionType() == TransactionType.DEPOSIT) {
             if (!(transaction instanceof DepositTransaction deposit)) {
-                throw new RuntimeException("Giao dich dat coc khong hop le");
+                throw new RuntimeException("Invalid deposit transaction");
             }
-            description = "Dat coc dau gia";
+            description = "Auction deposit";
             AuctionParticipationInfo info = deposit.getParticipationInfo();
-            details = "Phien dau gia: " + info.getAuction().getId() + ", San pham: "
+            details = "Auction: " + info.getAuction().getId() + ", Product: "
                     + info.getAuction().getProduct().getName();
         } else if (transaction.getTransactionType() == TransactionType.PAYMENT) {
             if (!(transaction instanceof PaymentTransaction payment)) {

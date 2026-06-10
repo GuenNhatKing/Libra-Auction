@@ -17,6 +17,7 @@ import io.github.guennhatking.libra_auction.viewmodels.request.SignupRequest;
 import io.github.guennhatking.libra_auction.viewmodels.response.JwtResponse;
 import io.github.guennhatking.libra_auction.viewmodels.response.ServerAPIResponse;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,27 +45,59 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<ServerAPIResponse<JwtResponse>> signup(@Valid @RequestBody SignupRequest request) throws Exception {
-        JwtResponse response = authenticationService.signup(request);
-        return ResponseEntity.ok(ServerAPIResponse.success(response));
+    public ResponseEntity<ServerAPIResponse<JwtResponse>> signup(@Valid @RequestBody SignupRequest request) {
+        try {
+            JwtResponse response = authenticationService.signup(request);
+            return ResponseEntity.ok(ServerAPIResponse.success(response));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ServerAPIResponse.error("An unexpected error occurred. Please try again later."));
+        }
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<ServerAPIResponse<JwtResponse>> signin(@Valid @RequestBody SigninRequest request) throws Exception {
-        JwtResponse response = authenticationService.signin(request);
-        return ResponseEntity.ok(ServerAPIResponse.success(response));
+    public ResponseEntity<ServerAPIResponse<JwtResponse>> signin(@Valid @RequestBody SigninRequest request) {
+        try {
+            JwtResponse response = authenticationService.signin(request);
+            return ResponseEntity.ok(ServerAPIResponse.success(response));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ServerAPIResponse.error("An unexpected error occurred. Please try again later."));
+        }
     }
 
     @PostMapping("/google")
-    public ResponseEntity<ServerAPIResponse<JwtResponse>> googleLogin(@Valid @RequestBody GoogleLoginRequest request) throws Exception {
-        JwtResponse response = authenticationService.googleLogin(request);
-        return ResponseEntity.ok(ServerAPIResponse.success(response));
+    public ResponseEntity<ServerAPIResponse<JwtResponse>> googleLogin(@Valid @RequestBody GoogleLoginRequest request) {
+        try {
+            JwtResponse response = authenticationService.googleLogin(request);
+            return ResponseEntity.ok(ServerAPIResponse.success(response));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ServerAPIResponse.error("An unexpected error occurred. Please try again later."));
+        }
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ServerAPIResponse<JwtResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) throws Exception {
-        JwtResponse response = authenticationService.refreshToken(request);
-        return ResponseEntity.ok(ServerAPIResponse.success(response));
+    public ResponseEntity<ServerAPIResponse<JwtResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        try {
+            JwtResponse response = authenticationService.refreshToken(request);
+            return ResponseEntity.ok(ServerAPIResponse.success(response));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ServerAPIResponse.error("An unexpected error occurred. Please try again later."));
+        }
     }
 
     // ==================== Email Verification Flow ====================
@@ -72,25 +105,49 @@ public class AuthController {
     @PostMapping("/email/send-verification")
     public ResponseEntity<ServerAPIResponse<String>> sendEmailVerification(
             @Valid @RequestBody SendEmailVerificationRequest request) {
-        OtpService.OtpGenerationResult result = otpService.generateForEmailVerification(request.email());
-        emailNotificationService.sendEmailVerificationOtp(request.email(), result.otp());
-        return ResponseEntity.ok(ServerAPIResponse.success(result.parentToken()));
+        try {
+            OtpService.OtpGenerationResult result = otpService.generateForEmailVerification(request.email());
+            emailNotificationService.sendEmailVerificationOtp(request.email(), result.otp());
+            return ResponseEntity.ok(ServerAPIResponse.success(result.parentToken()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        }
     }
 
     @PostMapping("/otp/activate/{token}")
     public ResponseEntity<ServerAPIResponse<String>> activateOtp(
             @PathVariable String token,
             @Valid @RequestBody ActivateOtpRequest request) {
-        otpService.activateOtpByParentToken(token, request.otp());
-        return ResponseEntity.ok(ServerAPIResponse.success("OTP đã được kích hoạt."));
+        try {
+            otpService.activateOtpByParentToken(token, request.otp());
+            return ResponseEntity.ok(ServerAPIResponse.success("OTP activated successfully."));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        }
     }
 
     @PostMapping("/email/verify/{token}")
     public ResponseEntity<ServerAPIResponse<String>> verifyEmail(@PathVariable String token) {
-        EmailVerificationRequest emailRequest = otpService.findEmailVerificationByToken(token);
-        customerService.markEmailVerified(emailRequest.getCustomer().getEmail());
-        otpService.markParentAsUsed(emailRequest);
-        return ResponseEntity.ok(ServerAPIResponse.success("Xác thực email thành công."));
+        try {
+            EmailVerificationRequest emailRequest = otpService.findEmailVerificationByToken(token);
+            customerService.markEmailVerified(emailRequest.getCustomer().getEmail());
+            otpService.markParentAsUsed(emailRequest);
+            return ResponseEntity.ok(ServerAPIResponse.success("Email verified successfully."));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        }
     }
 
     // ==================== Password Reset Flow ====================
@@ -98,18 +155,34 @@ public class AuthController {
     @PostMapping("/password/forgot")
     public ResponseEntity<ServerAPIResponse<String>> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequest request) {
-        OtpService.OtpGenerationResult result = otpService.generateForPasswordReset(request.email());
-        emailNotificationService.sendPasswordResetOtp(request.email(), result.otp());
-        return ResponseEntity.ok(ServerAPIResponse.success(result.parentToken()));
+        try {
+            OtpService.OtpGenerationResult result = otpService.generateForPasswordReset(request.email());
+            emailNotificationService.sendPasswordResetOtp(request.email(), result.otp());
+            return ResponseEntity.ok(ServerAPIResponse.success(result.parentToken()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        }
     }
 
     @PostMapping("/password/reset/{token}")
     public ResponseEntity<ServerAPIResponse<String>> resetPassword(
             @PathVariable String token,
             @Valid @RequestBody ResetPasswordRequest request) {
-        PasswordResetRequest passwordRequest = otpService.findPasswordResetByToken(token);
-        customerService.resetPassword(passwordRequest.getCustomer().getEmail(), request.newPassword());
-        otpService.markParentAsUsed(passwordRequest);
-        return ResponseEntity.ok(ServerAPIResponse.success("Đặt lại mật khẩu thành công."));
+        try {
+            PasswordResetRequest passwordRequest = otpService.findPasswordResetByToken(token);
+            customerService.resetPassword(passwordRequest.getCustomer().getEmail(), request.newPassword());
+            otpService.markParentAsUsed(passwordRequest);
+            return ResponseEntity.ok(ServerAPIResponse.success("Password reset successfully."));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        }
     }
 }

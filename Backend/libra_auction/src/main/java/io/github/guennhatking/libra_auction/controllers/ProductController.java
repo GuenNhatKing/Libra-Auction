@@ -3,6 +3,7 @@ package io.github.guennhatking.libra_auction.controllers;
 import io.github.guennhatking.libra_auction.services.ProductService;
 import io.github.guennhatking.libra_auction.services.ProductSearchService;
 import io.github.guennhatking.libra_auction.services.AuctionService;
+import org.springframework.security.access.AccessDeniedException;
 import io.github.guennhatking.libra_auction.viewmodels.request.ProductCreateRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.ProductUpdateRequest;
 import io.github.guennhatking.libra_auction.viewmodels.request.ProductSearchRequest;
@@ -120,10 +121,20 @@ public class ProductController {
                     .body(ServerAPIResponse.error("Authentication required"));
         }
 
-        String userId = userDetails.getUserId();
-        ProductResponse response = productService.updateProduct(id, request, userId);
-
-        return ResponseEntity.ok(ServerAPIResponse.success(response));
+        try {
+            String userId = userDetails.getUserId();
+            ProductResponse response = productService.updateProduct(id, request, userId);
+            return ResponseEntity.ok(ServerAPIResponse.success(response));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        }
     }
 
     @DeleteMapping("/products/{id}")
@@ -136,10 +147,19 @@ public class ProductController {
                     .body(ServerAPIResponse.error("Authentication required"));
         }
 
-        String userId = userDetails.getUserId();
-
-        productService.deleteProduct(id, userId);
-
-        return ResponseEntity.ok(ServerAPIResponse.success(null));
+        try {
+            String userId = userDetails.getUserId();
+            productService.deleteProduct(id, userId);
+            return ResponseEntity.ok(ServerAPIResponse.success(null));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ServerAPIResponse.error(e.getMessage()));
+        }
     }
 }
