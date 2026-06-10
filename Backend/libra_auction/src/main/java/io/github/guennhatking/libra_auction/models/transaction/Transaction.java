@@ -29,7 +29,7 @@ public class Transaction {
     private OffsetDateTime createdAt;
 
     @Enumerated(EnumType.STRING)
-    private TransactionStatus transactionStatus = TransactionStatus.PROCESSING;
+    protected TransactionStatus transactionStatus = TransactionStatus.PROCESSING;
 
     private String partnerTransactionId;
 
