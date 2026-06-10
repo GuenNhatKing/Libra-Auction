@@ -35,9 +35,9 @@ export const ProductItem = ({ product, onView, onEdit, onDelete }: ProductItemPr
               </span>
             )}
 
-            {product.status === "UPCOMING" && (
+            {product.status === "IN_USE" && (
               <span className="text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-lg">
-                Upcoming Auction
+                In Auction
               </span>
             )}
 

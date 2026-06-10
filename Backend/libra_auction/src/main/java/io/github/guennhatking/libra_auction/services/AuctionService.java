@@ -232,10 +232,10 @@ public class AuctionService {
                 }
                 Auction saved = auctionRepository.save(session);
 
-                // Mark product as UPCOMING — approved and scheduled
+                // Mark product as IN_USE — approved and scheduled
                 Product product = saved.getProduct();
                 if (product != null) {
-                        product.setStatus(ProductStatus.UPCOMING);
+                        product.setStatus(ProductStatus.IN_USE);
                         productRepository.save(product);
                 }
 
