@@ -29,6 +29,18 @@ export const ProductItem = ({ product, onView, onEdit, onDelete }: ProductItemPr
               </span>
             )}
 
+            {product.status === "PENDING" && (
+              <span className="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-lg">
+                Pending Approval
+              </span>
+            )}
+
+            {product.status === "UPCOMING" && (
+              <span className="text-xs font-medium text-blue-700 bg-blue-100 px-2 py-0.5 rounded-lg">
+                Upcoming Auction
+              </span>
+            )}
+
             <span className="text-sm text-gray-500 ml-1">
               Quantity: <b className="text-gray-900">{product.quantity}</b>
             </span>

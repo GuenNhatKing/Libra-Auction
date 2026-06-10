@@ -1,4 +1,5 @@
 import { Attribute } from "./attribute";
+import { ProductStatus } from "../status";
 
 export interface Product {
   product_id: string;
@@ -7,7 +8,7 @@ export interface Product {
   category_name: string;
   quantity: number;
   description: string;
-  status?: string;
+  status?: ProductStatus;
   images: string[];
   attributes: Attribute[];
 }

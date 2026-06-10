@@ -153,6 +153,10 @@ public class AuctionService {
 
                 Auction savedSession = auctionRepository.save(session);
 
+                // Mark product as PENDING — no longer available for editing/deleting
+                product.setStatus(ProductStatus.PENDING);
+                productRepository.save(product);
+
                 return auctionMapper.toAuctionResponse(savedSession);
         }
 
@@ -186,6 +190,13 @@ public class AuctionService {
                 auctionStateRedisService.removeAuctionStartEvent(id);
                 auctionStateRedisService.removeAuctionEndEvent(id);
                 auctionRepository.save(session);
+
+                // Restore product to AVAILABLE — auction cancelled by seller
+                Product product = session.getProduct();
+                if (product != null) {
+                        product.setStatus(ProductStatus.AVAILABLE);
+                        productRepository.save(product);
+                }
         }
 
         @Transactional
@@ -221,6 +232,13 @@ public class AuctionService {
                 }
                 Auction saved = auctionRepository.save(session);
 
+                // Mark product as UPCOMING — approved and scheduled
+                Product product = saved.getProduct();
+                if (product != null) {
+                        product.setStatus(ProductStatus.UPCOMING);
+                        productRepository.save(product);
+                }
+
                 // Register the auction in Redis for automatic start/end scheduling
                 if (saved.getStartTime() != null) {
                         auctionStateRedisService.addAuctionStartEvent(saved.getId(), saved.getStartTime());
@@ -255,6 +273,13 @@ public class AuctionService {
 
                 session.setApprovalStatus(ApprovalStatus.REJECTED);
                 Auction saved = auctionRepository.save(session);
+
+                // Restore product to AVAILABLE — auction rejected
+                Product product = saved.getProduct();
+                if (product != null) {
+                        product.setStatus(ProductStatus.AVAILABLE);
+                        productRepository.save(product);
+                }
 
                 // Clean up Redis scheduling when rejecting
                 auctionStateRedisService.removeAuctionStartEvent(id);
