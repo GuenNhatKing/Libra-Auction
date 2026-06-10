@@ -12,7 +12,7 @@ export default async function LiveAuctionsSection() {
         <p>Join Live Auctions Happening Right Now</p>
       </div>
       <div className="grid grid-cols-1 gap-9 pt-6 px-18 md:grid-cols-2 xl:grid-cols-3 items-stretch">
-        {cards.map((card) => {
+        {cards.slice(0, 3).map((card) => {
           return <LiveAuctionCard key={card.id} card={card}/>;
         })}
       </div>
