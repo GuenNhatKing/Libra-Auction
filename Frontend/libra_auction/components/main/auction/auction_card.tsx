@@ -29,6 +29,11 @@ function toTimestamp(value: Date | string | number | undefined) {
 export default function AuctionCard({ auctionCard }: { auctionCard: Auction }) {
     const router = useRouter();
     const [now, setNow] = useState(() => Date.now());
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const status = auctionStatusConfig[auctionCard.auction_status] ?? { label: 'Unknown', classes: 'bg-gray-50 text-gray-500 border-gray-100' };
 
@@ -68,11 +73,16 @@ export default function AuctionCard({ auctionCard }: { auctionCard: Auction }) {
         : explicitEndTime;
 
     // Auto-transition to LIVE when startTime has passed but server hasn't updated yet
-    const isLive = auctionCard.auction_status === "LIVE" || now >= startTime;
+    // Only use Date.now() after hydration to avoid server/client mismatch
+    const isLive = mounted
+        ? (auctionCard.auction_status === "LIVE" || now >= startTime)
+        : auctionCard.auction_status === "LIVE";
     const countdownLabel = isLive ? "Ends in" : "Starts in";
-    const countdownValue = isLive
-        ? formatCountdown(auctionEndTime, now)
-        : formatCountdown(startTime, now);
+    const countdownValue = mounted
+        ? (isLive
+            ? formatCountdown(auctionEndTime, now)
+            : formatCountdown(startTime, now))
+        : "--:--:--";
     const primaryStatLabel = isLive ? "Current price" : "Starting price";
     const primaryStatValue = isLive
         ? formatCurrency(auctionCard.current_price)
