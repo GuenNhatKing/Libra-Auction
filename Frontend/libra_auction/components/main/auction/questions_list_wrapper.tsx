@@ -12,9 +12,11 @@ interface QuestionsListWrapperProps {
   initialQuestions: AuctionQuestion[];
   isAuthenticated: boolean;
   currentUserId: string | null;
+  isCreator: boolean;
+  isAdmin: boolean;
 }
 
-export default function QuestionsListWrapper({ auctionId, initialQuestions, isAuthenticated, currentUserId }: QuestionsListWrapperProps) {
+export default function QuestionsListWrapper({ auctionId, initialQuestions, isAuthenticated, currentUserId, isCreator, isAdmin }: QuestionsListWrapperProps) {
   const [questions, setQuestions] = useState(initialQuestions);
 
   const refreshQuestions = async () => {
@@ -40,7 +42,7 @@ export default function QuestionsListWrapper({ auctionId, initialQuestions, isAu
 
   return (
     <>
-      {isAuthenticated && <AskQuestionForm auctionId={auctionId} onQuestionSubmitted={refreshQuestions} />}
+      {isAuthenticated && !isCreator && !isAdmin && <AskQuestionForm auctionId={auctionId} onQuestionSubmitted={refreshQuestions} />}
 
       {visibleQuestions.length > 0 ? (
         <div className="space-y-5">

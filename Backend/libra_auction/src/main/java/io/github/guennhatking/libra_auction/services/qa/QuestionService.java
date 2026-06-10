@@ -48,8 +48,17 @@ public class QuestionService {
                 throw new RuntimeException("Q&A is only available before the auction starts");
         }
 
+        // Block seller from asking questions on their own auction
+        if (auction.getCreator() != null && auction.getCreator().getId().equals(userId)) {
+                throw new RuntimeException("Sellers cannot ask questions on their own auction");
+        }
+
+        // Block admin from asking questions
         Customer questioner = customerRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+        if (questioner.getRole() != null && "ADMIN".equalsIgnoreCase(questioner.getRole().getName())) {
+                throw new RuntimeException("Admins cannot ask questions on auctions");
+        }
 
         Question question = new Question(auction, questioner, content);
         question.setQuestionStatus(QuestionStatus.UNANSWERED);

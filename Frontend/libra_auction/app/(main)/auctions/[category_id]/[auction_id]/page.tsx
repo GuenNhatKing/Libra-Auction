@@ -8,6 +8,8 @@ import { notFound } from "next/navigation";
 import AuctionInfoSection from "@/components/main/auction/auction_info_section";
 import { isAuthenticated } from "@/lib/is_authenticated";
 import { getCurrentUserId } from "@/lib/get_current_user_id";
+import { getIdFromToken } from "@/lib/get_id_from_token";
+import { fetchUserInfo } from "@/services/fetch_user_info";
 
 export default async function page(props: {
   params: Promise<{ category_id: string; auction_id: string }>;
@@ -34,12 +36,35 @@ export default async function page(props: {
   });
   const authenticated = await isAuthenticated();
   const userId = authenticated ? await getCurrentUserId() : null;
+
+  let isCreator = false;
+  let isAdmin = false;
+  if (authenticated && userId) {
+    if (auction_info.creator_id && auction_info.creator_id === userId) {
+      isCreator = true;
+    }
+    try {
+      const userInfo = await fetchUserInfo(userId);
+      if (userInfo.role?.name?.toUpperCase() === "ADMIN") {
+        isAdmin = true;
+      }
+    } catch {
+      // ignore - user info fetch failed
+    }
+  }
+
   return (
     <>
       <BreadCrumb breadcrumbItems={breadcrumb_items} />
       <AuctionInfoSection autionInfos={auction_info} />
       <AuctionInfoDetailsSection autionInfos={auction_info} />
-      <AuctionQuestionsSection auctionId={auction_info.auction_id} isAuthenticated={authenticated} currentUserId={userId} />
+      <AuctionQuestionsSection
+        auctionId={auction_info.auction_id}
+        isAuthenticated={authenticated}
+        currentUserId={userId}
+        isCreator={isCreator}
+        isAdmin={isAdmin}
+      />
     </>
   );
 }
