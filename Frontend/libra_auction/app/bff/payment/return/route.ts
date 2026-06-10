@@ -4,6 +4,7 @@ import { ServerAPIAuthedCall } from "@/lib/server_API_authed_call";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
+    console.log(req.url);
     const jwtTokenInfo = await getJWTTokenInfo();
     if (!jwtTokenInfo.token) {
         return NextResponse.redirect(new URL("/sign-in", req.url));
