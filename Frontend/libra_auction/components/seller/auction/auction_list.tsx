@@ -5,7 +5,6 @@ import { Auction } from "@/types/auction/auction";
 import { AuctionFilters, AuctionFilterFields, defaultAuctionFilters } from "./auction_filters";
 import { AuctionItem } from "./auction_item";
 import { useRouter } from "next/navigation";
-import { deleteAuction } from "@/services/delete_auction";
 import { Pagination, PaginationInfo } from "@/components/ui/pagination";
 
 const PAGE_SIZE = 20;
@@ -16,18 +15,11 @@ interface AuctionListProps {
 
 export const AuctionList = ({ auctions }: AuctionListProps) => {
   const [filters, setFilters] = useState<AuctionFilterFields>(defaultAuctionFilters);
-  const [cancelledIds, setCancelledIds] = useState<Set<string>>(new Set());
-  const [cancelingId, setCancelingId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
 
-  const visibleAuctions = useMemo(
-    () => auctions.filter((a) => !cancelledIds.has(a.auction_id)),
-    [auctions, cancelledIds]
-  );
-
   const categoryOptions = useMemo(
-    () => Array.from(new Set(visibleAuctions.map((a) => a.category_name).filter(Boolean))).sort(),
-    [visibleAuctions]
+    () => Array.from(new Set(auctions.map((a) => a.category_name).filter(Boolean))).sort(),
+    [auctions]
   );
 
   const filteredAuctions = useMemo(() => {
@@ -37,7 +29,7 @@ export const AuctionList = ({ auctions }: AuctionListProps) => {
     const startFrom = filters.startTimeFrom ? new Date(filters.startTimeFrom).getTime() : null;
     const startTo = filters.startTimeTo ? new Date(filters.startTimeTo).getTime() : null;
 
-    return visibleAuctions.filter((auction) => {
+    return auctions.filter((auction) => {
       const auctionStartTime = new Date(auction.start_time).getTime();
 
       return (
@@ -51,7 +43,7 @@ export const AuctionList = ({ auctions }: AuctionListProps) => {
         (startTo === null || auctionStartTime <= startTo)
       );
     });
-  }, [visibleAuctions, filters]);
+  }, [auctions, filters]);
 
   useEffect(() => { setCurrentPage(0); }, [filters]);
 
@@ -62,20 +54,6 @@ export const AuctionList = ({ auctions }: AuctionListProps) => {
   );
 
   const router = useRouter();
-
-  const handleCancel = async (auctionId: string) => {
-    if (!window.confirm("Cancel this pending auction?")) {
-      return;
-    }
-
-    setCancelingId(auctionId);
-    try {
-      await deleteAuction(auctionId);
-      setCancelledIds((prev) => new Set(prev).add(auctionId));
-    } finally {
-      setCancelingId(null);
-    }
-  };
 
   return (
     <div className="w-full space-y-4">
@@ -103,8 +81,6 @@ export const AuctionList = ({ auctions }: AuctionListProps) => {
               key={auction.auction_id}
               auction={auction}
               onView={(id) => router.push(`/seller-dashboard/auctions/${id}`)}
-              onCancel={handleCancel}
-              isCanceling={cancelingId === auction.auction_id}
             />
           ))
         ) : (
