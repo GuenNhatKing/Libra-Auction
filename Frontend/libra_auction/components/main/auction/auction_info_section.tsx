@@ -24,18 +24,21 @@ export default function AuctionInfoSection({
   autionInfos: Auction
 }) {
   const [activeImage, setActiveImage] = useState(autionInfos.images[0]);
-  const [timeLeft, setTimeLeft] = useState(() => {
+  const [mounted, setMounted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    setMounted(true);
     const difference = new Date(autionInfos.start_time).getTime() - Date.now();
     if (difference > 0) {
-      return {
+      setTimeLeft({
         days: Math.floor(difference / (1000 * 60 * 60 * 24)),
         hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
         minutes: Math.floor((difference / 1000 / 60) % 60),
         seconds: Math.floor((difference / 1000) % 60),
-      };
+      });
     }
-    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
-  });
+  }, [autionInfos.start_time]);
   const [isRegistered, setIsRegistered] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);

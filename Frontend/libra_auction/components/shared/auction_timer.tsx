@@ -27,17 +27,23 @@ export default function AuctionTimer({
 }: AuctionTimerProps) {
   const targetMs = isUpcoming && startTimeMs ? startTimeMs : endTimeMs;
 
-  const [timeLeftMs, setTimeLeftMs] = useState(() =>
-    isPaused && remainingTimeMs !== undefined && remainingTimeMs !== null
-      ? Math.max(0, remainingTimeMs)
-      : Math.max(0, targetMs - Date.now())
-  );
+  const [mounted, setMounted] = useState(false);
+  const [timeLeftMs, setTimeLeftMs] = useState(0);
+
+  useEffect(() => {
+    setMounted(true);
+    setTimeLeftMs(
+      isPaused && remainingTimeMs !== undefined && remainingTimeMs !== null
+        ? Math.max(0, remainingTimeMs)
+        : Math.max(0, targetMs - Date.now())
+    );
+  }, [isPaused, remainingTimeMs, targetMs]);
 
   // Reset timeLeftMs when target changes (UPCOMING → LIVE transition)
   const [prevTargetMs, setPrevTargetMs] = useState(targetMs);
   if (targetMs !== prevTargetMs) {
     setPrevTargetMs(targetMs);
-    if (!isPaused && !isEnded) {
+    if (mounted && !isPaused && !isEnded) {
       setTimeLeftMs(Math.max(0, targetMs - Date.now()));
     }
   }
@@ -73,7 +79,9 @@ export default function AuctionTimer({
     lg: "text-5xl font-bold tracking-[0.18em]",
   };
 
-  const displayTimeLeftMs = isEnded
+  const displayTimeLeftMs = !mounted
+    ? 0
+    : isEnded
     ? 0
     : isPaused && remainingTimeMs !== undefined && remainingTimeMs !== null
     ? Math.max(0, remainingTimeMs)
@@ -83,12 +91,12 @@ export default function AuctionTimer({
   const minutes = Math.floor((displayTimeLeftMs % (1000 * 60 * 60)) / (1000 * 60));
   const seconds = Math.floor((displayTimeLeftMs % (1000 * 60)) / 1000);
   const pad = (n: number) => n.toString().padStart(2, "0");
-  const timeStr = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  const timeStr = mounted ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}` : "--:--:--";
 
   if (isPaused) {
     return (
       <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-5 text-center">
-        <div className={`${sizeClasses[size]} text-amber-700 font-mono`} suppressHydrationWarning>
+        <div className={`${sizeClasses[size]} text-amber-700 font-mono`}>
           {timeStr}
         </div>
         <p className="mt-2 text-sm text-amber-700">PAUSED - The current time is frozen while the auction is paused</p>
@@ -99,7 +107,7 @@ export default function AuctionTimer({
   if (isUpcoming) {
     return (
       <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-5 text-center">
-        <div className={`${sizeClasses[size]} text-emerald-700 font-mono`} suppressHydrationWarning>
+        <div className={`${sizeClasses[size]} text-emerald-700 font-mono`}>
           {displayTimeLeftMs <= 0 ? (
             <span className="text-[#19A7CE]">STARTING</span>
           ) : (
@@ -119,7 +127,7 @@ export default function AuctionTimer({
 
   return (
     <div className="px-6 py-5 text-center">
-      <div className={`${sizeClasses[size]} ${getColorClass()} font-mono`} suppressHydrationWarning>
+      <div className={`${sizeClasses[size]} ${getColorClass()} font-mono`}>
         {displayTimeLeftMs <= 0 ? (
             <span className="text-rose-600">ENDED</span>
         ) : (
