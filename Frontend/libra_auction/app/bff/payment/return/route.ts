@@ -4,10 +4,10 @@ import { ServerAPIAuthedCall } from "@/lib/server_API_authed_call";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-    console.log(req.url);
+    const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL!;
     const jwtTokenInfo = await getJWTTokenInfo();
     if (!jwtTokenInfo.token) {
-        return NextResponse.redirect(new URL("/sign-in", req.url));
+        return NextResponse.redirect(new URL("/sign-in", frontendUrl));
     }
 
     try {
@@ -45,13 +45,13 @@ export async function GET(req: NextRequest) {
                 ? `/bff/payment/handle?auctionId=${auctionId}&status=${status}&type=winner`
                 : `/bff/payment/handle?auctionId=${auctionId}&status=${status}`;
             return NextResponse.redirect(
-                new URL(handlePath, req.url)
+                new URL(handlePath, frontendUrl)
             );
         }
 
         // Fallback: redirect to home with status
         return NextResponse.redirect(
-            new URL(`/?payment=${status}`, req.url)
+            new URL(`/?payment=${status}`, frontendUrl)
         );
 
     } catch (error) {
