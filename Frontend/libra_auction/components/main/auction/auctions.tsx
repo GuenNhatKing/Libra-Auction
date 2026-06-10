@@ -86,8 +86,8 @@ export default async function Auctions({
 
     const pageTitle = categoryName || "Online Auction Marketplace";
     const pageDescription = categoryName
-        ? `Found ${auctionPage.totalElements} auctions in this category`
-        : `Found ${auctionPage.totalElements} live auctions`;
+        ? `Found ${visibleCards.length} auctions in this category`
+        : `Found ${visibleCards.length} live auctions`;
 
     const base = categoryId ? `/auctions/${categoryId}` : "/auctions";
     const hrefProps = { searchTerm, searchStatus, priceFrom, priceTo, attributes, sort };
