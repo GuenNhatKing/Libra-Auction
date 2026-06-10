@@ -118,6 +118,10 @@ public class ProductService {
             throw new AccessDeniedException("Ban khong co quyen chinh sua tai san nay");
         }
 
+        if (product.getStatus() != ProductStatus.AVAILABLE) {
+            throw new IllegalStateException("Chi co the chinh sua san pham dang available");
+        }
+
         Category category = categoryRepository.findById(request.categoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Category not found"));
 
