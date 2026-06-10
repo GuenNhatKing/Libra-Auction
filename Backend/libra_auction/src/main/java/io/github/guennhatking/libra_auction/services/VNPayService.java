@@ -496,6 +496,14 @@ public class VNPayService {
     }
 
     @Transactional(readOnly = true)
+    public List<UserTransactionResponse> getSellerTransactions(String sellerId) {
+        return paymentTransactionRepository.findByReceiver_IdOrderByCreatedAtDesc(sellerId)
+                .stream()
+                .map(payment -> toUserTransactionResponse(payment, true))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<UserTransactionResponse> getAllTransactions() {
         List<UserTransactionResponse> transactions = new ArrayList<>();
 

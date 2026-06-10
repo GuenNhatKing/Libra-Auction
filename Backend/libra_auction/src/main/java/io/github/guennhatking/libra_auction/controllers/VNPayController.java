@@ -182,6 +182,22 @@ public class VNPayController {
         return ResponseEntity.ok(ServerAPIResponse.success(vnPayService.getPendingWinnerPayments(userId)));
     }
 
+    @GetMapping("/seller/{sellerId}/transactions")
+    public ResponseEntity<ServerAPIResponse<java.util.List<UserTransactionResponse>>> getSellerTransactions(
+            @AuthenticationPrincipal JwtUserDetails userDetails,
+            @PathVariable String sellerId) {
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ServerAPIResponse.error("Authentication required"));
+        }
+        if (!userDetails.getUserId().equals(sellerId) && !isAdminUser(userDetails.getUserId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ServerAPIResponse.error("Access denied"));
+        }
+
+        return ResponseEntity.ok(ServerAPIResponse.success(vnPayService.getSellerTransactions(sellerId)));
+    }
+
     @GetMapping("/user/{userId}/transactions")
     public ResponseEntity<ServerAPIResponse<java.util.List<UserTransactionResponse>>> getUserTransactions(
             @AuthenticationPrincipal JwtUserDetails userDetails,

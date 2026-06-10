@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getIdFromToken } from "@/lib/get_id_from_token";
-import { fetchTransactionHistory, UserTransactionResponse } from "@/services/fetch_transaction_history";
+import { fetchSellerTransactionHistory, UserTransactionResponse } from "@/services/fetch_transaction_history";
 import { TransactionList } from "@/components/seller/transaction/transaction_list";
 import { Transaction } from "@/types/transaction_type";
 
@@ -23,7 +23,7 @@ export default async function Page() {
     redirect("/sign-in");
   }
 
-  const transactions = (await fetchTransactionHistory(userId)).map(toTransaction);
+  const transactions = (await fetchSellerTransactionHistory(userId)).map(toTransaction);
 
   return <TransactionList transactions={transactions} detailsHrefPrefix="/seller-dashboard/transactions" />;
 }

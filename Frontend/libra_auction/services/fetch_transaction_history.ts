@@ -59,6 +59,24 @@ export async function fetchPendingWinnerPayments(userId: string): Promise<Pendin
   throw createAppErrorFromResponse(res, "Failed to fetch pending payments");
 }
 
+export async function fetchSellerTransactionHistory(
+  sellerId: string
+): Promise<UserTransactionResponse[]> {
+  const request: RequestInit = {
+    method: "GET",
+    headers: {},
+    cache: "no-store",
+  };
+
+  const res = await ServerAPIAuthedCall<UserTransactionResponse[]>(
+    "/api/payments/vnpay/seller/" + sellerId + "/transactions",
+    request
+  );
+
+  if (res.isSuccess && res.data) return res.data;
+  throw createAppErrorFromResponse(res, "Failed to fetch seller transaction history");
+}
+
 export async function fetchAdminTransactionHistory(): Promise<UserTransactionResponse[]> {
   const request: RequestInit = {
     method: "GET",
