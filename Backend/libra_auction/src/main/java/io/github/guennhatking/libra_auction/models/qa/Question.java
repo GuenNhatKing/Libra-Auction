@@ -121,4 +121,23 @@ public class Question {
     public void setQuestionStatus(QuestionStatus questionStatus) {
         this.questionStatus = questionStatus;
     }
+
+    // ===== Business Logic Methods =====
+
+    /**
+     * Answer this question.
+     */
+    public void answer(Customer answerer, String answerContent) {
+        this.answerer = answerer;
+        this.answerContent = answerContent;
+        this.answerTime = OffsetDateTime.now(ZoneOffset.ofHours(7));
+        this.questionStatus = QuestionStatus.ANSWERED;
+    }
+
+    /**
+     * Reject this question (decline to answer).
+     */
+    public void reject() {
+        this.questionStatus = QuestionStatus.ANSWER_REJECTED;
+    }
 }

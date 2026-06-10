@@ -293,7 +293,7 @@ public class VNPayService {
 
         Auction depositAuction = deposit.getParticipationInfo().getAuction();
         if (isDepositNotAllowed(depositAuction)) {
-            deposit.setTransactionStatus(TransactionStatus.FAILED);
+            deposit.markFailed();
             depositTransactionRepository.save(deposit);
             return false;
         }
@@ -301,15 +301,13 @@ public class VNPayService {
         // 6. Cap nhat ket qua dua tren ResponseCode
         if ("00".equals(request.vnp_ResponseCode())) {
             // THANH CONG
-            deposit.setTransactionStatus(TransactionStatus.SUCCESS);
-            // Luu ma giao dich VNPAY de doi soat sau nay
-            deposit.setPartnerTransactionId(request.vnp_TransactionNo());
+            deposit.markSuccess(request.vnp_TransactionNo());
 
             depositTransactionRepository.save(deposit);
 
             return true;
         } else {
-            deposit.setTransactionStatus(TransactionStatus.FAILED);
+            deposit.markFailed();
             depositTransactionRepository.save(deposit);
             return false;
         }
@@ -371,15 +369,13 @@ public class VNPayService {
         // 6. Cap nhat ket qua dua tren ResponseCode
         if ("00".equals(request.vnp_ResponseCode())) {
             // THANH CONG
-            payment.setTransactionStatus(TransactionStatus.SUCCESS);
-            // Luu ma giao dich VNPAY de doi soat sau nay
-            payment.setPartnerTransactionId(request.vnp_TransactionNo());
+            payment.markSuccess(request.vnp_TransactionNo());
 
             paymentTransactionRepository.save(payment);
 
             return true;
         } else {
-            payment.setTransactionStatus(TransactionStatus.FAILED);
+            payment.markFailed();
             paymentTransactionRepository.save(payment);
             return false;
         }

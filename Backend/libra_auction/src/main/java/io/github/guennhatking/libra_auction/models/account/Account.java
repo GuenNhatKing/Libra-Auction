@@ -59,4 +59,20 @@ public abstract class Account {
     public void setCustomer(Customer customer) {
         this.customer = customer;
     }
+
+    // ===== Business Logic Methods =====
+
+    /**
+     * Activate this account.
+     */
+    public void activate() {
+        this.status = AccountStatus.ACTIVE;
+    }
+
+    /**
+     * Change account status (admin operation).
+     */
+    public void changeStatus(AccountStatus status) {
+        this.status = status;
+    }
 }

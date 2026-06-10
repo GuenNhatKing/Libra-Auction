@@ -4,6 +4,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import io.github.guennhatking.libra_auction.enums.transaction.TransactionStatus;
 
 import io.github.guennhatking.libra_auction.enums.transaction.TransactionType;
 import io.github.guennhatking.libra_auction.models.auction.AuctionParticipationInfo;
@@ -54,5 +56,15 @@ public class DepositTransaction extends Transaction {
 
     public void setRefundTime(OffsetDateTime refundTime) {
         this.refundTime = refundTime;
+    }
+
+    // ===== Business Logic Methods =====
+
+    /**
+     * Mark this deposit as refunded.
+     */
+    public void markRefunded() {
+        this.transactionStatus = TransactionStatus.REFUNDED;
+        this.refundTime = OffsetDateTime.now(ZoneOffset.ofHours(7));
     }
 }

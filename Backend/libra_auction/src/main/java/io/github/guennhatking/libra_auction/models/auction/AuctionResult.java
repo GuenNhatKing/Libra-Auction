@@ -87,4 +87,14 @@ public class AuctionResult {
     public void setWinningPrice(long winningPrice) {
         this.winningPrice = winningPrice;
     }
+
+    // ===== Business Logic Methods =====
+
+    /**
+     * Record the winner and winning price for this auction result.
+     */
+    public void recordWinner(Customer winner, long winningPrice) {
+        this.winner = winner;
+        this.winningPrice = winningPrice;
+    }
 }

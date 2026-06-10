@@ -295,4 +295,85 @@ public class Auction {
     public void setDeletedAt(OffsetDateTime deletedAt) {
         this.deletedAt = deletedAt;
     }
+
+    // ===== Business Logic Methods =====
+
+    /**
+     * Approve this auction. Sets approval status to APPROVED.
+     */
+    public void approve() {
+        this.approvalStatus = ApprovalStatus.APPROVED;
+    }
+
+    /**
+     * Reject this auction. Sets approval status to REJECTED.
+     */
+    public void reject() {
+        this.approvalStatus = ApprovalStatus.REJECTED;
+    }
+
+    /**
+     * Start this auction — transition from UPCOMING to LIVE.
+     */
+    public void start(OffsetDateTime endTime) {
+        this.auctionStatus = AuctionStatus.LIVE;
+        if (this.startTime != null && this.endTime == null) {
+            this.endTime = endTime;
+        }
+    }
+
+    /**
+     * Pause this auction — transition from LIVE to PAUSED.
+     */
+    public void pause() {
+        this.auctionStatus = AuctionStatus.PAUSED;
+    }
+
+    /**
+     * Resume this auction — transition from PAUSED back to LIVE with a new end time.
+     */
+    public void resume(OffsetDateTime newEndTime) {
+        this.endTime = newEndTime;
+        this.auctionStatus = AuctionStatus.LIVE;
+    }
+
+    /**
+     * End this auction — transition to ENDED with the given result.
+     */
+    public void end(AuctionResult result) {
+        this.auctionResult = result;
+        this.auctionStatus = AuctionStatus.ENDED;
+    }
+
+    /**
+     * Complete this auction — transition from ENDED to COMPLETED.
+     */
+    public void complete() {
+        this.auctionStatus = AuctionStatus.COMPLETED;
+        this.completedAt = OffsetDateTime.now(ZoneOffset.ofHours(7));
+    }
+
+    /**
+     * Fail this auction — transition from ENDED to FAILED with a reason.
+     */
+    public void fail(String reason) {
+        this.auctionStatus = AuctionStatus.FAILED;
+        this.failureReason = reason;
+    }
+
+    /**
+     * Cancel this auction — transition to CANCELLED with an optional reason.
+     */
+    public void cancel(String reason) {
+        this.auctionStatus = AuctionStatus.CANCELLED;
+        this.failureReason = reason;
+    }
+
+    /**
+     * Soft-delete this auction.
+     */
+    public void softDelete() {
+        this.deleted = true;
+        this.deletedAt = OffsetDateTime.now(ZoneOffset.ofHours(7));
+    }
 }

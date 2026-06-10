@@ -148,4 +148,43 @@ public class Customer {
     public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+    // ===== Business Logic Methods =====
+
+    /**
+     * Register as a password-based user with initial UNVERIFIED/PENDING state.
+     */
+    public void registerAsPasswordUser(String phoneNumber, String identityNumber, String avatarUrl) {
+        this.phoneNumber = phoneNumber;
+        this.identityNumber = identityNumber;
+        this.avatarUrl = avatarUrl;
+        this.emailStatus = EmailStatus.UNVERIFIED;
+        this.accountStatus = AccountStatus.PENDING;
+    }
+
+    /**
+     * Register as an OAuth user with VERIFIED/ACTIVE state.
+     */
+    public void registerAsOAuthUser(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+        this.emailStatus = EmailStatus.VERIFIED;
+        this.accountStatus = AccountStatus.ACTIVE;
+    }
+
+    /**
+     * Mark email as verified. Activates account if currently PENDING.
+     */
+    public void verifyEmail() {
+        this.emailStatus = EmailStatus.VERIFIED;
+        if (this.accountStatus == AccountStatus.PENDING) {
+            this.accountStatus = AccountStatus.ACTIVE;
+        }
+    }
+
+    /**
+     * Change account status (admin operation).
+     */
+    public void changeAccountStatus(AccountStatus status) {
+        this.accountStatus = status;
+    }
 }

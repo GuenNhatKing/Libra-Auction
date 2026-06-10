@@ -55,11 +55,7 @@ public class CustomerService {
         }
 
         Customer user = new Customer(fullName, email);
-        user.setPhoneNumber(phoneNumber);
-        user.setIdentityNumber(identityNumber);
-        user.setAvatarUrl(avatarUrl);
-        user.setEmailStatus(EmailStatus.UNVERIFIED);
-        user.setAccountStatus(AccountStatus.PENDING);
+        user.registerAsPasswordUser(phoneNumber, identityNumber, avatarUrl);
 
         Customer savedUser = customerRepository.save(user);
 
@@ -85,14 +81,14 @@ public class CustomerService {
         }
 
         Customer user = new Customer(displayName, email);
+        String finalAvatarUrl = null;
         try {
             ImageUploadedResponse newUrl = imageUploadService.uploadImageFromUrl(pictureUrl, "avatars");
-            user.setAvatarUrl(newUrl.secureUrl());
+            finalAvatarUrl = newUrl.secureUrl();
         } catch (Exception e) {
             System.out.println("Failed to upload avatar for user " + email + ": " + e.getMessage());
         }
-        user.setEmailStatus(EmailStatus.VERIFIED);
-        user.setAccountStatus(AccountStatus.ACTIVE);
+        user.registerAsOAuthUser(finalAvatarUrl);
 
         Customer savedUser = customerRepository.save(user);
 
@@ -156,15 +152,12 @@ public class CustomerService {
         Customer customer = customerRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Khong tim thay nguoi dung voi email nay."));
 
-        customer.setEmailStatus(EmailStatus.VERIFIED);
-        if (customer.getAccountStatus() == AccountStatus.PENDING) {
-            customer.setAccountStatus(AccountStatus.ACTIVE);
-        }
+        customer.verifyEmail();
         customerRepository.save(customer);
 
         accountPasswordRepository.findByCustomerEmail(email).ifPresent(acc -> {
             if (acc.getStatus() == AccountStatus.PENDING) {
-                acc.setStatus(AccountStatus.ACTIVE);
+                acc.activate();
                 accountPasswordRepository.save(acc);
             }
         });
@@ -218,11 +211,11 @@ public class CustomerService {
             throw new IllegalStateException("Cannot change the status of an ADMIN account");
         }
 
-        customer.setAccountStatus(status);
+        customer.changeAccountStatus(status);
         customerRepository.save(customer);
 
         accountPasswordRepository.findByCustomerId(userId).ifPresent(account -> {
-            account.setStatus(status);
+            account.changeStatus(status);
             accountPasswordRepository.save(account);
         });
 

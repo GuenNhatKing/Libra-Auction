@@ -92,4 +92,21 @@ public class Transaction {
     public void setPartnerTransactionId(String partnerTransactionId) {
         this.partnerTransactionId = partnerTransactionId;
     }
+
+    // ===== Business Logic Methods =====
+
+    /**
+     * Mark this transaction as successful with the partner's transaction ID.
+     */
+    public void markSuccess(String partnerTransactionId) {
+        this.transactionStatus = TransactionStatus.SUCCESS;
+        this.partnerTransactionId = partnerTransactionId;
+    }
+
+    /**
+     * Mark this transaction as failed.
+     */
+    public void markFailed() {
+        this.transactionStatus = TransactionStatus.FAILED;
+    }
 }

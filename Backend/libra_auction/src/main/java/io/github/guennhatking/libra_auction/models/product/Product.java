@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import io.github.guennhatking.libra_auction.enums.product.ProductStatus;
@@ -195,5 +196,65 @@ public class Product {
 
     public void setDeletedAt(OffsetDateTime deletedAt) {
         this.deletedAt = deletedAt;
+    }
+
+    // ===== Business Logic Methods =====
+
+    /**
+     * Mark this product as pending (awaiting auction approval).
+     */
+    public void markPending() {
+        this.status = ProductStatus.PENDING;
+    }
+
+    /**
+     * Mark this product as in use (auction approved and live).
+     */
+    public void markInUse() {
+        this.status = ProductStatus.IN_USE;
+    }
+
+    /**
+     * Mark this product as sold (auction completed successfully).
+     */
+    public void markSold() {
+        this.status = ProductStatus.SOLD;
+    }
+
+    /**
+     * Mark this product as available (auction rejected, failed, or cancelled).
+     */
+    public void markAvailable() {
+        this.status = ProductStatus.AVAILABLE;
+    }
+
+    /**
+     * Soft-delete this product.
+     */
+    public void softDelete() {
+        this.deleted = true;
+        this.deletedAt = OffsetDateTime.now(ZoneOffset.ofHours(7));
+    }
+
+    /**
+     * Mark this product as no longer the latest version (superseded by a new version).
+     */
+    public void supersede() {
+        this.latestVersion = false;
+    }
+
+    /**
+     * Create a new version of this product with updated details.
+     * The new version inherits creator and status from this product.
+     */
+    public Product createNextVersion(String name, int quantity, String description, Category category) {
+        Product newVersion = new Product(name, quantity, description, category);
+        newVersion.setCreator(this.creator);
+        newVersion.setStatus(this.status);
+        newVersion.setRootProductId(this.rootProductId == null ? this.id : this.rootProductId);
+        newVersion.setVersionCreatedAt(OffsetDateTime.now(ZoneOffset.ofHours(7)));
+        newVersion.setLatestVersion(true);
+        newVersion.setDeleted(false);
+        return newVersion;
     }
 }

@@ -154,7 +154,7 @@ public class AuctionService {
                 Auction savedSession = auctionRepository.save(session);
 
                 // Mark product as PENDING — no longer available for editing/deleting
-                product.setStatus(ProductStatus.PENDING);
+                product.markPending();
                 productRepository.save(product);
 
                 return auctionMapper.toAuctionResponse(savedSession);
@@ -186,7 +186,7 @@ public class AuctionService {
                         throw new IllegalStateException("Only pending auctions can be cancelled");
                 }
 
-                session.setAuctionStatus(AuctionStatus.CANCELLED);
+                session.cancel(null);
                 auctionStateRedisService.removeAuctionStartEvent(id);
                 auctionStateRedisService.removeAuctionEndEvent(id);
                 auctionRepository.save(session);
@@ -194,7 +194,7 @@ public class AuctionService {
                 // Restore product to AVAILABLE — auction cancelled by seller
                 Product product = session.getProduct();
                 if (product != null) {
-                        product.setStatus(ProductStatus.AVAILABLE);
+                        product.markAvailable();
                         productRepository.save(product);
                 }
         }
@@ -204,8 +204,7 @@ public class AuctionService {
                 Auction session = auctionRepository.findByIdAndDeletedFalse(id)
                                 .orElseThrow(() -> new IllegalArgumentException("Auction session not found"));
 
-                session.setDeleted(true);
-                session.setDeletedAt(OffsetDateTime.now(ZoneOffset.ofHours(7)));
+                session.softDelete();
                 auctionStateRedisService.removeAuctionStartEvent(id);
                 auctionStateRedisService.removeAuctionEndEvent(id);
                 auctionRepository.save(session);
@@ -226,16 +225,13 @@ public class AuctionService {
                         throw new IllegalStateException("Auction is not pending approval");
                 }
 
-                session.setApprovalStatus(ApprovalStatus.APPROVED);
-                if (session.getStartTime() != null && session.getEndTime() == null) {
-                        session.setEndTime(session.getStartTime().plusSeconds(session.getDuration()));
-                }
+                session.approve();
                 Auction saved = auctionRepository.save(session);
 
                 // Mark product as IN_USE — approved and scheduled
                 Product product = saved.getProduct();
                 if (product != null) {
-                        product.setStatus(ProductStatus.IN_USE);
+                        product.markInUse();
                         productRepository.save(product);
                 }
 
@@ -271,13 +267,13 @@ public class AuctionService {
                         throw new IllegalStateException("Auction is not pending approval");
                 }
 
-                session.setApprovalStatus(ApprovalStatus.REJECTED);
+                session.reject();
                 Auction saved = auctionRepository.save(session);
 
                 // Restore product to AVAILABLE — auction rejected
                 Product product = saved.getProduct();
                 if (product != null) {
-                        product.setStatus(ProductStatus.AVAILABLE);
+                        product.markAvailable();
                         productRepository.save(product);
                 }
 
@@ -322,12 +318,11 @@ public class AuctionService {
                 // Mark product as SOLD
                 Product product = auction.getProduct();
                 if (product != null) {
-                        product.setStatus(ProductStatus.SOLD);
+                        product.markSold();
                         productRepository.save(product);
                 }
 
-                auction.setAuctionStatus(AuctionStatus.COMPLETED);
-                auction.setCompletedAt(OffsetDateTime.now(ZoneOffset.ofHours(7)));
+                auction.complete();
                 Auction saved = auctionRepository.save(auction);
 
                 // Clean up Redis
@@ -349,14 +344,13 @@ public class AuctionService {
                 // Keep product as AVAILABLE
                 Product product = auction.getProduct();
                 if (product != null) {
-                        product.setStatus(ProductStatus.AVAILABLE);
+                        product.markAvailable();
                         productRepository.save(product);
                 }
 
                 refundCompletedDeposits(auction);
 
-                auction.setAuctionStatus(AuctionStatus.FAILED);
-                auction.setFailureReason(reason);
+                auction.fail(reason);
                 Auction saved = auctionRepository.save(auction);
 
                 // Clean up Redis
@@ -436,8 +430,7 @@ public class AuctionService {
         }
 
         private void refundDeposit(DepositTransaction deposit) {
-                deposit.setTransactionStatus(TransactionStatus.REFUNDED);
-                deposit.setRefundTime(OffsetDateTime.now(ZoneOffset.ofHours(7)));
+                deposit.markRefunded();
                 depositTransactionRepository.save(deposit);
         }
 

@@ -1,7 +1,6 @@
 package io.github.guennhatking.libra_auction.services;
 
 import io.github.guennhatking.libra_auction.enums.auction.AuctionStatus;
-import io.github.guennhatking.libra_auction.enums.product.ProductStatus;
 import io.github.guennhatking.libra_auction.enums.transaction.TransactionStatus;
 import io.github.guennhatking.libra_auction.models.auction.AuctionResult;
 import io.github.guennhatking.libra_auction.models.auction.Auction;
@@ -91,10 +90,7 @@ public class AuctionStateTransitionService {
             }
 
             // Change status to LIVE
-            auction.setAuctionStatus(AuctionStatus.LIVE);
-            if (auction.getEndTime() == null && auction.getStartTime() != null) {
-                auction.setEndTime(auction.getStartTime().plusSeconds(auction.getDuration()));
-            }
+            auction.start(auction.getStartTime().plusSeconds(auction.getDuration()));
             auctionRepository.save(auction);
 
             logger.info("Auction {} started", auctionId);
@@ -139,7 +135,7 @@ public class AuctionStateTransitionService {
             long remainingTimeMs = currentEndTimeMs != null ? Math.max(0, currentEndTimeMs - nowMs) : 0;
             auctionStateRedisService.setRemainingTime(auctionId, remainingTimeMs);
 
-            auction.setAuctionStatus(AuctionStatus.PAUSED);
+            auction.pause();
             auctionRepository.save(auction);
 
             logger.info("Auction {} paused with remainingTimeMs={}", auctionId, remainingTimeMs);
@@ -171,12 +167,12 @@ public class AuctionStateTransitionService {
 
             Long remainingTimeMs = auctionStateRedisService.getRemainingTime(auctionId);
             long finalEndTimeMs = 0;
+            OffsetDateTime newEndTime = auction.getEndTime();
             if (remainingTimeMs != null) {
                 finalEndTimeMs = System.currentTimeMillis() + remainingTimeMs;
-                OffsetDateTime newEndTime = OffsetDateTime.ofInstant(
+                newEndTime = OffsetDateTime.ofInstant(
                     java.time.Instant.ofEpochMilli(finalEndTimeMs), ZoneOffset.ofHours(7));
                 auctionStateRedisService.extendAuctionEnd(auctionId, newEndTime);
-                auction.setEndTime(newEndTime);
                 logger.info("Auction {} resumed with remainingTimeMs={}, newEndTime={}", auctionId, remainingTimeMs, finalEndTimeMs);
             } else {
                 Long stored = auctionStateRedisService.getAuctionEndTime(auctionId);
@@ -184,7 +180,7 @@ public class AuctionStateTransitionService {
             }
             auctionStateRedisService.clearRemainingTime(auctionId);
 
-            auction.setAuctionStatus(AuctionStatus.LIVE);
+            auction.resume(newEndTime);
             auctionRepository.save(auction);
 
             logger.info("Auction {} resumed, sending newEndTime={}", auctionId, finalEndTimeMs);
@@ -233,13 +229,11 @@ public class AuctionStateTransitionService {
             if (latestBidResponse != null && latestBidResponse.bidderId() != null) {
                 // Find winner Customer from DB
                 winner = customerRepository.findById(latestBidResponse.bidderId()).orElse(null);
+                result.recordWinner(winner, latestBidResponse.bidAmount());
                 if (winner != null) {
-                    result.setWinner(winner);
-                    result.setWinningPrice(latestBidResponse.bidAmount());
                     logger.info("Auction {} ended with winner: {} ({}), bid: {} VND",
                         auctionId, winner.getFullName(), winner.getId(), latestBidResponse.bidAmount());
                 } else {
-                    result.setWinningPrice(latestBidResponse.bidAmount());
                     logger.warn("Auction {} winner not found in DB: {}", auctionId, latestBidResponse.bidderId());
                 }
             } else {
@@ -247,10 +241,7 @@ public class AuctionStateTransitionService {
             }
 
             AuctionResult savedResult = auctionResultRepository.save(result);
-            auction.setAuctionResult(savedResult);
-
-            // Change status to ENDED
-            auction.setAuctionStatus(AuctionStatus.ENDED);
+            auction.end(savedResult);
             auctionRepository.save(auction);
             refundCompletedDeposits(auction, winner);
 
@@ -313,12 +304,11 @@ public class AuctionStateTransitionService {
 
             // Set product back to AVAILABLE
             if (auction.getProduct() != null) {
-                auction.getProduct().setStatus(ProductStatus.AVAILABLE);
+                auction.getProduct().markAvailable();
                 productRepository.save(auction.getProduct());
             }
 
-            auction.setAuctionStatus(AuctionStatus.CANCELLED);
-            auction.setFailureReason(reason);
+            auction.cancel(reason);
             auctionRepository.save(auction);
 
             // Clean up Redis scheduling
@@ -369,8 +359,7 @@ public class AuctionStateTransitionService {
     }
 
     private void refundDeposit(DepositTransaction deposit) {
-        deposit.setTransactionStatus(TransactionStatus.REFUNDED);
-        deposit.setRefundTime(OffsetDateTime.now(ZoneOffset.ofHours(7)));
+        deposit.markRefunded();
         depositTransactionRepository.save(deposit);
     }
 

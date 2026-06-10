@@ -146,16 +146,10 @@ public class ProductService {
             return productResponseMapper.toProductResponse(updatedProduct);
         }
 
-        product.setLatestVersion(false);
+        product.supersede();
         productRepository.save(product);
 
-        Product newVersion = new Product(request.name(), request.quantity(), request.description(), category);
-        newVersion.setCreator(product.getCreator());
-        newVersion.setStatus(product.getStatus());
-        newVersion.setRootProductId(product.getRootProductId() == null ? product.getId() : product.getRootProductId());
-        newVersion.setVersionCreatedAt(OffsetDateTime.now(ZoneOffset.ofHours(7)));
-        newVersion.setLatestVersion(true);
-        newVersion.setDeleted(false);
+        Product newVersion = product.createNextVersion(request.name(), request.quantity(), request.description(), category);
         Product savedNewVersion = productRepository.save(newVersion);
         replaceProductDetails(savedNewVersion, request.attributes(), request.imageUrls());
 
@@ -192,8 +186,7 @@ public class ProductService {
             throw new IllegalStateException("Can only delete when all related auctions have failed");
         }
 
-        product.setDeleted(true);
-        product.setDeletedAt(OffsetDateTime.now(ZoneOffset.ofHours(7)));
+        product.softDelete();
         productRepository.save(product);
     }
 

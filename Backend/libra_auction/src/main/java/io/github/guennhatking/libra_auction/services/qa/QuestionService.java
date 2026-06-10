@@ -1,7 +1,5 @@
 package io.github.guennhatking.libra_auction.services.qa;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -79,10 +77,7 @@ public class QuestionService {
         Customer seller = customerRepository.findById(sellerId)
                 .orElseThrow(() -> new RuntimeException("Seller not found: " + sellerId));
 
-        question.setAnswerContent(answerContent);
-        question.setAnswerer(seller);
-        question.setAnswerTime(OffsetDateTime.now(ZoneOffset.ofHours(7)));
-        question.setQuestionStatus(QuestionStatus.ANSWERED);
+        question.answer(seller, answerContent);
         return questionRepository.save(question);
     }
 
@@ -97,7 +92,7 @@ public class QuestionService {
 
         verifySellerOwnership(question.getAuction(), sellerId);
 
-        question.setQuestionStatus(QuestionStatus.ANSWER_REJECTED);
+        question.reject();
         Question saved = questionRepository.save(question);
 
         // Send email notification to the questioner
