@@ -48,15 +48,11 @@ public class ProductController {
                     .body(ServerAPIResponse.error("Authentication required"));
         }
         try {
-            // get product by id, only if the product belongs to the user or the user is admin
-            ProductSearchRequest request = new ProductSearchRequest(
-                    null, null, null, null, null, null, null, userDetails.getUserId());
-            PageResponse<ProductResponse> response = productSearchService.searchProducts(request);
-            if (response.content().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(ServerAPIResponse.error("Product not found"));
-            }
-            return ResponseEntity.ok(ServerAPIResponse.success(response.content().get(0)));
+            ProductResponse response = productService.getProductByIdAndVerifyOwnership(id, userDetails.getUserId());
+            return ResponseEntity.ok(ServerAPIResponse.success(response));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ServerAPIResponse.error(e.getMessage()));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(ServerAPIResponse.error(e.getMessage()));

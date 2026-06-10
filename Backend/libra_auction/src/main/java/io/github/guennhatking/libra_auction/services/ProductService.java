@@ -71,6 +71,20 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    public ProductResponse getProductByIdAndVerifyOwnership(String id, String userId) {
+        Product product = productRepository.findById(id)
+                .filter(Product::isLatestVersion)
+                .filter(productItem -> !productItem.isDeleted())
+                .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+
+        if (!userId.equals(product.getCreator().getId())) {
+            throw new AccessDeniedException("You do not have permission to view this product");
+        }
+
+        return productResponseMapper.toProductResponse(product);
+    }
+
+    @Transactional(readOnly = true)
     public ProductResponse getProductById(String id) {
         Product product = productRepository.findById(id)
                 .filter(Product::isLatestVersion)
