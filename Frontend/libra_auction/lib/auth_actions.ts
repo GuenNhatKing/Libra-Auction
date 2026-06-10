@@ -59,7 +59,7 @@ export async function signInAction(body: SignInBody): Promise<ActionResponse> {
             return { success: true, message: "Sign in successful" };
         }
 
-        const errorMsg = res.errorMessage || (res as Record<string, unknown>).message as string || "Invalid username or password";
+        const errorMsg = res.errorMessage || (res as unknown as Record<string, unknown>).message as string || "Invalid username or password";
         return { success: false, message: errorMsg };
     } catch (e) {
         console.error("Error in signInAction:", e);
