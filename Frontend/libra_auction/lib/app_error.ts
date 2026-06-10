@@ -16,7 +16,7 @@ type ErrorLikeResponse = Partial<ServerAPIResponse<unknown>> & {
 
 export function createAppErrorFromResponse(
   response: ErrorLikeResponse,
-  fallbackMessage = "Không thể xử lý yêu cầu. Vui lòng thử lại sau."
+  fallbackMessage = "Unable to process request. Please try again later."
 ) {
   return new AppError(
     response.status || 500,
@@ -35,7 +35,7 @@ export function getErrorStatus(error: unknown) {
 
 export function getErrorMessage(
   error: unknown,
-  fallbackMessage = "Không thể xử lý yêu cầu. Vui lòng thử lại sau."
+  fallbackMessage = "Unable to process request. Please try again later."
 ) {
   if (error instanceof Error && error.message) return error.message;
   if (error && typeof error === "object" && "message" in error) {
@@ -46,9 +46,9 @@ export function getErrorMessage(
 }
 
 export function getErrorTitle(status: number) {
-  if (status === 401) return "Bạn cần đăng nhập";
-  if (status === 403) return "Không có quyền truy cập";
-  if (status === 404) return "Không tìm thấy nội dung";
-  if (status === 503) return "Không thể kết nối máy chủ";
-  return "Đã xảy ra lỗi";
+  if (status === 401) return "Authentication required";
+  if (status === 403) return "Access denied";
+  if (status === 404) return "Content not found";
+  if (status === 503) return "Unable to connect to server";
+  return "An error occurred";
 }

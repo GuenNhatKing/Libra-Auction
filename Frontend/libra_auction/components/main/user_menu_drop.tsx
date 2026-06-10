@@ -31,7 +31,7 @@ export default function UserMenuDropdown({
 
       {isOpen && (
         <>
-          {/* Overlay để click ra ngoài thì đóng menu */}
+          {/* Overlay to close menu on outside click */}
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)}></div>
           
           <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 shadow-2xl rounded-xl py-1 z-50">

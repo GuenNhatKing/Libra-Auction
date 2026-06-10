@@ -42,7 +42,7 @@ export default function ProfileOtpActivatePage() {
                 setTimeout(() => router.push('/profile/email-verify'), 2000);
             }
         } catch {
-            setError('Đã xảy ra lỗi. Vui lòng thử lại.');
+            setError('An error occurred. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -52,8 +52,8 @@ export default function ProfileOtpActivatePage() {
         return (
             <div className="space-y-4 text-center">
                 <div className="text-5xl mb-4">&#10003;</div>
-                <h2 className="text-2xl font-bold text-green-600">Xác thực thành công!</h2>
-                <p className="text-gray-600">Email của bạn đã được xác thực. Đang chuyển hướng...</p>
+                <h2 className="text-2xl font-bold text-green-600">Verification Successful!</h2>
+                <p className="text-gray-600">Your email has been verified. Redirecting...</p>
             </div>
         );
     }
@@ -62,24 +62,24 @@ export default function ProfileOtpActivatePage() {
         <div className="space-y-6">
             <div>
                 <h2 className="text-lg font-semibold text-[var(--secondary-color)]">
-                    {isChangePassword ? 'Xác thực OTP đổi mật khẩu' : 'Xác thực Email'}
+                    {isChangePassword ? 'Verify Password Change OTP' : 'Verify Email'}
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
-                    Nhập mã OTP đã được gửi đến email của bạn.
+                    Enter the OTP sent to your email.
                 </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-1">
-                        Mã OTP
+                        OTP Code
                     </label>
                     <input
                         id="otp"
                         type="text"
                         value={otp}
                         onChange={(e) => setOtp(e.target.value)}
-                        placeholder="Nhập mã OTP 6 số"
+                        placeholder="Enter 6-digit OTP"
                         maxLength={6}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-2xl tracking-widest focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent"
                         required
@@ -97,7 +97,7 @@ export default function ProfileOtpActivatePage() {
                     disabled={loading || otp.length !== 6}
                     className="w-full py-3 bg-[var(--primary-color)] text-white rounded-lg font-semibold hover:bg-[var(--secondary-color)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                    {loading ? 'Đang xác thực...' : 'Xác thực OTP'}
+                    {loading ? 'Verifying...' : 'Verify OTP'}
                 </button>
             </form>
         </div>

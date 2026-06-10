@@ -163,7 +163,7 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
         <p className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">{success}</p>
       ) : null}
 
-      {/* Thông tin chính */}
+      {/* Main information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="flex flex-col gap-2">
           <label className="text-sm font-bold text-[#146C94]">Product name</label>
@@ -212,7 +212,7 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
         />
       </div>
 
-      {/* Quản lý Ảnh */}
+      {/* Image management */}
       <div className="space-y-4">
         <label className="text-sm font-bold text-[#146C94] block">Product images</label>
         <div className="flex flex-wrap gap-4">
@@ -255,7 +255,7 @@ export default function ProductEditForm({ initialData }: { initialData: Product 
         </div>
       </div>
 
-      {/* Quản lý Thuộc tính */}
+      {/* Attribute management */}
       <div className="space-y-4 pt-6 border-t border-[#F6F1F1]">
         <div className="flex justify-between items-center">
           <h3 className="font-bold text-[#146C94]">Specifications</h3>

@@ -56,7 +56,7 @@ export default async function RegistrationPage(props: {
         },
         {
             id: "registration",
-            value: "Đăng ký tham gia",
+            value: "Register",
             href: `/auctions/${auction.category_id}/${auction.auction_id}/registration`,
         },
     ];
@@ -66,29 +66,29 @@ export default async function RegistrationPage(props: {
             <BreadCrumb breadcrumbItems={breadcrumbItems} />
             <div className="max-w-2xl mx-auto py-8 px-4">
                 <h1 className="text-2xl font-bold text-[#146C94] mb-6">
-                    Thông tin đăng ký đấu giá
+                    Auction Registration Details
                 </h1>
 
                 {/* Registration Info */}
                 <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
                     <h2 className="text-lg font-bold text-gray-800 mb-4">
-                        Phiên đấu giá
+                        Auction
                     </h2>
                     <div className="space-y-3">
                         <div className="flex justify-between">
-                            <span className="text-gray-500">Sản phẩm:</span>
+                            <span className="text-gray-500">Product:</span>
                             <span className="font-medium text-gray-800">
                                 {auction.product_name}
                             </span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-gray-500">Giá khởi điểm:</span>
+                            <span className="text-gray-500">Starting price:</span>
                             <span className="font-medium text-gray-800">
                                 {CurrencyFormat(auction.starting_price)}
                             </span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-gray-500">Người đăng ký:</span>
+                            <span className="text-gray-500">Registrant:</span>
                             <span className="font-medium text-gray-800">
                                 {userInfo.fullName}
                             </span>
@@ -100,7 +100,7 @@ export default async function RegistrationPage(props: {
                             </span>
                         </div>
                         <div className="flex justify-between">
-                            <span className="text-gray-500">Thời gian đăng ký:</span>
+                            <span className="text-gray-500">Registration time:</span>
                             <span className="font-medium text-gray-800">
                                 {new Intl.DateTimeFormat('vi-VN', {
                                     day: '2-digit',

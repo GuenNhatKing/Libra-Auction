@@ -8,7 +8,7 @@ import type { ServerAPIResponse } from "@/types/serser_API_response";
 export async function ServerAPIAuthedCall<T>(path: string, request: RequestInit): Promise<ServerAPIResponse<T>> {
     const jwtTokenInfo = await getJWTTokenInfo();
     if (!jwtTokenInfo.token) {
-        throw new AppError(401, "Bạn cần đăng nhập để tiếp tục.");
+        throw new AppError(401, "Authentication required to continue.");
     }
 
     const headers = new Headers(request.headers);

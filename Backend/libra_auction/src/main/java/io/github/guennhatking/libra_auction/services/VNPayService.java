@@ -101,7 +101,7 @@ public class VNPayService {
 
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
-        String vnp_OrderInfo = "Dat coc dau gia: " + request.auctionId();
+        String vnp_OrderInfo = "Auction deposit: " + request.auctionId();
         String vnp_TxnRef = deposit.getId();
         String vnp_IpAddr = getClientIp(servletRequest);
         String vnp_TmnCode = vnPayProperties.getTmnCode();
@@ -181,7 +181,7 @@ public class VNPayService {
 
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
-        String vnp_OrderInfo = "Thanh toan dau gia: " + request.auctionId();
+        String vnp_OrderInfo = "Auction payment: " + request.auctionId();
         String vnp_TxnRef = payment.getId();
         String vnp_IpAddr = getClientIp(servletRequest);
         String vnp_TmnCode = vnPayProperties.getTmnCode();
@@ -408,9 +408,9 @@ public class VNPayService {
                     + info.getAuction().getProduct().getName();
         } else if (transaction.getTransactionType().equals(TransactionType.PAYMENT)) {
             if (!(transaction instanceof PaymentTransaction)) {
-                throw new RuntimeException("Giao dich thanh toan khong hop le");
+                throw new RuntimeException("Invalid payment transaction");
             }
-            description = "Thanh toan dau gia";
+            description = "Auction payment";
             PaymentTransaction payment = (PaymentTransaction) transaction;
             details = "Phien dau gia: " + payment.getAuctionResult().getAuction().getId() + ", San pham: "
                     + payment.getAuctionResult().getAuction().getProduct().getName();
@@ -528,10 +528,10 @@ public class VNPayService {
                     + info.getAuction().getProduct().getName();
         } else if (transaction.getTransactionType() == TransactionType.PAYMENT) {
             if (!(transaction instanceof PaymentTransaction payment)) {
-                throw new RuntimeException("Giao dich thanh toan khong hop le");
+                throw new RuntimeException("Invalid payment transaction");
             }
-            description = incoming ? "Nhan thanh toan dau gia" : "Thanh toan dau gia";
-            details = "Phien dau gia: " + payment.getAuctionResult().getAuction().getId() + ", San pham: "
+            description = incoming ? "Auction payment received" : "Auction payment";
+            details = "Auction: " + payment.getAuctionResult().getAuction().getId() + ", Product: "
                     + payment.getAuctionResult().getAuction().getProduct().getName();
         }
 

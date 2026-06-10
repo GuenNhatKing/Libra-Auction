@@ -36,7 +36,7 @@ export default function RegistrationConfirmDialog({
             onClose();
             router.push(`/auctions/${categoryId}/${auction.auction_id}/registration`);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Đăng ký thất bại");
+            setError(err instanceof Error ? err.message : "Registration failed");
         } finally {
             setIsSubmitting(false);
         }
@@ -59,7 +59,7 @@ export default function RegistrationConfirmDialog({
                     {/* Header */}
                     <div className="flex items-center justify-between px-8 py-5 border-b border-gray-200">
                         <h3 className="text-2xl font-bold text-[#146C94]">
-                            Xác nhận đăng ký đấu giá
+                            Confirm Auction Registration
                         </h3>
                         <button
                             onClick={onClose}
@@ -73,19 +73,19 @@ export default function RegistrationConfirmDialog({
                     <div className="px-8 py-6 space-y-5">
                         <div className="bg-gray-50 rounded-xl px-6 py-5 space-y-4">
                             <div className="flex justify-between items-center">
-                                <span className="text-gray-500 min-w-[140px]">Phiên đấu giá:</span>
+                                <span className="text-gray-500 min-w-[140px]">Auction:</span>
                                 <span className="font-medium text-gray-800 text-right flex-1 ml-4">
                                     {auction.auction_name}
                                 </span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-gray-500 min-w-[140px]">Sản phẩm:</span>
+                                <span className="text-gray-500 min-w-[140px]">Product:</span>
                                 <span className="font-medium text-gray-800 text-right flex-1 ml-4">
                                     {auction.product_name}
                                 </span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-gray-500 min-w-[140px]">Người đăng ký:</span>
+                                <span className="text-gray-500 min-w-[140px]">Registrant:</span>
                                 <span className="font-medium text-gray-800 text-right flex-1 ml-4">
                                     {userInfo.fullName}
                                 </span>
@@ -97,7 +97,7 @@ export default function RegistrationConfirmDialog({
                                 </span>
                             </div>
                             <div className="border-t border-gray-200 pt-4 flex justify-between items-center">
-                                <span className="text-gray-500 min-w-[140px]">Tiền cọc:</span>
+                                <span className="text-gray-500 min-w-[140px]">Deposit:</span>
                                 <span className="font-bold text-[#146C94] text-xl">
                                     {CurrencyFormat(auction.deposit_amount)}
                                 </span>
@@ -105,8 +105,8 @@ export default function RegistrationConfirmDialog({
                         </div>
 
                         <p className="text-base text-gray-500 leading-relaxed">
-                            Sau khi đăng ký, bạn cần thanh toán tiền cọc qua VNPay để hoàn tất
-                            quá trình đăng ký tham gia đấu giá.
+                            After registration, you need to pay the deposit via VNPay to complete
+                            the auction registration.
                         </p>
 
                         {error && (
@@ -123,7 +123,7 @@ export default function RegistrationConfirmDialog({
                             disabled={isSubmitting}
                             className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition font-medium disabled:opacity-50"
                         >
-                            Hủy
+                            Cancel
                         </button>
                         <button
                             onClick={handleConfirm}
@@ -136,7 +136,7 @@ export default function RegistrationConfirmDialog({
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                 </svg>
                             )}
-                            Xác nhận đăng ký
+                            Confirm Registration
                         </button>
                     </div>
                 </div>

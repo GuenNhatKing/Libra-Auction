@@ -18,7 +18,7 @@ export const ProductDetail = ({ data }: { data: Product }) => {
                     <h1 className="text-3xl font-bold text-gray-800">{data.product_name}</h1>
                     {data.status === "SOLD" && (
                         <span className="text-sm font-medium text-red-700 bg-red-100 px-3 py-1 rounded-lg">
-                            Đã bán
+                            Sold
                         </span>
                     )}
                 </div>

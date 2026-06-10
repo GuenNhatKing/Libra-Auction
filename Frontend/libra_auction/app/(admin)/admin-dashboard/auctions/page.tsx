@@ -231,7 +231,7 @@ export default function AuctionsApprovalPage() {
   };
 
   const handleComplete = async (auction: AuctionRow) => {
-    if (!confirm(`Xác nhận hoàn thành phiên đấu giá "${auction.name}"? Sản phẩm sẽ được đánh dấu là đã bán.`)) return;
+    if (!confirm(`Confirm auction completion "${auction.name}"? Product will be marked as sold.`)) return;
     try {
       setActionLoadingId(auction.id);
       await completeAuction(auction.id);
@@ -264,7 +264,7 @@ export default function AuctionsApprovalPage() {
   };
 
   const handleAdminDelete = async (auction: AuctionRow) => {
-    if (!confirm(`Xóa phiên đấu giá "${auction.name}" khỏi hệ thống?`)) return;
+    if (!confirm(`Remove auction "${auction.name}" from the system?`)) return;
     try {
       setActionLoadingId(auction.id);
       await deleteAdminAuction(auction.id);
@@ -567,21 +567,21 @@ export default function AuctionsApprovalPage() {
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
               <div className="px-6 py-5 border-b border-gray-200">
-                <h3 className="text-xl font-bold text-red-600">Đánh dấu phiên đấu giá thất bại</h3>
+                <h3 className="text-xl font-bold text-red-600">Mark auction as failed</h3>
               </div>
               <div className="px-6 py-5">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Lý do thất bại <span className="text-red-500">*</span>
+                  Failure reason <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   value={failDialog.reason}
                   onChange={(e) => setFailDialog((prev) => ({ ...prev, reason: e.target.value }))}
-                  placeholder="Nhập lý do phiên đấu giá thất bại..."
+                  placeholder="Enter auction failure reason..."
                   rows={4}
                   className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-red-300 focus:border-red-400 text-sm resize-none"
                 />
                 <p className="text-xs text-gray-400 mt-2">
-                  Sản phẩm sẽ được chuyển về trạng thái &quot;Sẵn sàng&quot; và có thể tạo phiên đấu giá mới.
+                  Product will be returned to &quot;Available&quot; status and can create new auction.
                 </p>
               </div>
               <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
@@ -589,14 +589,14 @@ export default function AuctionsApprovalPage() {
                   onClick={() => setFailDialog({ isOpen: false, auctionId: null, reason: "" })}
                   className="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium text-sm hover:bg-gray-100 transition"
                 >
-                  Hủy
+                  Cancel
                 </button>
                 <button
                   onClick={handleFail}
                   disabled={!failDialog.reason.trim() || actionLoadingId === failDialog.auctionId}
                   className="px-5 py-2.5 bg-red-600 text-white rounded-lg font-medium text-sm hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {actionLoadingId === failDialog.auctionId ? "Đang xử lý..." : "Xác nhận thất bại"}
+                  {actionLoadingId === failDialog.auctionId ? "Processing..." : "Confirm failure"}
                 </button>
               </div>
             </div>

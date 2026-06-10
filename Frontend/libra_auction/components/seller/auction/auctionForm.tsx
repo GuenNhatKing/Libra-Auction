@@ -134,7 +134,7 @@ export default function AuctionForm({ products }: { products: Product[] }) {
         {step === 1 && (
           <div className="space-y-4">
             {products.filter(p => p.status !== "SOLD").length === 0 && (
-              <p className="text-gray-500 text-center py-8">Không có sản phẩm khả dụng để tạo phiên đấu giá.</p>
+              <p className="text-gray-500 text-center py-8">No available products to create an auction.</p>
             )}
             {products.filter(p => p.status !== "SOLD").map((p) => (
               <div

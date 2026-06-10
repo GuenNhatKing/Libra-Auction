@@ -11,7 +11,7 @@ export const ProductItem = ({ product, onView, onEdit, onDelete }: ProductItemPr
   return (
     <div className="bg-white p-4 rounded-2xl border border-gray-100 hover:border-(--accent-color) hover:shadow-sm transition-all flex items-center justify-between group">
       <div className="flex items-center gap-4">
-        {/* Placeholder Icon cho Product */}
+        {/* Placeholder Icon for Product */}
         <div className="h-12 w-12 bg-(--background-color) rounded-xl flex items-center justify-center text-(--secondary-color)">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m7.5 4.27 9 5.15" /><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" /><path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" /></svg>
         </div>
@@ -25,7 +25,7 @@ export const ProductItem = ({ product, onView, onEdit, onDelete }: ProductItemPr
 
             {product.status === "SOLD" && (
               <span className="text-xs font-medium text-red-700 bg-red-100 px-2 py-0.5 rounded-lg">
-                Đã bán
+                Sold
               </span>
             )}
 

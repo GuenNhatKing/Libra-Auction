@@ -47,7 +47,7 @@ export default function AuctionInfoSection({
   const startDate = new Date(autionInfos.start_time);
 
   const formatDateOnly = (date: Date) => {
-    return new Intl.DateTimeFormat('vi-VN', {
+    return new Intl.DateTimeFormat('en-US', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -55,7 +55,7 @@ export default function AuctionInfoSection({
   };
 
   const formatTimeOnly = (date: Date) => {
-    return new Intl.DateTimeFormat('vi-VN', {
+    return new Intl.DateTimeFormat('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
@@ -246,18 +246,18 @@ export default function AuctionInfoSection({
               <div className="pt-4 mt-4 border-t border-gray-100">
                 {autionInfos.auction_status === "COMPLETED" ? (
                   <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-center">
-                    <p className="text-emerald-700 font-bold text-lg">Phiên đấu giá đã hoàn thành</p>
+                    <p className="text-emerald-700 font-bold text-lg">Auction completed</p>
                     {autionInfos.completed_at && (
                       <p className="text-emerald-600 text-sm mt-1">
-                        Hoàn thành lúc: {new Date(autionInfos.completed_at).toLocaleString("vi-VN")}
+                        Completed at: {new Date(autionInfos.completed_at).toLocaleString("en-US")}
                       </p>
                     )}
                   </div>
                 ) : autionInfos.auction_status === "FAILED" ? (
                   <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5 text-center">
-                    <p className="text-rose-700 font-bold text-lg">Phiên đấu giá thất bại</p>
+                    <p className="text-rose-700 font-bold text-lg">Auction failed</p>
                     {autionInfos.failure_reason && (
-                      <p className="text-rose-600 text-sm mt-1">Lý do: {autionInfos.failure_reason}</p>
+                      <p className="text-rose-600 text-sm mt-1">Reason: {autionInfos.failure_reason}</p>
                     )}
                   </div>
                 ) : autionInfos.auction_status === "ENDED" && autionInfos.winner_id ? (
@@ -268,14 +268,14 @@ export default function AuctionInfoSection({
                   }`}>
                     {isCreator ? (
                       <>
-                        <p className="text-blue-700 font-bold text-lg">Phiên đấu giá đã kết thúc</p>
-                        <p className="text-blue-600 text-sm mt-1">Người thắng: {autionInfos.winner_name}</p>
-                        <p className="text-blue-600 text-sm">Giá thắng: {CurrencyFormat(autionInfos.winning_price || autionInfos.current_price)}</p>
+                        <p className="text-blue-700 font-bold text-lg">Auction ended</p>
+                        <p className="text-blue-600 text-sm mt-1">Winner: {autionInfos.winner_name}</p>
+                        <p className="text-blue-600 text-sm">Winning price: {CurrencyFormat(autionInfos.winning_price || autionInfos.current_price)}</p>
                       </>
                     ) : (
                       <>
-                        <p className="text-emerald-700 font-bold text-lg">Người thắng: {autionInfos.winner_name}</p>
-                        <p className="text-emerald-600 text-sm mt-1">Giá thắng: {CurrencyFormat(autionInfos.winning_price || autionInfos.current_price)}</p>
+                        <p className="text-emerald-700 font-bold text-lg">Winner: {autionInfos.winner_name}</p>
+                        <p className="text-emerald-600 text-sm mt-1">Winning price: {CurrencyFormat(autionInfos.winning_price || autionInfos.current_price)}</p>
                       </>
                     )}
                     <Link
@@ -287,19 +287,19 @@ export default function AuctionInfoSection({
                   </div>
                 ) : autionInfos.auction_status === "ENDED" ? (
                   <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 text-center">
-                    <p className="text-gray-600 font-bold text-lg">Phiên đấu giá đã kết thúc</p>
-                    <p className="text-gray-500 text-sm mt-1">Không có người thắng</p>
+                    <p className="text-gray-600 font-bold text-lg">Auction ended</p>
+                    <p className="text-gray-500 text-sm mt-1">No winner</p>
                   </div>
                 ) : isLive ? (
                   isRegistered && !depositPaid ? (
                     <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-center">
-                      <p className="text-amber-700 font-bold text-lg">Vui lòng thanh toán cọc</p>
-                      <p className="text-amber-600 text-sm mt-1">Bạn cần thanh toán tiền cọc trước khi tham gia đấu giá</p>
+                      <p className="text-amber-700 font-bold text-lg">Please pay deposit</p>
+                      <p className="text-amber-600 text-sm mt-1">You need to pay the deposit before joining the auction</p>
                       <Link
                         href={`/auctions/${autionInfos.category_id}/${autionInfos.auction_id}/registration`}
                         className="mt-3 inline-block w-full items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white text-lg font-bold py-4 px-8 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all duration-200"
                       >
-                        Thanh toán cọc
+                        Pay Deposit
                       </Link>
                     </div>
                   ) : (
@@ -325,7 +325,7 @@ export default function AuctionInfoSection({
                     href={`/auctions/${autionInfos.category_id}/${autionInfos.auction_id}/registration`}
                     className="w-full flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white text-lg font-bold py-5 px-8 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all duration-200 group"
                   >
-                    {depositPaid ? "View registration details" : "Thanh toán cọc để hoàn tất đăng ký"}
+                    {depositPaid ? "View registration details" : "Pay deposit to complete registration"}
                   </Link>
                 ) : (
                   <>

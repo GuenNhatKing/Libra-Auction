@@ -51,7 +51,7 @@ function RevenueChart({ points }: { points: DashboardRevenuePoint[] }) {
 
   return (
     <div className="rounded-2xl border border-[#AFD3E2]/70 bg-white shadow-xs">
-      {/* Modern Compact Header - Y hệt Admin style */}
+      {/* Modern Compact Header - Same as Admin style */}
       <div className="border-b border-[#AFD3E2]/50 p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -65,7 +65,7 @@ function RevenueChart({ points }: { points: DashboardRevenuePoint[] }) {
         </div>
       </div>
 
-      {/* Chart Layout Split - Chuyển sang thanh ngang và thêm sidebar thống kê phụ */}
+      {/* Chart Layout Split - Switch to horizontal bar and add secondary stats sidebar */}
       <div className="grid gap-8 p-6 lg:grid-cols-[1fr_300px]">
         <div className="space-y-4">
           {points.map((point) => {
@@ -177,7 +177,7 @@ export default async function SellerDashboardPage() {
 
   return (
     <div className="mx-auto max-w-(screen-2xl) space-y-6 p-4 antialiased">
-      {/* Top Main Banner Panel - Đã đồng bộ phẳng nền theo Admin */}
+      {/* Top Main Banner Panel - Synced flat background with Admin */}
       <section className="rounded-2xl border border-[#AFD3E2]/60 bg-white p-6 shadow-xs">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>

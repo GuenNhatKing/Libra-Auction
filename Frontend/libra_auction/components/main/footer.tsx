@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function Footer() {
-  // Định nghĩa các nhóm liên kết tương tự cấu trúc của Header
+  // Define link groups similar to the Header structure
   const supportItems = [
     { value: "Help Center", href: "/help" },
     { value: "Contact Us", href: "/contact" },

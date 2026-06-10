@@ -66,7 +66,7 @@ export default function DeleteProductPage() {
     return <ErrorView status={status} title={getErrorTitle(status)} message={getErrorMessage(error)} />;
   }
 
-  // không có data
+  // no data
   if (!product) return <ErrorView status={404} title="Product not found" />;
 
   return (

@@ -36,7 +36,7 @@ export default function CCCDModal({
       }
     >
       <div className="space-y-6">
-        {/* Mặt trước */}
+        {/* Front side */}
         <div>
           <p className="text-sm font-semibold text-gray-600 mb-2">Front Side</p>
           <div className="bg-gray-100 rounded-lg overflow-hidden border border-gray-300">
@@ -50,7 +50,7 @@ export default function CCCDModal({
           </div>
         </div>
 
-        {/* Mặt sau */}
+        {/* Back side */}
         <div>
           <p className="text-sm font-semibold text-gray-600 mb-2">Back Side</p>
           <div className="bg-gray-100 rounded-lg overflow-hidden border border-gray-300">

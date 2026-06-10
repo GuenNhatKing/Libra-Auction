@@ -39,7 +39,7 @@ export default async function Auctions({
 
     return (
         <div className="flex min-h-screen bg-(--background-color)">
-            {/* Sidebar - Giảm nhẹ kích thước để tăng không gian cho card */}
+            {/* Sidebar - Reduce size to increase space for cards */}
             <aside className="w-[22%] sticky top-0 h-screen border-r border-gray-100 bg-white p-6 hidden md:block">
                 <AuctionFilterSidebar
                     categories={categories}
@@ -52,7 +52,7 @@ export default async function Auctions({
                 />
             </aside>
 
-            {/* Main content - Tăng nhẹ kích thước */}
+            {/* Main content - Increase size slightly */}
             <main className="w-full md:w-[78%] p-6 lg:p-8">
                 <header className="flex justify-between items-end mb-8">
                     <div>
@@ -69,7 +69,7 @@ export default async function Auctions({
                     </select>
                 </header>
 
-                {/* Grid - Giảm gap từ 6 xuống 4 để card fit đẹp hơn */}
+                {/* Grid - Reduce gap from 6 to 4 so cards fit better */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {visibleCards.map((card) => (
                         <AuctionCard key={card.auction_id} auctionCard={card} />

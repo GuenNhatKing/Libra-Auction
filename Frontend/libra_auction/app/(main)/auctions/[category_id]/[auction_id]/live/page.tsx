@@ -14,7 +14,7 @@ export default async function LivePage(props: {
   const params = await props.params;
   const auctionId = params.auction_id;
   
-  // 1. Fetch thông tin chi tiết phiên đấu giá
+  // 1. Fetch auction details
   let auction;
   try {
     auction = await fetchPublicAuction(auctionId);
@@ -23,12 +23,12 @@ export default async function LivePage(props: {
     throw error;
   }
 
-  // 2. Fetch danh sách thông báo quá khứ lưu trong Database (Sửa lỗi trống log khi F5)
+  // 2. Fetch past notification list stored in Database (Fix empty log on F5 refresh)
   const liveNotifications = await fetchLiveNotifications(auctionId).catch(() => []);
 
   const backendServerUrl = process.env.PUBLIC_BACKEND_SERVER_URL || process.env.BACKEND_SERVER_URL || '';
 
-  // 3. Kiểm tra thông tin định danh và quyền hạn của người dùng hiện tại
+  // 3. Check identity and permissions of current user
   let isRegistered = false;
   let isCreator = false;
   let depositPaid = false;
@@ -49,10 +49,10 @@ export default async function LivePage(props: {
       }
     }
   } catch {
-    // Không đăng nhập hoặc xảy ra lỗi token thì bỏ qua
+    // Not logged in or token error, skip
   }
 
-  // 4. Cấu trúc thanh điều hướng Breadcrumb
+  // 4. Breadcrumb navigation structure
   const breadcrumb_items = [
     {
       id: auction.category_id,

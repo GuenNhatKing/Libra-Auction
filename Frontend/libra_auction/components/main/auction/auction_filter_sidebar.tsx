@@ -34,7 +34,7 @@ export const AuctionFilterSidebar = ({
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    // Lưu các lựa chọn vào state tạm thời
+    // Save selections to temporary state
     const [selectedCategoryId, setSelectedCategoryId] = useState(activeCategoryId);
     const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
     const [selectedStatus, setSelectedStatus] = useState(initialStatus);
@@ -89,7 +89,7 @@ export const AuctionFilterSidebar = ({
         setSelectedAttributes((prev) => prev.filter((_, i) => i !== index));
     };
 
-    // Xử lý gom toàn bộ filter và đẩy lên URL khi bấm nút Apply
+    // Handle collecting all filters and push to URL on Apply button click
     const handleApplyFilters = () => {
         const query = new URLSearchParams(searchParams.toString());
 
@@ -125,7 +125,7 @@ export const AuctionFilterSidebar = ({
 
         const queryString = query.toString();
 
-        // Nếu chọn danh mục cụ thể thì trỏ sang đường dẫn động, ngược lại về /auctions tổng quát
+        // If specific category selected, navigate to dynamic path; otherwise go to /auctions
         const targetPath = selectedCategoryId ? `/auctions/${selectedCategoryId}` : "/auctions";
 
         router.push(queryString ? `${targetPath}?${queryString}` : targetPath);
@@ -263,7 +263,7 @@ export const AuctionFilterSidebar = ({
                 )}
             </div>
 
-            {/* TỔNG HỢP FILTER BUTTON */}
+            {/* APPLY FILTERS BUTTON */}
             <button
                 type="button"
                 onClick={handleApplyFilters}

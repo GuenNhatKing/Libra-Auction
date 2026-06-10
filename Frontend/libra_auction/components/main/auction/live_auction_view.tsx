@@ -50,8 +50,8 @@ function toTimestamp(value: Date | string | number | undefined) {
 function formatTime(value?: string) {
   const timestamp = toTimestamp(value);
   return Number.isNaN(timestamp)
-    ? new Date().toLocaleTimeString("vi-VN")
-    : new Date(timestamp).toLocaleTimeString("vi-VN");
+    ? new Date().toLocaleTimeString("en-US")
+    : new Date(timestamp).toLocaleTimeString("en-US");
 }
 
 function toNumber(value: string | number | undefined) {
@@ -117,19 +117,19 @@ export default function LiveAuctionView({
     fetchAuctionBids(auction.auction_id).then((fetchedBids) => {
       if (fetchedBids && fetchedBids.length > 0) {
         const mappedBids: BidEntry[] = fetchedBids.map((b) => ({
-          bidderName: b.bidderName || "Ẩn danh",
+          bidderName: b.bidderName || "Anonymous",
           amount: b.bidAmount,
-          time: b.bidTime ? formatTime(b.bidTime) : new Date().toLocaleTimeString("vi-VN"),
+          time: b.bidTime ? formatTime(b.bidTime) : new Date().toLocaleTimeString("en-US"),
           status: (b.status as BidEntry["status"]) || "SUCCESS",
           bidderId: b.bidderId,
         }));
         setBids(mappedBids);
         setTotalBids(mappedBids.length);
 
-        // Lấy thông tin lượt bid mới nhất đặt lên đầu ô thông tin
+        // Get latest bid info and place it at the top of the info box
         const latestBid = fetchedBids[0];
         const isIHoldHighest = currentUserId && latestBid.bidderId === currentUserId;
-        setHighestBidder(latestBid.bidderName || "Ẩn danh");
+        setHighestBidder(latestBid.bidderName || "Anonymous");
         setCurrentBid(latestBid.bidAmount);
         setIsHighestBidder(!!isIHoldHighest);
       }
@@ -173,7 +173,7 @@ export default function LiveAuctionView({
       if (!bid) return;
 
       if (bid.status === "ERROR") {
-        addNotification(`Lỗi: ${bid.bidderName || "Không thể đặt giá"}`);
+        addNotification(`Error: ${bid.bidderName || "Unable to place bid"}`);
         return;
       }
 
@@ -181,14 +181,14 @@ export default function LiveAuctionView({
       if (!isNaN(bidAmount) && bidAmount > 0) {
         setCurrentBid(bidAmount);
 
-        const displayName = bid.bidderName || "Ẩn danh";
+        const displayName = bid.bidderName || "Anonymous";
         const isMyBid = currentUserId && bid.bidderId && bid.bidderId === currentUserId;
 
         setBids((prev) => [
           {
             bidderName: displayName,
             amount: bidAmount,
-            time: bid.bidTime ? formatTime(bid.bidTime) : new Date().toLocaleTimeString("vi-VN"),
+            time: bid.bidTime ? formatTime(bid.bidTime) : new Date().toLocaleTimeString("en-US"),
             status: "SUCCESS",
             bidderId: bid.bidderId,
           },
@@ -198,7 +198,7 @@ export default function LiveAuctionView({
         setHighestBidder(displayName);
         setIsHighestBidder(!!isMyBid);
 
-        addNotification(`${isMyBid ? "Bạn" : displayName} đã đặt giá ${CurrencyFormat(bidAmount)}`);
+        addNotification(`${isMyBid ? "You" : displayName} placed a bid ${CurrencyFormat(bidAmount)}`);
       }
     });
 
@@ -210,7 +210,7 @@ export default function LiveAuctionView({
         if (!Number.isNaN(newEndTimeMs) && newEndTimeMs > 0) {
           setEndTimeMs(newEndTimeMs);
         }
-        addNotification(update.message || "Phiên đấu giá đã được gia hạn thêm 5 phút");
+        addNotification(update.message || "Auction has been extended by 5 minutes");
         return;
       }
 
@@ -222,23 +222,23 @@ export default function LiveAuctionView({
             if (parsedRemainingTime !== undefined) {
               setRemainingTimeMs(parsedRemainingTime);
             }
-            setStatusMessage("Phiên đấu giá đang tạm dừng. Vui lòng chờ admin tiếp tục.");
-            addNotification("Phiên đấu giá đã bị tạm dừng");
+            setStatusMessage("Auction is paused. Please wait for admin to resume.");
+            addNotification("Auction has been paused");
             break;
           }
           case "LIVE":
             setRemainingTimeMs(null);
             setStatusMessage(null);
-            addNotification("Phiên đấu giá đã tiếp tục");
+            addNotification("Auction has resumed");
             break;
           case "ENDED":
-            setStatusMessage("Phiên đấu giá đã kết thúc.");
+            setStatusMessage("Auction has ended.");
             setRemainingTimeMs(0);
             setIsHighestBidder(false);
             if (update.winnerId) setWinnerId(update.winnerId);
             if (update.winnerName) setWinnerName(update.winnerName);
             if (typeof update.winningPrice === "number") setWinningPrice(update.winningPrice);
-            addNotification("Phiên đấu giá đã kết thúc");
+            addNotification("Auction has ended");
             break;
           case "CANCELLED":
           case "COMPLETED":
@@ -246,17 +246,17 @@ export default function LiveAuctionView({
             setRemainingTimeMs(0);
             setStatusMessage(
               update.status === "CANCELLED"
-                ? "Phiên đấu giá đã bị hủy."
+                ? "Auction has been cancelled."
                 : update.status === "COMPLETED"
-                ? "Phiên đấu giá đã hoàn tất."
-                : "Phiên đấu giá đã thất bại."
+                ? "Auction has been completed."
+                : "Auction has failed."
             );
             addNotification(
               update.status === "CANCELLED"
-                ? "Phiên đấu giá đã bị hủy"
+                ? "Auction has been cancelled"
                 : update.status === "COMPLETED"
-                ? "Phiên đấu giá đã hoàn tất"
-                : "Phiên đấu giá đã thất bại"
+                ? "Auction has been completed"
+                : "Auction has failed"
             );
             break;
         }
@@ -279,7 +279,7 @@ export default function LiveAuctionView({
   const handleBidClick = () => {
     const value = Number(bidValue);
     if (Number.isNaN(value) || value <= 0 || value < minimumBid) {
-      addNotification(`Giá đặt phải tối thiểu ${CurrencyFormat(minimumBid)}`);
+      addNotification(`Bid must be at least ${CurrencyFormat(minimumBid)}`);
       return;
     }
     setShowConfirm(true);
@@ -288,7 +288,7 @@ export default function LiveAuctionView({
   const confirmBid = async () => {
     const value = Number(bidValue);
     if (Number.isNaN(value) || value <= 0 || value < minimumBid) {
-      addNotification(`Giá đặt phải tối thiểu ${CurrencyFormat(minimumBid)}`);
+      addNotification(`Bid must be at least ${CurrencyFormat(minimumBid)}`);
       return;
     }
     setShowConfirm(false);
@@ -300,10 +300,10 @@ export default function LiveAuctionView({
         bidderId: currentUserId || undefined,
       });
       setBidValue("");
-      addNotification(`Đã gửi yêu cầu đặt giá ${CurrencyFormat(value)}, đang chờ xác nhận...`);
+      addNotification(`Bid request sent ${CurrencyFormat(value)}, awaiting confirmation...`);
     } catch (err) {
       console.error(err);
-      addNotification("Lỗi khi gửi đặt giá");
+      addNotification("Error placing bid");
     } finally {
       setIsBidding(false);
     }
@@ -341,7 +341,7 @@ export default function LiveAuctionView({
 
   const handleUpcomingEnd = useCallback(() => {
     setAuctionStatus("LIVE");
-    addNotification("Phiên đấu giá đã bắt đầu!");
+    addNotification("Auction has started!");
   }, [addNotification]);
 
   return (
@@ -359,9 +359,9 @@ export default function LiveAuctionView({
           }`}>
             {currentUserId && winnerId === currentUserId ? (
               <>
-                <p className="text-2xl font-bold mb-2">Bạn thắng phiên đấu giá này!</p>
+                <p className="text-2xl font-bold mb-2">You won this auction!</p>
                 <p className="text-lg">Winning price: <span className="font-bold">{CurrencyFormat(winningPrice || currentBid)}</span></p>
-                <p className="mt-3 text-sm font-semibold">Vui lòng vào Profile - Wallet & Transactions để thanh toán.</p>
+                <p className="mt-3 text-sm font-semibold">Please go to Profile - Wallet & Transactions to make payment.</p>
               </>
             ) : (
               <>

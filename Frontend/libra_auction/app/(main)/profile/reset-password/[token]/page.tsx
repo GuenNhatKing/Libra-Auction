@@ -20,12 +20,12 @@ export default function ProfileResetPasswordPage() {
         setError('');
 
         if (newPassword !== confirmPassword) {
-            setError('Mật khẩu xác nhận không khớp.');
+            setError('Passwords do not match.');
             return;
         }
 
         if (newPassword.length < 6) {
-            setError('Mật khẩu phải có ít nhất 6 ký tự.');
+            setError('Password must be at least 6 characters.');
             return;
         }
 
@@ -40,7 +40,7 @@ export default function ProfileResetPasswordPage() {
                 setError(result.message);
             }
         } catch {
-            setError('Đã xảy ra lỗi. Vui lòng thử lại.');
+            setError('An error occurred. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -50,8 +50,8 @@ export default function ProfileResetPasswordPage() {
         return (
             <div className="space-y-4 text-center">
                 <div className="text-5xl mb-4">&#10003;</div>
-                <h2 className="text-2xl font-bold text-green-600">Đổi mật khẩu thành công!</h2>
-                <p className="text-gray-600">Đang chuyển hướng...</p>
+                <h2 className="text-2xl font-bold text-green-600">Password changed successfully!</h2>
+                <p className="text-gray-600">Redirecting...</p>
             </div>
         );
     }
@@ -60,24 +60,24 @@ export default function ProfileResetPasswordPage() {
         <div className="space-y-6">
             <div>
                 <h2 className="text-lg font-semibold text-[var(--secondary-color)]">
-                    Đặt lại mật khẩu
+                    Reset Password
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
-                    Nhập mật khẩu mới cho tài khoản của bạn.
+                    Enter a new password for your account.
                 </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                        Mật khẩu mới
+                        New Password
                     </label>
                     <input
                         id="newPassword"
                         type="password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="Nhập mật khẩu mới"
+                        placeholder="Enter new password"
                         minLength={6}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent"
                         required
@@ -86,14 +86,14 @@ export default function ProfileResetPasswordPage() {
 
                 <div>
                     <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                        Xác nhận mật khẩu
+                        Confirm Password
                     </label>
                     <input
                         id="confirmPassword"
                         type="password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Nhập lại mật khẩu mới"
+                        placeholder="Re-enter new password"
                         minLength={6}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent"
                         required
@@ -111,7 +111,7 @@ export default function ProfileResetPasswordPage() {
                     disabled={loading}
                     className="w-full py-3 bg-[var(--primary-color)] text-white rounded-lg font-semibold hover:bg-[var(--secondary-color)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                    {loading ? 'Đang đặt lại...' : 'Đặt lại mật khẩu'}
+                    {loading ? 'Resetting...' : 'Reset Password'}
                 </button>
             </form>
         </div>

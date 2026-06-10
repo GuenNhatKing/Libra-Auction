@@ -23,14 +23,14 @@ export async function GET(req: NextRequest) {
 
         // Determine endpoint based on order info
         const orderInfo = searchParams.get("vnp_OrderInfo") || "";
-        const isWinnerPayment = orderInfo.includes("Thanh toan dau gia");
+        const isWinnerPayment = orderInfo.includes("Auction payment");
         const endpoint = isWinnerPayment
             ? "/api/payments/vnpay/payment/successed"
             : "/api/payments/vnpay/deposit/successed";
 
         // Extract auction ID from order info for redirect
         let auctionId = "";
-        const auctionMatch = orderInfo.match(/dau gia:\s*(.+)/);
+        const auctionMatch = orderInfo.match(/auction:\s*(.+)/i);
         if (auctionMatch) {
             auctionId = auctionMatch[1].trim();
         }

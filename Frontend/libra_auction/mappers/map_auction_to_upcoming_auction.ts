@@ -5,20 +5,20 @@ export const mapAuctionToUpcoming = (auction: Auction): UpcomingAuction => {
   return {
     id: auction.auction_id,
     
-    // Sử dụng ảnh đầu tiên, nếu không có thì dùng ảnh mặc định
+    // Use first image, fall back to default if none
     image_src: auction.images && auction.images.length > 0 
       ? auction.images[0] 
       : "/images/placeholder-upcoming.jpg",
     
     title: auction.auction_name,
     
-    // Đối với đấu giá sắp diễn ra, ta hiển thị giá khởi điểm
+    // For upcoming auctions, show the starting price
     starting_bid: auction.starting_price,
     
-    // Số lượng người đã đăng ký hoặc quan tâm (dựa trên total_participants)
+    // Number of registered participants or interested bidders (based on total_participants)
     bidders: auction.total_participants || 0,
     
-    // Chuyển đổi sang đối tượng Date nếu start_time đang là string
+    // Convert to Date object if start_time is a string
     starting_date: new Date(auction.start_time),
     
     category_id: auction.category_id

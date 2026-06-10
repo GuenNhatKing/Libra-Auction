@@ -67,7 +67,7 @@ export default function AuctionCard({ auctionCard }: { auctionCard: Auction }) {
         ? startTime + auctionCard.duration * 1000
         : explicitEndTime;
 
-    // Tự chuyển sang LIVE khi startTime đã qua mà server chưa cập nhật
+    // Auto-transition to LIVE when startTime has passed but server hasn't updated yet
     const isLive = auctionCard.auction_status === "LIVE" || now >= startTime;
     const countdownLabel = isLive ? "Ends in" : "Starts in";
     const countdownValue = isLive
@@ -111,7 +111,7 @@ export default function AuctionCard({ auctionCard }: { auctionCard: Auction }) {
             </div>
 
             <div className="p-4 flex flex-col grow">
-                {/* Thay đổi từ line-clamp-2 thành truncate block để ép về 1 dòng và thêm tooltip title khi hover */}
+                {/* Changed from line-clamp-2 to truncate block to force 1 line and add tooltip title on hover */}
                 <h3 
                     className="font-bold text-gray-800 truncate block leading-tight mb-3"
                     title={auctionCard.product_name}

@@ -40,7 +40,7 @@ export default function DepositPaymentSection({
             const paymentUrl = await createDeposit(auction.auction_id);
             window.location.href = paymentUrl;
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Không thể tạo thanh toán");
+            setError(err instanceof Error ? err.message : "Unable to create payment");
             setIsProcessing(false);
         }
     };
@@ -55,20 +55,20 @@ export default function DepositPaymentSection({
                     </svg>
                 </div>
                 <h3 className="text-lg font-bold text-green-800 mb-2">
-                    Đăng ký hoàn tất!
+                    Registration Complete!
                 </h3>
                 <p className="text-green-600 mb-4">
-                    Bạn đã thanh toán tiền cọc thành công.
+                    Deposit paid successfully.
                 </p>                
                 <p className="text-green-600 mb-4">
-                    Bạn có thể tham gia đấu giá khi phiên bắt đầu.
+                    You can join the auction when it starts.
                 </p>
                 <a
                     href={`/auctions/${auction.category_id}/${auction.auction_id}/live`}
                     className="inline-block"
                 >
                     <Button variant="primary">
-                        Xem đấu giá trực tiếp
+                        View Live Auction
                     </Button>
                 </a>
             </div>
@@ -85,10 +85,10 @@ export default function DepositPaymentSection({
                     </svg>
                 </div>
                 <h3 className="text-lg font-bold text-red-800 mb-2">
-                    Thanh toán thất bại
+                    Payment Failed
                 </h3>
                 <p className="text-red-600 mb-4">
-                    Giao dịch không thành công. Vui lòng thử lại.
+                    Transaction failed. Please try again.
                 </p>
                 {error && (
                     <div className="bg-red-100 text-red-700 text-sm p-3 rounded-lg mb-4">
@@ -100,7 +100,7 @@ export default function DepositPaymentSection({
                     onClick={handlePayDeposit}
                     loading={isProcessing}
                 >
-                    Thử lại
+                    Retry
                 </Button>
             </div>
         );
@@ -110,19 +110,19 @@ export default function DepositPaymentSection({
     return (
         <div className="bg-white border border-gray-200 rounded-lg p-6">
             <h3 className="text-lg font-bold text-gray-800 mb-4">
-                Thanh toán tiền cọc
+                Deposit Payment
             </h3>
             <div className="bg-gray-50 rounded-lg p-4 mb-4">
                 <div className="flex justify-between items-center">
-                    <span className="text-gray-500">Số tiền cọc:</span>
+                    <span className="text-gray-500">Deposit amount:</span>
                     <span className="text-2xl font-bold text-[#146C94]">
                         {CurrencyFormat(auction.deposit_amount)}
                     </span>
                 </div>
             </div>
             <p className="text-sm text-gray-500 mb-4">
-                Bạn cần thanh toán tiền cọc qua VNPay để hoàn tất đăng ký tham gia đấu giá.
-                Tiền cọc sẽ được hoàn trả nếu bạn không trúng đấu giá.
+                You need to pay the deposit via VNPay to complete auction registration.
+                Deposit will be refunded if you don't win the auction.
             </p>
             {error && (
                 <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg mb-4">
@@ -136,7 +136,7 @@ export default function DepositPaymentSection({
                 onClick={handlePayDeposit}
                 loading={isProcessing}
             >
-                Thanh toán cọc qua VNPay
+                Pay Deposit via VNPay
             </Button>
         </div>
     );

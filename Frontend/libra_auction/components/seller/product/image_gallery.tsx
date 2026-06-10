@@ -7,7 +7,7 @@ export const ImageGallery = ({ images }: { images: string[] }) => {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Ảnh chính */}
+      {/* Main image */}
       <div className="relative aspect-square w-full rounded-2xl overflow-hidden border border-gray-100 bg-white">
         <Image
           src={mainImage}
@@ -17,7 +17,7 @@ export const ImageGallery = ({ images }: { images: string[] }) => {
         />
       </div>
 
-      {/* Danh sách ảnh thu nhỏ */}
+      {/* Thumbnail list */}
       <div className="flex gap-2 overflow-x-auto pb-2">
         {images.map((img, idx) => (
           <button

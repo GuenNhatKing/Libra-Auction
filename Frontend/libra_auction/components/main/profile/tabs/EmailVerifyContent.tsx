@@ -32,7 +32,7 @@ export function EmailVerifyContent({
         setError(result.message);
       }
     } catch {
-      setError("Đã xảy ra lỗi. Vui lòng thử lại.");
+      setError("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }

@@ -105,9 +105,9 @@ export async function sendEmailVerificationAction(email: string): Promise<Action
         });
 
         if (res.isSuccess && res.data) {
-            return { success: true, message: "OTP đã được gửi đến email của bạn.", token: res.data };
+            return { success: true, message: "OTP has been sent to your email.", token: res.data };
         }
-        return { success: false, message: res.errorMessage || "Không thể gửi OTP." };
+        return { success: false, message: res.errorMessage || "Unable to send OTP." };
     } catch (e) {
         console.error("Error in sendEmailVerificationAction:", e);
         return { success: false, message: "Internal server error" };
@@ -123,9 +123,9 @@ export async function activateOtpAction(token: string, otp: string): Promise<Act
         });
 
         if (res.isSuccess) {
-            return { success: true, message: "OTP đã được kích hoạt." };
+            return { success: true, message: "OTP has been activated." };
         }
-        return { success: false, message: res.errorMessage || "OTP không hợp lệ hoặc đã hết hạn." };
+        return { success: false, message: res.errorMessage || "Invalid or expired OTP." };
     } catch (e) {
         console.error("Error in activateOtpAction:", e);
         return { success: false, message: "Internal server error" };
@@ -140,9 +140,9 @@ export async function verifyEmailAction(token: string): Promise<ActionResponse> 
         });
 
         if (res.isSuccess) {
-            return { success: true, message: "Xác thực email thành công." };
+            return { success: true, message: "Email verified successfully." };
         }
-        return { success: false, message: res.errorMessage || "Không thể xác thực email." };
+        return { success: false, message: res.errorMessage || "Unable to verify email." };
     } catch (e) {
         console.error("Error in verifyEmailAction:", e);
         return { success: false, message: "Internal server error" };
@@ -160,9 +160,9 @@ export async function forgotPasswordAction(email: string): Promise<ActionRespons
         });
 
         if (res.isSuccess && res.data) {
-            return { success: true, message: "OTP đặt lại mật khẩu đã được gửi đến email của bạn.", token: res.data };
+            return { success: true, message: "Password reset OTP has been sent to your email.", token: res.data };
         }
-        return { success: false, message: res.errorMessage || "Không thể gửi OTP." };
+        return { success: false, message: res.errorMessage || "Unable to send OTP." };
     } catch (e) {
         console.error("Error in forgotPasswordAction:", e);
         return { success: false, message: "Internal server error" };
@@ -178,9 +178,9 @@ export async function resetPasswordAction(token: string, newPassword: string): P
         });
 
         if (res.isSuccess) {
-            return { success: true, message: "Đặt lại mật khẩu thành công." };
+            return { success: true, message: "Password reset successful." };
         }
-        return { success: false, message: res.errorMessage || "Không thể đặt lại mật khẩu." };
+        return { success: false, message: res.errorMessage || "Unable to reset password." };
     } catch (e) {
         console.error("Error in resetPasswordAction:", e);
         return { success: false, message: "Internal server error" };
