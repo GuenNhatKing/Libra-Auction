@@ -436,11 +436,6 @@ public class VNPayService {
         return request.getRemoteAddr();
     }
 
-    private boolean hasAuctionStarted(Auction auction) {
-        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.ofHours(7));
-        return auction.getAuctionStatus() != AuctionStatus.UPCOMING || !now.isBefore(auction.getStartTime());
-    }
-
     private boolean isDepositNotAllowed(Auction auction) {
         AuctionStatus status = auction.getAuctionStatus();
         return status != AuctionStatus.UPCOMING && status != AuctionStatus.LIVE;
