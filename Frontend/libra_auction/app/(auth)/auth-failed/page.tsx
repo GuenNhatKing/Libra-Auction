@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import cross from "@/public/cross.png";
 import Image from "next/image";
 
-function AuthFailed() {
+function AuthFailedContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
   const timeout = 3;
@@ -81,5 +81,9 @@ function AuthFailed() {
 }
 
 export default function page() {
-  return <AuthFailed />;
+  return (
+    <Suspense>
+      <AuthFailedContent />
+    </Suspense>
+  );
 }
